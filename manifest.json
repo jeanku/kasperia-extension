@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "kasperia",
+  "version": "1.0",
+  "description": "Uses the chrome.bookmarks API to search through, add, and delete bookmarks from the user's bookmark tree.",
+  "action": {
+    "default_popup": "index.html",
+    "default_icon": "media/icon128.png"
+  },
+  "icons": {
+    "16": "media/icon16.png",
+    "48": "media/icon48.png",
+    "128": "media/icon128.png"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js", "injected.js"]
+    }
+  ],
+  "permissions": ["alarms", "storage", "activeTab", "scripting"],
+  "host_permissions": ["<all_urls>"],
+  "web_accessible_resources": [
+    {
+      "resources": ["injected.js", "content.js"],
+      "matches": ["<all_urls>"],
+      "use_dynamic_url": true
+    }
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';"
+  }
+}

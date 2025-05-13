@@ -1,0 +1,70 @@
+
+@use '../../styles/var.scss' as *;
+.global-notice-bar {
+    position: fixed;
+    bottom: 90px;
+    left: 14px;
+    right: 14px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    pointer-events: none;
+    text-align: center;
+    .global-toast {
+        font-size: 16px;
+        color: $add-color;
+        border-radius: 6px;
+        padding: 10px 24px;
+        box-sizing: border-box;
+        background-color: $tip-success;
+        margin-bottom: 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: all 0.3s ease-in-out;
+        span {
+            display: inline-block;
+            padding-left: 6px;
+            font-size: 16px;
+            flex: 2;
+            text-align: left;
+        }
+        svg {
+            min-width: 18px;
+        }
+        &.info {
+            background-color: $bg-color-block;
+            color: $text-color-secondary;
+        }
+        &.error {
+            background-color: $tip-error-bg;
+            color: $flide-color;
+        }
+        &.alert {
+            background-color: $bg-color-alert;
+            color:  $text-color-alert;
+        }
+    }
+    
+    z-index: 99;
+}
+.message-item-enter {
+    opacity: 0;
+    transform: translateY(100%);
+}
+
+.message-item-enter-active {
+    opacity: 1;
+    transform: translateY(0);
+    transition: all 300ms ease-in;
+}
+
+.message-item-exit {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.message-item-exit-active {
+    opacity: 0;
+    transition: all .3s ease-out;
+}

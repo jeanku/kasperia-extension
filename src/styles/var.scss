@@ -1,0 +1,170 @@
+$primary-color: #74E6D8;
+$success-color: #74E6D8;
+$warning-color: #faad14;
+$error-color: #f5222d;
+$flide-color: #E64E4E;
+$add-color: #76D44D;
+$sub-color: #E64E4E;
+$tip-error-bg: #3c2323;
+$tip-success: #2e3c24;
+$tip-test-color: rgb(255, 123, 33);
+
+$bg-color-theme: #74E6D8;
+$bg-color: #171717;
+$bg-color-block: #262626;
+$bg-color-input: #333333;
+$bg-color-hover: #383535;
+$bg-color-success: #d1fff0;
+$bg-color-alert: #fff9ed;
+$bg-color-f26: #262626;
+$border-color-f97: #979797;
+$bg-color-f3d: #3d3d3d;
+$bg-tab-op2: rgba(255, 255, 255, 0.2);
+$border-select-color: #53CF39;
+$border-color-666: #666666;
+
+$text-color: #FFFFFF;
+$text-color-secondary: #D8D8D8;
+$text-color-desc: #7F7F7F;
+$text-color-tab: #000000;
+$text-color-alert: #ff6430;
+$text-color-msg-success: #00b578;
+
+
+$border-radius: 6px;
+
+%page-pd-20 {
+    padding: 0 20px;
+    box-sizing: border-box;
+}
+%page-max-width {
+    max-width: 980px;
+    margin: 0 auto;
+}
+%page-top {
+    padding-top: 52px;
+}
+
+%input-box {
+    padding-left: 15px;
+    padding-right: 15px;
+    height: 48px;
+    line-height: 48px;
+    border-radius: 6px;
+    box-sizing: border-box;
+    background-color: $bg-color-input;
+    .adm-input-element {
+        color: $text-color-secondary;
+        &::placeholder {
+            color: $text-color-desc;
+        }
+    }
+}
+
+%kiwi-button {
+    border-radius: 6px;
+    box-sizing: border-box;
+    span {
+        color: $bg-color;
+        font-size: 18px;
+        font-weight: 500;
+    }
+}
+
+%list-box {
+    @extend %page-pd-20;
+    .list-item-box {
+        background-color: $bg-color-input;
+        padding: 10px 16px;
+        border-radius: $border-radius;
+        margin-bottom: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+        &:hover {
+            background-color: $bg-color-hover;
+        }
+        .list-item-left {
+            display: flex;
+            flex-flow: column;
+            strong {
+                display: block;
+                font-weight: bold;
+                font-size: 16px;
+            }
+            span {
+                display: inline-block;
+                margin-top: 8px;
+                color: $text-color-desc;
+                font-size: 14px;
+                word-break: break-all;
+            }
+        }
+        .right-img {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+        }
+        .list-box-btn {
+            font-weight: bold;
+            font-size: 18px;
+            text-align: center;
+            width: 100%;
+        }
+        .adm-radio-content {
+            margin-left: 5px;
+        }
+        .adm-radio {
+            flex: 2;
+        }
+    }
+    &.min-50 {
+        .list-item-box {
+            min-height: 50px;
+        }
+    }
+}
+
+%coin-item {
+    padding: 13px 16px;
+    padding-right: 10px;
+    box-sizing: border-box;
+    background-color: $bg-color-input;
+    border-radius: $border-radius;
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+    height: 66px;
+    cursor: pointer;
+    &:hover {
+        background-color: $bg-color-block;
+    }
+    .coin-item-info {
+        flex: 2;
+        display: flex;
+        height: 66px;
+        margin-right: 6px;
+        justify-content: space-around;
+        flex-direction: column;
+    }
+    .coin-item-name {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 18px;
+        color: $text-color;
+        font-weight: bold;
+        span:last-child {
+            font-size: 14px;
+            font-weight: 500;
+        }
+    }
+    .coin-item-price {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: $text-color-desc;
+        font-size: 16px;
+    }
+}

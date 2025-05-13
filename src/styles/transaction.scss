@@ -1,0 +1,146 @@
+@use './var.scss' as *;
+
+.recipient-inp-box {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    input {
+        padding: 14px 16px;
+        background-color: $bg-color-input;
+        border-radius: 6px  0 0 6px;
+        flex: 2;
+        height: 48px;
+        font-size: 16px;
+        color: $text-color-secondary;
+        &::-webkit-input-placeholder {
+            color: $text-color-desc;
+        }
+    }
+    .recipient-inp-icon {
+        width: 56px;
+        height: 48px;
+        padding: 12px 16px;
+        margin-left: 4px;
+        box-sizing: border-box;
+        background-color: $bg-color-input;
+        border-radius: 0 6px 6px 0;
+        img {
+            width: 24px;
+            height: 24px;
+        }
+    }
+}
+.transaction-box {
+    display: flex;
+    margin-bottom: 12px;
+    color: $text-color;
+    font-size: 16px;
+}
+.sign-card {
+    padding: 20px 0;
+    text-align: center;
+    border-radius: 6px;
+    strong {
+        color: $text-color-desc;
+        font-size: 16px;
+    }
+    img {
+        width: 100%;
+        vertical-align: top;
+    }
+    .sign-card-bg {
+        background-color: $bg-color-input;
+        h6 {
+            margin: 4px auto 12px;
+            font-size: 28px;
+            color: $text-color;
+        }
+        p {
+            font-size: 16px;
+            color: $text-color-desc;
+            padding-bottom: 12px;
+            box-sizing: border-box;
+        }
+        .color-white {
+            padding-bottom: 8px;
+            margin-top: 12px;
+            font-size: 16px;
+            color: $text-color;
+        }
+    }
+}
+
+.send-result {
+    margin-top: 20%;
+    text-align: center;
+    .result-img {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        margin: 0 auto 12px;
+    }
+    h6 {
+        margin-bottom: 22px;
+        color: $text-color;
+        text-align: center;
+        font-size: 32px;
+    }
+    .send-result-p {
+        margin-bottom: 12px;
+        font-size: 16px;
+        color: $text-color-desc;
+    }
+    .send-result-share {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: $primary-color;
+        font-weight: bold;
+        font-size: 18px;
+        margin-bottom: 32px;
+    }
+}
+.fee-box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    min-height: 66px;
+    padding: 12px 35px;
+    border-radius: $border-radius;
+    border: 1px solid $text-color-desc;
+    cursor: pointer;
+    span {
+        display: block;
+        margin-bottom: 2px;
+        color: $text-color;
+        font-size: 16px;
+    }
+    em {
+        font-size: 14px;
+        color: $text-color-desc;
+    }
+    strong {
+        font-size: 16px;
+        font-weight: bold;
+    }
+    &.active {
+        border-color: $primary-color;
+        background-color: rgba(116,230,216,0.06);
+        color: $primary-color;
+        span, em {
+            color: $primary-color;
+        }
+    }
+}
+.mint-tip {
+    strong {
+        font-size: 16px;
+        color: $text-color;
+    }
+    p {
+        margin-top: 22px;
+        color: $text-color-desc;
+        font-size: 14px;
+    }
+}

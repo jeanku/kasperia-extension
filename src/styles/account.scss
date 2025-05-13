@@ -1,0 +1,128 @@
+@use './var.scss' as *;
+
+.assets-details {
+    @extend %page-pd-20;
+    @extend %page-top;
+    .assets-logo {
+        display: block;
+        box-sizing: border-box;
+        margin: 6px auto 12px;
+        width: 54px;
+        height: 54px;
+        border-radius: 50%;
+        background-color: $bg-color-block;
+    }
+    .assets-amount {
+        margin-bottom: 30px;
+        color: $text-color;
+        font-size: 26px;
+        font-weight: bold;
+        text-align: center;
+        span {
+            display: inline-block;
+            margin-right: 10px;
+        }
+    }
+    .assets-info {
+        .page-tabs {
+            justify-content: start;
+            gap: 30px;
+        }
+    }
+    .history-token-item {
+        margin-bottom: 12px;
+        background-color: $bg-color-block;
+        border-radius: $border-radius;
+        padding: 14px 16px;
+        box-sizing: border-box;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        &:hover {
+            background-color: $bg-color-input;
+        }
+        span {
+            font-size: 14px;
+            color: $text-color-secondary;   
+        }
+        em {
+            font-size: 14px;
+            color: $text-color;
+            display: flex;
+            align-items: center;
+        }
+        .history-href {
+            font-size: 14px;
+            color: $primary-color;
+            cursor: pointer;
+        }
+    }
+    .history-box .adm-infinite-scroll{
+        color: $text-color-desc;
+    }
+    
+}
+.popover-icon {
+    width: 24px;
+    height: 24px;
+}
+.account-popover {
+    .adm-popover-inner-content {
+        background-color: rgb(38, 38, 38);
+    }
+    .adm-popover-menu-item-text {
+        border-top: none;
+    }
+    .adm-popover-menu-item:hover {
+        background-color: $bg-color-hover;
+    }
+    .adm-plain-anchor:active {
+        background-color: transparent;
+        color: $text-color;
+        &::after {
+            border-bottom: none;
+        }
+    }
+}
+.adm-popover .adm-popover-arrow {
+    color: rgb(38, 38, 38);
+}
+
+.switch-account-main {
+    
+
+}
+.switch-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    background-color: $bg-color-input;
+    border-radius: $border-radius;
+    cursor: pointer;
+    .switch-item-info {
+        flex: 2;
+        display: flex;
+        align-items: center;
+        flex-direction: column;
+        gap: 6px;
+        text-align: left;
+        margin-left: 10px;
+        strong {
+            font-size: 16px;
+            font-weight: bold;
+            display: block;
+            width: 100%;
+        }
+        p {
+            font-size: 14px;
+            color: $text-color-desc;
+            max-width: 220px;
+        }
+    }
+}
+.sc-info {
+    text-align: center;
+    margin-top: -26px;
+}

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 58 (84663) - https://sketch.com -->
+    <title>amplify-dark</title>
+    <desc>Created with Sketch.</desc>
+    <g id="🥑-风格确定" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Token资产详情页-History" transform="translate(-293.000000, -226.000000)">
+            <g id="铸造-按钮" transform="translate(272.000000, 216.000000)">
+                <g id="文字&amp;icon" transform="translate(21.000000, 10.000000)">
+                    <g id="发送-icon">
+                        <rect id="矩形" x="0" y="0" width="24" height="24"></rect>
+                        <g id="放大" transform="translate(3.000000, 3.000000)" fill="#000000" fill-rule="nonzero">
+                            <path d="M15.4548204,4.29422111 L10.5969754,9.1379397 L8.97844991,7.52449749 L13.8431002,2.67399497 L11.1810964,0 L18,0 L18,6.85288945 L15.4548204,4.29422111 L15.4548204,4.29422111 Z M2.55425331,13.7826633 L7.3610586,8.99434673 L8.97958412,10.6077889 L4.18185255,15.3904523 L6.82117202,18 L0,18 L0,11.2556533 L2.55425331,13.7826633 Z" id="形状"></path>
+                        </g>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>
