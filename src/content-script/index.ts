@@ -62,8 +62,8 @@ let channelName = 'kasperiaChannel';
 
 console.log("inject Script... 123")
 
-// import PortMessage from './message/portMessage';
-// import BroadcastChannelMessage from './message/boardcastMessage';
+import PortMessage from './message/portMessage';
+import BroadcastChannelMessage from './message/boardcastMessage';
 
 // Inject custom script into the page
 function injectScript(): void {
@@ -78,20 +78,24 @@ function injectScript(): void {
 
         // const { BroadcastChannelMessage, PortMessage } = Message;
 
-        // const pm = new PortMessage().connect();
+
+        const pm = new PortMessage().connect();
         //
-        // const bcm = new BroadcastChannelMessage(channelName).listen(
-        //     (data: any) => pm.request(data));
+        const bcm = new BroadcastChannelMessage(channelName).listen(
+            (data: any) => {
+                pm.request(data)
+            });
         //
-        // // background notification
-        // pm.on('message', (data) => {
-        //     bcm.send('message', data);
-        // });
+        // background notification
+        pm.on('message', (data: any) => {
+            console.log("haha pm.on", data)
+            bcm.send('message', data);
+        });
         //
-        // document.addEventListener('beforeunload', () => {
-        //     bcm.dispose();
-        //     pm.dispose();
-        // });
+        document.addEventListener('beforeunload', () => {
+            bcm.dispose();
+            pm.dispose();
+        });
 
     } catch (error) {
         console.error('Kasperia: Provider injection failed.', error);

@@ -12,7 +12,7 @@ import { encrypt, decrypt } from '@metamask/browser-passworder';
 // let res = BigInt()
 // console.log(res)
 
-import {formatBalance, hashString } from './src/utils/util'
+// import {formatBalance, hashString } from './src/utils/util'
 
 // import Big from 'big.js';
 // const bigBalance = new Big("122221200");
@@ -54,28 +54,68 @@ import { isEqual } from 'lodash';
 
 // import de
 
-let data = [
-    {
-        id: 1,
-        name: "1"
-    },
-    {
-        id: 2,
-        name: "2"
-    },
-    {
-        id: 3,
-        name: "3"
-    },
-    {
-        id: 4,
-        name: "4"
-    }
-]
+// let data = [
+//     {
+//         id: 1,
+//         name: "1"
+//     },
+//     {
+//         id: 2,
+//         name: "2"
+//     },
+//     {
+//         id: 3,
+//         name: "3"
+//     },
+//     {
+//         id: 4,
+//         name: "4"
+//     }
+// ]
+//
+// let da = data.map(r => {
+//     if (r.id != 1) {
+//         return r
+//     }
+// })
+// console.log("da", da.values())
 
-let da = data.map(r => {
-    if (r.id != 1) {
-        return r
-    }
-})
-console.log("da", da.values())
+import compose from 'koa-compose';
+
+// 定义中间件
+const middlewareOne = async (ctx, next) => {
+    ctx.log.push('one start');
+    await next();
+    ctx.log.push('one end');
+};
+
+const middlewareTwo = async (ctx, next) => {
+    ctx.log.push('two');
+    ctx.body = 'hello from composed';
+    await next();
+};
+
+const middlewareThree = async (ctx, next) => {
+    ctx.log.push('three');
+    await next();
+};
+
+// 合并中间件
+const composed = compose([
+    middlewareOne,
+    middlewareTwo,
+    middlewareThree,
+]);
+
+// 模拟上下文对象
+const ctx = {
+    log: [],
+    body: null,
+};
+
+// 执行合并后的中间件
+composed(ctx).then(() => {
+    console.log('Middleware Log:', ctx.log);
+    console.log('Response Body:', ctx.body);
+});
+

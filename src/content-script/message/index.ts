@@ -1,15 +1,7 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-/* eslint-disable no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/**
- * this script is live in content-script / dapp's page
- */
 import { ethErrors } from 'eth-rpc-errors';
 import { EventEmitter } from 'events';
 
 abstract class Message extends EventEmitter {
-    // available id list
-    // max concurrent request limit
     private _requestIdPool = [...Array(500).keys()];
     protected _EVENT_PRE = 'KASWARE_WALLET_';
     protected listenCallback: any;
@@ -30,14 +22,12 @@ abstract class Message extends EventEmitter {
             throw ethErrors.rpc.limitExceeded();
         }
         const ident = this._requestIdPool.shift()!;
-
         return new Promise((resolve, reject) => {
             this._waitingMap.set(ident, {
                 data,
                 resolve,
                 reject
             });
-
             this.send('request', { ident, data });
         });
     };
@@ -55,7 +45,7 @@ abstract class Message extends EventEmitter {
         err ? reject(err) : resolve(res);
     };
 
-    onRequest = async ({ ident, data, err }: any = {}) => {
+    onRequest = async ({ ident, data }: any = {}) => {
         if (this.listenCallback) {
             let res, err;
 
@@ -66,9 +56,7 @@ abstract class Message extends EventEmitter {
                     message: e.message,
                     stack: e.stack
                 };
-                console.log("error:", e)
             }
-
             this.send('response', { ident, res, err });
         }
     };
@@ -77,7 +65,6 @@ abstract class Message extends EventEmitter {
         for (const request of this._waitingMap.values()) {
             request.reject(ethErrors.provider.userRejectedRequest());
         }
-
         this._waitingMap.clear();
     };
 }

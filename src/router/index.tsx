@@ -6,7 +6,7 @@ import {
   Boost,
   Explore,
   Home,
-  Nopage
+  Nopage,
 } from "@/pages/index/index";
 
 import {
@@ -63,6 +63,12 @@ import Donation from "@/pages/setting/more/donation";
 import ChangePwd from "@/pages/setting/more/changepwd";
 import AutoLock from "@/pages/setting/more/autoLock";
 
+
+import {
+  Unlock as NotificationUnlock,
+} from "@/pages/notification/unlock";
+
+
 const AppRouter: React.FC = () => {
   return (
     <HashRouter>
@@ -116,8 +122,8 @@ const AppRouter: React.FC = () => {
             <Route path="/setting/donation" element={<Donation />} />
             <Route path="/setting/changepwd" element={<ChangePwd />} />
             <Route path="/setting/autolock" element={<AutoLock />} />
-
           </Route>{/**/}
+          <Route path="/notification/unlock" element={<NotificationUnlock />} />
           <Route path="*" element={<Nopage />} />
         </Routes>
     </HashRouter>

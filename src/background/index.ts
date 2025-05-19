@@ -1,18 +1,9 @@
 import addServiceListener from './listener';
 import PortMessage from '../content-script/message/portMessage';
+import { providerController } from './controller';
 import {Buffer} from 'buffer'
 
 globalThis.Buffer = Buffer;
-
-chrome.runtime.onInstalled.addListener(() => {
-    chrome.alarms.create('keepAlive', { periodInMinutes: 0.1 });
-});
-
-chrome.alarms.onAlarm.addListener((alarm) => {
-    if (alarm.name === 'keepAlive') {
-        console.log('[keepAlive] Service worker woke up at', new Date().toLocaleTimeString());
-    }
-});
 
 // let popupWindowId: number | null | undefined = null;
 
@@ -108,25 +99,27 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 //
 //
 // chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-//     if (portInstance) {
-//         portInstance.postMessage(request)
-//     }
+//     // if (portInstance) {
+//     //     portInstance.postMessage(request)
+//     // }
 //     console.log("request: ", request)
 //     return true;
 // });
 
-// console.log("bg init ...")
+console.log("bg init ...")
 
 
 // for page provider
 chrome.runtime.onConnect.addListener((port) => {
-    console.log("onConnect", port)
+    console.log("haha: addListener", port)
     if (port.name === 'popup' || port.name === 'notification' || port.name === 'tab') {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const pm = new PortMessage(port as any);
         pm.listen((data: any) => {
+            console.log("haha: controller", data)
             if (data?.type) {
                 switch (data.type) {
+                    // console.log("haha: controller")
                     // case 'broadcast':
                     //     eventBus.emit(data.method, data.params);
                     //     break;
@@ -173,25 +166,31 @@ chrome.runtime.onConnect.addListener((port) => {
     }
 
     const pm = new PortMessage(port);
-    pm.listen(async (data: any) => {
-        console.log("hahaha pm")
-        // if (!appStoreLoaded) {
-        //     // todo
-        // }
+    pm.listen(async (msg : any) => {
+        console.log("【BG】pm.listen:", msg);
         // const sessionId = port.sender?.tab?.id;
         // const session = sessionService.getOrCreateSession(sessionId);
         //
         // const req = { data, session };
-        // // for background push to respective page
+        // for background push to respective page
         // req.session.pushMessage = (event, data) => {
         //     pm.send('message', { event, data });
         // };
+        try {
+            let s = await providerController(msg);
+            console.log("【BG】pm.listen33:", msg);
+            console.log("providerController(msg) then", s);
+            return s;
+        } catch (e) {
+            console.error("🔥 providerController 报错:");
+        }
 
-        // return providerController(req);
+        console.log("【BG】pm.listen44:", msg);
+        // return providerController(msg);
     });
 
     port.onDisconnect.addListener(() => {
-        // todo
+        console.log("port.onDisconnect")
     });
 });
 
@@ -200,36 +199,36 @@ const INTERNAL_STAYALIVE_PORT = 'CT_Internal_port_alive';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let alivePort: any = null;
 
-setInterval(() => {
-    console.log('Highlander', Date.now());
-    if (alivePort == null) {
-        // eslint-disable-next-line no-undef
-        alivePort = chrome.runtime.connect({ name: INTERNAL_STAYALIVE_PORT });
-
-        // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
-        alivePort.onDisconnect.addListener((p: any) => {
-            // eslint-disable-next-line no-undef
-            if (chrome.runtime.lastError) {
-                console.log('(DEBUG Highlander) Expected disconnect (on error). SW should be still running.');
-            } else {
-                console.log('(DEBUG Highlander): port disconnected');
-            }
-
-            alivePort = null;
-        });
-    }
-
-    if (alivePort) {
-        alivePort.postMessage({ content: 'keep alive~' });
-
-        // eslint-disable-next-line no-undef
-        if (chrome.runtime.lastError) {
-            console.log(`(DEBUG Highlander): postMessage error: ${chrome.runtime.lastError.message}`);
-        } else {
-            console.log(`(DEBUG Highlander): sent through ${alivePort.name} port`);
-        }
-    }
-}, 5000);
+// setInterval(() => {
+//     console.log('Highlander', Date.now());
+//     if (alivePort == null) {
+//         // eslint-disable-next-line no-undef
+//         alivePort = chrome.runtime.connect({ name: INTERNAL_STAYALIVE_PORT });
+//
+//         // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
+//         alivePort.onDisconnect.addListener((p: any) => {
+//             // eslint-disable-next-line no-undef
+//             if (chrome.runtime.lastError) {
+//                 console.log('(DEBUG Highlander) Expected disconnect (on error). SW should be still running.');
+//             } else {
+//                 console.log('(DEBUG Highlander): port disconnected');
+//             }
+//
+//             alivePort = null;
+//         });
+//     }
+//
+//     if (alivePort) {
+//         alivePort.postMessage({ content: 'keep alive~', name: "123" });
+//
+//         // eslint-disable-next-line no-undef
+//         if (chrome.runtime.lastError) {
+//             console.log(`(DEBUG Highlander): postMessage error: ${chrome.runtime.lastError.message}`);
+//         } else {
+//             console.log(`(DEBUG Highlander): sent through ${alivePort.name} port`);
+//         }
+//     }
+// }, 20000);
 
 
 
