@@ -20,7 +20,7 @@ const flowContext = flow
   .use(async (ctx: any, next: any) => {
       let isLocked = await keyringService.isLocked()
       if (isLocked) {
-          await notificationService.requestApproval({}, { route: "/notification/unlock" })
+          await notificationService.requestApproval({}, { route: "/evokeBoost/notification/unlock" })
       }
       return next();
   })

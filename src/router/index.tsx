@@ -63,7 +63,7 @@ import Donation from "@/pages/setting/more/donation";
 import ChangePwd from "@/pages/setting/more/changepwd";
 import AutoLock from "@/pages/setting/more/autoLock";
 
-
+import EvokeBoost from "@/pages/index/evokeBoost";
 import {
   Unlock as NotificationUnlock,
 } from "@/pages/notification/unlock";
@@ -123,7 +123,9 @@ const AppRouter: React.FC = () => {
             <Route path="/setting/changepwd" element={<ChangePwd />} />
             <Route path="/setting/autolock" element={<AutoLock />} />
           </Route>{/**/}
-          <Route path="/notification/unlock" element={<NotificationUnlock />} />
+          <Route path="/evokeBoost" element={<EvokeBoost />} >
+            <Route path="notification/unlock" element={  <NotificationUnlock /> } />
+          </Route>
           <Route path="*" element={<Nopage />} />
         </Routes>
     </HashRouter>
