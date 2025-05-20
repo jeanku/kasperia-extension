@@ -198,4 +198,5 @@ export { Unlock } from "./unlock"
 export { SwitchAdd } from "./switchAdd"
 export { SwitchAccount } from "./switchAccount"
 export { SwitchUpdate } from "./switchUpdate"
+export { BorwerConnect } from "./borwerConnect"
 export { Index }
