@@ -25,7 +25,6 @@ import {
   SwitchAdd,
   SwitchAccount,
   SwitchUpdate,
-  BorwerConnect,
 } from "@/pages/account/index";
 
 import {
@@ -68,6 +67,7 @@ import EvokeBoost from "@/pages/index/evokeBoost";
 import {
   Unlock as NotificationUnlock,
 } from "@/pages/notification/unlock";
+import BorwerConnect from "@/pages/notification/borwerConnect";
 
 
 const AppRouter: React.FC = () => {
@@ -89,7 +89,7 @@ const AppRouter: React.FC = () => {
             <Route path="/account/switch" element={<SwitchAccount />} />
             <Route path="/account/switch/add" element={<SwitchAdd />} />
             <Route path="/account/switch/update" element={<SwitchUpdate />} />
-            <Route path="/account/borwer/connect" element={<BorwerConnect />} />
+            
 
             <Route path="/export" element={<ExportIndex />} />
             <Route path="/export/privateKey" element={<ExportPrivateKey />} />
@@ -127,6 +127,7 @@ const AppRouter: React.FC = () => {
           </Route>{/**/}
           <Route path="/evokeBoost" element={<EvokeBoost />} >
             <Route path="notification/unlock" element={  <NotificationUnlock /> } />
+            <Route path="notification/borwerConnect" element={<BorwerConnect />} />
           </Route>
           <Route path="*" element={<Nopage />} />
         </Routes>

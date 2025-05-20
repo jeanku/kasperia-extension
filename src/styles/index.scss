@@ -262,6 +262,7 @@ em {
         justify-content: space-between;
         align-items: center;
         gap: 20px;
+        padding-top: 10px;
         padding-bottom: 40px;
         .adm-button-primary {
             margin-bottom: 0;
@@ -1522,7 +1523,7 @@ em {
     }
 }
 .contant-txt {
-    margin-top: 32px;
+    margin-top: 22px;
     .txt-tit-1 {
         font-size: 20px;
         color: $text-color;
@@ -1532,7 +1533,7 @@ em {
         font-size: 16px;
         color: $text-color;
         margin-top: 12px;
-        margin-bottom: 12px;
+        margin-bottom: 6px;
     }
     .txt-tit-tip {
         font-size: 14px;
@@ -1564,7 +1565,7 @@ em {
         }
     }
 }
-.source-bpx {
+.source-box {
     display: flex;
     align-items: center;
     justify-content: space-between;
