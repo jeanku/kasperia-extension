@@ -79,43 +79,49 @@ import { isEqual } from 'lodash';
 //     }
 // })
 // console.log("da", da.values())
+//
+// import compose from 'koa-compose';
+//
+// // 定义中间件
+// const middlewareOne = async (ctx, next) => {
+//     ctx.log.push('one start');
+//     await next();
+//     ctx.log.push('one end');
+// };
+//
+// const middlewareTwo = async (ctx, next) => {
+//     ctx.log.push('two');
+//     ctx.body = 'hello from composed';
+//     await next();
+// };
+//
+// const middlewareThree = async (ctx, next) => {
+//     ctx.log.push('three');
+//     await next();
+// };
+//
+// // 合并中间件
+// const composed = compose([
+//     middlewareOne,
+//     middlewareTwo,
+//     middlewareThree,
+// ]);
+//
+// // 模拟上下文对象
+// const ctx = {
+//     log: [],
+//     body: null,
+// };
+//
+// // 执行合并后的中间件
+// composed(ctx).then(() => {
+//     console.log('Middleware Log:', ctx.log);
+//     console.log('Response Body:', ctx.body);
+// });
 
-import compose from 'koa-compose';
 
-// 定义中间件
-const middlewareOne = async (ctx, next) => {
-    ctx.log.push('one start');
-    await next();
-    ctx.log.push('one end');
-};
+function stringToHex(str) {
+    return '0x' + Buffer.from(str, 'utf8').toString('hex');
+}
 
-const middlewareTwo = async (ctx, next) => {
-    ctx.log.push('two');
-    ctx.body = 'hello from composed';
-    await next();
-};
-
-const middlewareThree = async (ctx, next) => {
-    ctx.log.push('three');
-    await next();
-};
-
-// 合并中间件
-const composed = compose([
-    middlewareOne,
-    middlewareTwo,
-    middlewareThree,
-]);
-
-// 模拟上下文对象
-const ctx = {
-    log: [],
-    body: null,
-};
-
-// 执行合并后的中间件
-composed(ctx).then(() => {
-    console.log('Middleware Log:', ctx.log);
-    console.log('Response Body:', ctx.body);
-});
-
+console.log(stringToHex('kaspa:qr6uzet8l842fz33kjl4jk0t6t7m43n8rxvfj6jms9jjz0n08rneuc5hjq97r'));

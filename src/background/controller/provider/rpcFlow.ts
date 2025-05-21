@@ -24,11 +24,13 @@ const flowContext = flow
       }
       return next();
   })
-  // .use(async (ctx: any, next: any) => {
-  //     let isLocked = await keyringService.isLocked()
-  //     console.log("isLocked2", isLocked)
-  //     return next();
-  // })
+  .use(async (ctx: any, next: any) => {
+      console.log("ctx", ctx)
+      await notificationService.requestApproval({
+
+      }, { route: "/notification/sendkaspa" })
+      return next();
+  })
   .callback();
 
 export default (request: any) => {

@@ -63,8 +63,6 @@ class NotificationService extends Events {
     }
     this.approval = null;
     this.emit('resolve', data);
-
-    this.close();
   };
 
   rejectApproval = async (err?: string, stay = false, isInternal = false) => {
@@ -115,11 +113,6 @@ class NotificationService extends Events {
       this.notifiWindowId = winId!;
     });
   };
-
-  close = () => {
-    console.log("close: this.notifiWindowId", this.notifiWindowId)
-    winMgr.remove(this.notifiWindowId)
-  }
 }
 
 export default new NotificationService();

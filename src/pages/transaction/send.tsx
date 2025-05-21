@@ -66,7 +66,6 @@ const Send = () => {
                 payload: payloadChecked ? payload : undefined,
                 token
             }}})
-
         }
     }
 

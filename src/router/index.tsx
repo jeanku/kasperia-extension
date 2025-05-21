@@ -66,7 +66,8 @@ import AutoLock from "@/pages/setting/more/autoLock";
 
 import {
   Unlock as NotificationUnlock,
-} from "@/pages/notification/unlock";
+  SendKaspa as NotificationSendKaspa,
+} from "@/pages/notification";
 
 
 const AppRouter: React.FC = () => {
@@ -124,6 +125,7 @@ const AppRouter: React.FC = () => {
             <Route path="/setting/autolock" element={<AutoLock />} />
           </Route>{/**/}
           <Route path="/notification/unlock" element={<NotificationUnlock />} />
+          <Route path="/notification/sendkaspa" element={<NotificationSendKaspa />} />
           <Route path="*" element={<Nopage />} />
         </Routes>
     </HashRouter>

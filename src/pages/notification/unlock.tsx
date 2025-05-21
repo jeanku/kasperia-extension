@@ -21,7 +21,6 @@ const Unlock = () => {
     const handleSubmit = async () => {
         try {
             await Keyring.unLock(password);
-            window.close();
         } catch (error) {
             let content = error instanceof Error ? error.message : 'password error.';
             noticeError(content);

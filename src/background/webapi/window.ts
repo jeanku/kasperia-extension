@@ -15,7 +15,7 @@ export const IS_WINDOWS = /windows/i.test(navigator.userAgent);
 
 const BROWSER_HEADER = 80;
 const WINDOW_SIZE = {
-  width: 400 + (IS_WINDOWS ? 14 : 0), // idk why windows cut the width.
+  width: 360 + (IS_WINDOWS ? 14 : 0),   // idk why windows cut the width.
   height: 600
 };
 
@@ -63,7 +63,7 @@ const create = async ({ url, ...rest }: { url: string } & Record<string, any>): 
     throw new Error('Failed to open notification window');
   }
 
-  console.log("win.id::", win.id)
+  console.log("create window:")
   return win.id!;
 };
 
