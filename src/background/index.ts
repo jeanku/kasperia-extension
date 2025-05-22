@@ -4,15 +4,15 @@ import {Buffer} from 'buffer'
 
 globalThis.Buffer = Buffer;
 
-chrome.runtime.onInstalled.addListener(() => {
-    chrome.alarms.create('keepAlive', { periodInMinutes: 0.1 });
-});
-
-chrome.alarms.onAlarm.addListener((alarm) => {
-    if (alarm.name === 'keepAlive') {
-        console.log('[keepAlive] Service worker woke up at', new Date().toLocaleTimeString());
-    }
-});
+// chrome.runtime.onInstalled.addListener(() => {
+//     chrome.alarms.create('keepAlive', { periodInMinutes: 0.1 });
+// });
+//
+// chrome.alarms.onAlarm.addListener((alarm) => {
+//     if (alarm.name === 'keepAlive') {
+//         console.log('[keepAlive] Service worker woke up at', new Date().toLocaleTimeString());
+//     }
+// });
 
 // let popupWindowId: number | null | undefined = null;
 

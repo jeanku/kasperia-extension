@@ -161,7 +161,7 @@ const Send = () => {
                             decimalPlaces={Number(token.dec)}
                             max={Number(formatBalance(token.balance, token.dec))}
                             allowNegative={true}
-                            placeholder="admount"
+                            placeholder="amount"
                         />
                         <div className="input-box-icon">
                             <span></span>
