@@ -182,7 +182,7 @@ chrome.runtime.onConnect.addListener((port) => {
             console.log("providerController(msg) then", s);
             return s;
         } catch (e) {
-            console.error("🔥 providerController 报错:");
+            console.error("🔥 providerController 报错:", e);
         }
 
         console.log("【BG】pm.listen44:", msg);

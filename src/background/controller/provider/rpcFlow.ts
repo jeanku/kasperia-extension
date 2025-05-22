@@ -18,17 +18,19 @@ const flow = new PromiseFlow();
 
 const flowContext = flow
   .use(async (ctx: any, next: any) => {
+      console.log("flowContext step1 start")
       let isLocked = await keyringService.isLocked()
       if (isLocked) {
-          await notificationService.requestApproval({}, { route: "/notification/unlock" })
+          await notificationService.requestApproval({}, { route: "/evokeBoost/notification/unlock" })
       }
+      console.log("flowContext step1 end")
       return next();
   })
   .use(async (ctx: any, next: any) => {
-      console.log("ctx", ctx)
+      console.log("flowContext step2 start", ctx)
       await notificationService.requestApproval({
 
-      }, { route: "/notification/sendkaspa" })
+      }, { route: "/notification/sendkaspa?address=qr6uzet8l842fz33kjl4jk0t6t7m43n8rxvfj6jms9jjz0n08rneuej3f0m08&amount=100000" })
       return next();
   })
   .callback();
