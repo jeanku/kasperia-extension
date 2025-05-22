@@ -188,6 +188,9 @@ em {
 .mt30 {
     margin-top: 30px;
 }
+.mt32 {
+    margin-top: 32px;
+}
 
 .mt60 {
     margin-top: 60px;
@@ -222,6 +225,10 @@ em {
 .pb50 {
     padding-bottom: 50px;
 }
+.pb96 {
+    padding-bottom: 96px;
+
+}
 .max120 {
     max-width: 120px;
 }
@@ -254,8 +261,8 @@ em {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        gap: 10px;
-        margin-bottom: 40px;
+        gap: 20px;
+        padding-bottom: 40px;
         .adm-button-primary {
             margin-bottom: 0;
         }
@@ -861,7 +868,7 @@ em {
 }
 .post-bottom {
     position: fixed;
-    bottom: 10px;
+    bottom: 0;
     left: 50%;
     width: 100%;
     margin: 0;
@@ -1513,6 +1520,77 @@ em {
         word-break: break-all;
         font-size: 16px;
     }
+}
+.contant-txt {
+    margin-top: 32px;
+    .txt-tit-1 {
+        font-size: 20px;
+        color: $text-color;
+        font-weight: bold;
+    }
+    .txt-tit-2 {
+        font-size: 16px;
+        color: $text-color;
+        margin-top: 12px;
+        margin-bottom: 12px;
+    }
+    .txt-tit-tip {
+        font-size: 14px;
+        color: $success-color;
+    }
+}
+.account-list-box {
+    .account-list-item {
+        margin-top: 32px;
+        strong {
+            display: block;
+            margin-bottom: 12px;
+            font-size: 18px;
+            font-weight: bold;
+            color: $text-color;
+        }
+    }
+}
+.connect-box {
+    .list-box {
+        padding: 0;
+        .list-tit-1 {
+            margin-top: 32px;
+            margin-bottom: 12px;
+            display: block;
+            font-size: 18px;
+            color: $text-color;
+            font-weight: bold;
+        }
+    }
+}
+.source-bpx {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: $bg-color-input;
+    border-radius: $border-radius;
+    padding: 14px 15px;
+    .logo-img {
+        display: inline-block;
+        width: 45px;
+        height: 45px;
+        margin-right: 16px;
+    }
+    .source-txt {
+        flex: 2;
+        strong {
+            font-size: 16px;
+            font-weight: bold;
+            color: $text-color;
+        }
+        p {
+            margin-top: 7px;
+            font-size: 14px;
+            color: $text-color-desc;
+        }
+    }
+
 }
 .page-more,
 .page-setting,

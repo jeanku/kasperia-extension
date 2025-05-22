@@ -25,6 +25,7 @@ import {
   SwitchAdd,
   SwitchAccount,
   SwitchUpdate,
+  BorwerConnect,
 } from "@/pages/account/index";
 
 import {
@@ -82,6 +83,7 @@ const AppRouter: React.FC = () => {
             <Route path="/account/switch" element={<SwitchAccount />} />
             <Route path="/account/switch/add" element={<SwitchAdd />} />
             <Route path="/account/switch/update" element={<SwitchUpdate />} />
+            <Route path="/account/borwer/connect" element={<BorwerConnect />} />
 
             <Route path="/export" element={<ExportIndex />} />
             <Route path="/export/privateKey" element={<ExportPrivateKey />} />

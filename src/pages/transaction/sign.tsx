@@ -128,16 +128,16 @@ const Sign = () => {
                     
                     : null
                 }
-                <div className="btn-pos-two">
+                <div className="btn-pos-two flexd-row post-bottom">
+                    <Button block size="large" onClick={() => navigate(-1)}>
+                        Reject
+                    </Button>
                     <Button block size="large" color="primary" 
                         disabled={ submitTx.token.name === KaspaEnum.KAS && pendingTx == null}
                         loading={btnLoading}
                         loadingText={'Submitting'}
                         onClick={() => submitTransaction()}>
                         Sign & Pay
-                    </Button>
-                    <Button block size="large" onClick={() => navigate(-1)}>
-                        Reject
                     </Button>
                 </div>
             </div>
