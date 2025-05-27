@@ -5,6 +5,7 @@ import { SvgIcon } from '@/components/Icon/index'
 import { useNavigate } from "react-router-dom";
 import { useNotice } from '@/components/NoticeBar/NoticeBar'
 
+import { Notification } from '@/chrome/notification';
 
 import logoImg from '@/assets/images/logo512.png';
 const Unlock = () => {
@@ -23,7 +24,8 @@ const Unlock = () => {
     const handleSubmit = async () => {
         try {
             await Keyring.unLock(password);
-            navigate("/home");
+            Notification.resolveApproval()
+            // notificationService.resolveApproval()
         } catch (error) {
             let content = error instanceof Error ? error.message : 'password error.';
             noticeError(content);

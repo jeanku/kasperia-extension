@@ -1,4 +1,4 @@
-import { keyringService, preferenceService, contactService } from './service';
+import { keyringService, preferenceService, contactService, notificationService, permissionService } from './service';
 
 const handlers: Record<string, (message: any) => Promise<any> | any> = {
     "Keyring.isBoot": () => keyringService.isBoot(),
@@ -53,6 +53,12 @@ const handlers: Record<string, (message: any) => Promise<any> | any> = {
     "Contact.get": () => contactService.get(),
     "Contact.changeName": (msg) => contactService.changeName(msg.address, msg.name),
     "Contact.remove": (msg) => contactService.remove(msg.address),
+
+    "Notification.resolveApproval": () => notificationService.resolveApproval(),
+    "Notification.rejectApproval": (msg) => notificationService.rejectApproval(msg.err, msg.stay, msg.isInternal),
+    "Notification.getApproval": () => notificationService.getApproval(),
+    
+    "Permission.addConnectedSite": (msg) => permissionService.addConnectedSite(msg.origin, msg.name, msg.icon),
 };
 const handleError = (error: unknown, sendResponse: (response: any) => void) => {
     const errorMessage = error instanceof Error ? error.toString() : 'Unknown error';
@@ -68,7 +74,6 @@ const addServiceListener = () => chrome.runtime.onMessage.addListener( (message,
             throw Error(`${action} not found`)
         }
         handler(message).then((result: any) => {
-            console.log("result", result);
             sendResponse(result);
         }).catch((error: { toString: () => any; }) => {
             handleError(error, sendResponse);

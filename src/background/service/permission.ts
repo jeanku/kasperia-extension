@@ -29,9 +29,10 @@ class PermissionService {
 
   lruCache: LRU<string, ConnectedSite> = new LRU();
 
-  load() {
+  async load() {
     if (!this.store) {
       Storage.getData<PermissionStore>('permission').then(state => {
+        console.log("PermissionService load", state)
         if (!state) {
           this.store = {
             dumpCache: []
@@ -49,32 +50,32 @@ class PermissionService {
     }
   }
 
-  sync() {
-    this.load()
-    if (!this.lruCache) return;
+  async sync() {
+    if (!this.lruCache || !this.store) return;
     this.store!.dumpCache = this.lruCache.dump();
+    Storage.setData<PermissionStore>('permission',this.store!)
   }
 
-  getWithoutUpdate(key: string) {
+  async getWithoutUpdate(key: string) {
     this.load()
     if (!this.lruCache) return;
     return this.lruCache.peek(key);
   }
 
-  getSite(origin: string) {
+  async getSite(origin: string) {
     this.load()
     return this.lruCache?.get(origin);
   }
 
-  setSite(site: ConnectedSite) {
+  async setSite(site: ConnectedSite) {
     this.load()
     if (!this.lruCache) return;
     this.lruCache.set(site.origin, site);
     this.sync();
   }
 
-  addConnectedSite(origin: string, name: string, icon: string, defaultChain: CHAINS_ENUM, isSigned = false) {
-    this.load()
+  async addConnectedSite(origin: string, name: string, icon: string, defaultChain: CHAINS_ENUM = CHAINS_ENUM.KAS, isSigned = false) {
+    await this.load()
     if (!this.lruCache) return;
     this.lruCache.set(origin, {
       origin,
@@ -88,14 +89,14 @@ class PermissionService {
     this.sync();
   }
 
-  touchConnectedSite(origin: string) {
+  async touchConnectedSite(origin: string) {
     this.load()
     if (!this.lruCache) return;
     this.lruCache.get(origin);
     this.sync();
   }
 
-  updateConnectSite (origin: string, value: Partial<ConnectedSite>, partialUpdate?: boolean) {
+  async updateConnectSite (origin: string, value: Partial<ConnectedSite>, partialUpdate?: boolean) {
     this.load()
     if (!this.lruCache || !this.lruCache.has(origin)) return;
     if (partialUpdate) {
@@ -107,15 +108,15 @@ class PermissionService {
     this.sync();
   }
 
-  hasPermission(origin: string) {
-    this.load()
+  async hasPermission(origin: string) {
+    await this.load()
     if (!this.lruCache) return;
     const site = this.lruCache.get(origin);
     return site && site.isConnected;
   }
 
-  setRecentConnectedSites (sites: ConnectedSite[]) {
-    this.load()
+  async setRecentConnectedSites (sites: ConnectedSite[]) {
+    await this.load()
     this.lruCache.load(
       sites
         .map((item) => ({
@@ -136,32 +137,32 @@ class PermissionService {
     this.sync();
   }
 
-  getRecentConnectedSites () {
-    this.load()
+  async getRecentConnectedSites () {
+    await this.load()
     const sites = (this.lruCache?.values() || []).filter((item: ConnectedSite) => item.isConnected);
     const pinnedSites = sites.filter((item: ConnectedSite) => item?.isTop).sort((a: ConnectedSite, b:ConnectedSite) => (a.order || 0) - (b.order || 0));
     const recentSites = sites.filter((item: ConnectedSite) => !item.isTop);
     return [...pinnedSites, ...recentSites];
   }
 
-  getConnectedSites() {
-    this.load()
+  async getConnectedSites() {
+    await this.load()
     return (this.lruCache?.values() || []).filter((item: ConnectedSite) => item.isConnected);
   }
 
-  getConnectedSite(key: string) {
-    this.load()
+  async getConnectedSite(key: string) {
+    await this.load()
     const site = this.lruCache?.get(key);
     if (site && site.isConnected) {
       return site;
     }
   }
 
-  topConnectedSite(origin: string, order?: number) {
-    this.load()
+  async topConnectedSite(origin: string, order?: number) {
+    await this.load()
     const site = this.getConnectedSite(origin);
     if (!site || !this.lruCache) return;
-    order = order ?? (max(this.getRecentConnectedSites().map((item: ConnectedSite) => item.order)) || 0) + 1;
+    order = order ?? (max((await this.getRecentConnectedSites()).map((item: ConnectedSite) => item.order)) || 0) + 1;
     this.updateConnectSite(origin, {
       ...site,
       order,
@@ -169,8 +170,8 @@ class PermissionService {
     });
   }
 
-  unpinConnectedSite(origin: string) {
-    this.load()
+  async unpinConnectedSite(origin: string) {
+    await this.load()
     const site = this.getConnectedSite(origin);
     if (!site || !this.lruCache) return;
     this.updateConnectSite(origin, {
@@ -179,21 +180,21 @@ class PermissionService {
     });
   }
 
-  removeConnectedSite(origin: string) {
-    this.load()
+  async removeConnectedSite(origin: string) {
+    await this.load()
     if (!this.lruCache) return;
-    const site = this.getConnectedSite(origin);
+    const site = await this.getConnectedSite(origin);
     if (!site) {
       return;
     }
-    this.setSite({
+    await this.setSite({
       ...site!,
       isConnected: false
     })
     this.sync();
   }
 
-  getSitesByDefaultChain = (chain: CHAINS_ENUM) => {
+  async getSitesByDefaultChain(chain: CHAINS_ENUM) {
     if (!this.lruCache) return [];
     return this.lruCache.values().filter((item: ConnectedSite) => item.chain === chain);
   }

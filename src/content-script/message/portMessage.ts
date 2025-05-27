@@ -24,9 +24,9 @@ class PortMessage extends Message {
       //   return;
       // }
       //
-      // if (_type_ === `${this._EVENT_PRE}response`) {
-      //   this.onResponse(data);
-      // }
+      if (r._type_ === `${this._EVENT_PRE}response`) {
+        this.onResponse(r);
+      }
     });
 
     return this;

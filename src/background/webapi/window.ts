@@ -1,16 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { EventEmitter } from 'events';
-const event = new EventEmitter();
-
-chrome.windows.onFocusChanged.addListener((winId) => {
-  event.emit('windowFocusChange', winId);
-});
-
-chrome.windows.onRemoved.addListener((winId) => {
-  event.emit('windowRemoved', winId);
-});
-
 export const IS_WINDOWS = /windows/i.test(navigator.userAgent);
 
 const BROWSER_HEADER = 80;
@@ -62,8 +51,6 @@ const create = async ({ url, ...rest }: { url: string } & Record<string, any>): 
   if (win.id === undefined) {
     throw new Error('Failed to open notification window');
   }
-
-  console.log("create window:")
   return win.id!;
 };
 
@@ -72,15 +59,12 @@ const remove = async (winId: number) => {
 };
 
 const openNotification = ({ route = '', ...rest } = {}): Promise<number | undefined> => {
-
   const url = `/index.html${route && `#${route}`}`;
   console.log("url:", url)
-
   return create({ url, ...rest });
 };
 
 export default {
   openNotification,
-  event,
   remove
 };

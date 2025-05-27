@@ -6,6 +6,7 @@ import { ethErrors } from 'eth-rpc-errors';
 
 import { keyringService, notificationService, permissionService } from '@/background/service';
 import { PromiseFlow, underline2Camelcase } from '@/background/utils';
+import providerController from './controller';
 
 export const IS_CHROME = /Chrome\//i.test(navigator.userAgent);
 
@@ -17,27 +18,61 @@ export const IS_LINUX = /linux/i.test(navigator.userAgent);
 const flow = new PromiseFlow();
 
 const flowContext = flow
+    // .use(async (ctx: any, next: any) => {
+    //     const {
+    //         data: { method }
+    //     } = ctx.request;
+    //     ctx.mapMethod = underline2Camelcase(method);
+    //     if (!(providerController as any)[ctx.mapMethod]) {
+    //         throw ethErrors.rpc.methodNotFound({
+    //             message: `method [${method}] doesn't has corresponding handler`,
+    //             data: ctx.request.data
+    //         });
+    //     }
+    //     return next();
+    // })
   .use(async (ctx: any, next: any) => {
-      console.log("flowContext step1 start")
       let isLocked = await keyringService.isLocked()
       if (isLocked) {
+          ctx.flowContinue = true;
           await notificationService.requestApproval({}, { route: "/evokeBoost/notification/unlock" })
       }
-      console.log("flowContext step1 end")
       return next();
   })
   .use(async (ctx: any, next: any) => {
-      console.log("flowContext step2 start", ctx)
-      await notificationService.requestApproval({
-
-      }, { route: "/notification/sendkaspa?address=qr6uzet8l842fz33kjl4jk0t6t7m43n8rxvfj6jms9jjz0n08rneuej3f0m08&amount=100000" })
-      return next();
+      const {
+          request: {
+              session: { origin, name, icon }
+          },
+      } = ctx;
+      if (!permissionService.hasPermission(origin)) {
+          ctx.flowContinue = true;
+          await notificationService.requestApproval(
+              {
+                  params: {
+                      data: {},
+                      session: { origin, name, icon }
+                  },
+                },
+          { route: "/evokeBoost/notification/connect" }
+          )
+      }
+      return next()
   })
+    .use(async (ctx: any, next: any) => {
+        const {
+            data: { method, params }
+        } = ctx.request;
+        ctx.mapMethod = underline2Camelcase(method);
+        if ((providerController as any)[ctx.mapMethod]) {
+            await (providerController as any)[ctx.mapMethod](params)
+        }
+        return next();
+    })
   .callback();
 
 export default (request: any) => {
   const ctx: any = { request: { ...request, requestedApproval: false } };
-  console.log("flowContext ctx", ctx)
   return flowContext(ctx).finally(() => {
     // if (ctx.request.requestedApproval) {
     //   flow.requestedApproval = false;

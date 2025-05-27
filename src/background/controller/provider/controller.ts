@@ -1,8 +1,8 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import { permissionService } from '@/background/service';
 // import { NETWORK_TYPES, VERSION } from '@/shared/constant';
+import { keyringService, notificationService, permissionService } from '@/background/service';
 
 // import { NetworkType } from '@/shared/types';
 // import { amountToSompi } from '@/ui/utils';
@@ -98,13 +98,18 @@ class ProviderController {
   //   const { data: { params: { toAddress, sompi } } } = req;
   //
   // }])
-  //   sendKaspa = async ({approvalRes:{psbtHex}}) => {
-  //     const rawtx = psbtHex
-  //     // const psbt = 'psbt'
-  //     // const tx = psbt.extractTransaction();
-  //     // const rawtx = tx.toHex()
-  //     return await wallet.pushTx(rawtx)
-  //   }
+    sendKaspa = async (param: any) => {
+      console.log("param", param)
+      await notificationService.requestApproval(
+          {
+            params: {
+              data: param,
+            },
+          },
+          { route: "/evokeBoost/notification/sendkaspa" }
+      )
+      return
+    }
   //
   //
   // @Reflect.metadata('APPROVAL', ['SignText', () => {

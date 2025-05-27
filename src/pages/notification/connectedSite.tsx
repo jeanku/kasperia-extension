@@ -1,7 +1,23 @@
+import { useEffect } from 'react';
 import HeadNav from '@/components/HeadNav'
 import DeforeImg from '@/assets/images/icon-coin-def.png'
 
-const ConnectedSite = () => {
+interface Props {
+    params: {
+        session: {
+            origin: string;
+            icon: string;
+            name: string;
+        };
+    };
+}
+
+const ConnectedSite = ({ params: { session } }: Props) => {
+
+    useEffect(() => {
+        console.log("session", session)
+    }, []);
+
     return (
         <article className="page-box">
             <HeadNav title='Connected Sites'></HeadNav>

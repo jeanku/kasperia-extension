@@ -266,14 +266,13 @@ export class KasperiaProvider extends EventEmitter {
         });
     };
 
-    sendKaspa = async (toAddress: string, sompi: number, options?: { feeRate: number }) => {
+    sendKaspa = async (toAddress: string, amount: string, payload: string) => {
         return this._request({
             method: 'sendKaspa',
             params: {
                 toAddress,
-                sompi,
-                feeRate: options?.feeRate,
-                // type: TxType.SEND_KASPA
+                amount,
+                payload
             }
         });
     };

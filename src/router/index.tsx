@@ -63,14 +63,12 @@ import Donation from "@/pages/setting/more/donation";
 import ChangePwd from "@/pages/setting/more/changepwd";
 import AutoLock from "@/pages/setting/more/autoLock";
 
-import EvokeBoost from "@/pages/index/evokeBoost";
-
 import {
   Unlock as NotificationUnlock,
   SendKaspa as NotificationSendKaspa,
+  Connect,
+  EvokeBoost
 } from "@/pages/notification";
-
-import BorwerConnect from "@/pages/notification/borwerConnect";
 
 const AppRouter: React.FC = () => {
   return (
@@ -128,12 +126,12 @@ const AppRouter: React.FC = () => {
             <Route path="/setting/autolock" element={<AutoLock />} />
           </Route>{/**/}
 
-          <Route path="/notification/unlock" element={<NotificationUnlock />} />
-          <Route path="/notification/sendkaspa" element={<NotificationSendKaspa />} />
+
 
           <Route path="/evokeBoost" element={<EvokeBoost />} >
             <Route path="notification/unlock" element={  <NotificationUnlock /> } />
-            <Route path="notification/borwerConnect" element={<BorwerConnect />} />
+            <Route path="notification/sendkaspa" element={<NotificationSendKaspa />} />
+            <Route path="notification/connect" element={<Connect />} />
           </Route>
 
           <Route path="*" element={<Nopage />} />

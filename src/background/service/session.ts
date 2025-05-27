@@ -29,22 +29,28 @@ export class Session {
 // for each tab
 const sessionMap = new Map();
 
-const getSession = (id: string) => {
+const getSession = (id: number) => {
   return sessionMap.get(id);
 };
 
-const getOrCreateSession = (id: string) => {
+const getOrCreateSession = (id: number) => {
   if (sessionMap.has(id)) {
     return getSession(id);
   }
-
   return createSession(id, null);
 };
 
-const createSession = (id: string, data: SessionData | null) => {
+const createSession = (id: number, data: SessionData | null) => {
   const session = new Session(data);
+  chrome.tabs.get(id, (tab) => {
+    const origin = new URL(tab.url || "").origin;
+    session.setProp({
+      origin,
+      icon: tab.favIconUrl || '',
+      name: tab.title || '',
+    });
+  });
   sessionMap.set(id, session);
-
   return session;
 };
 
@@ -52,16 +58,16 @@ const deleteSession = (id: string) => {
   sessionMap.delete(id);
 };
 
-const broadcastEvent = (ev: any, data?: any, origin?: string) => {
+const broadcastEvent = async (ev: any, data?: any, origin?: string) => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let sessions: any[] = [];
   sessionMap.forEach((session, key) => {
-    if (permissionService.hasPermission(session.origin)) {
+    permissionService.hasPermission(session.origin).then(r => {
       sessions.push({
         key,
         ...session
       });
-    }
+    })
   });
 
   // same origin

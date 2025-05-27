@@ -3,7 +3,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ethErrors } from 'eth-rpc-errors';
 import { EthereumProviderError } from 'eth-rpc-errors/dist/classes';
-import Events from 'events';
 import { winMgr } from '../webapi';
 
 interface Approval {
@@ -28,22 +27,13 @@ export const IS_LINUX = /linux/i.test(navigator.userAgent);
 
 // something need user approval in window
 // should only open one window, unfocus will close the current notification
-class NotificationService extends Events {
+class NotificationService {
   approval: Approval | null = null;
   notifiWindowId = 0;
   isLocked = false;
 
   constructor() {
-    super();
-
-    winMgr.event.on('windowRemoved', (winId: number) => {
-      if (winId === this.notifiWindowId) {
-        this.notifiWindowId = 0;
-        this.rejectApproval();
-      }
-    });
-
-    winMgr.event.on('windowFocusChange', (winId: number) => {
+    chrome.windows.onFocusChanged.addListener((winId) => {
       if (this.notifiWindowId && winId !== this.notifiWindowId) {
         if (IS_CHROME && winId === chrome.windows.WINDOW_ID_NONE && IS_LINUX) {
           return;
@@ -51,18 +41,25 @@ class NotificationService extends Events {
         this.rejectApproval();
       }
     });
+
+    chrome.windows.onRemoved.addListener((winId) => {
+      if (winId === this.notifiWindowId) {
+        this.notifiWindowId = 0;
+        this.rejectApproval();
+      }
+    });
   }
 
-  getApproval = () => this.approval?.data;
+  getApproval = async () => this.approval?.data;
 
-  resolveApproval = (data?: any, forceReject = false) => {
+  resolveApproval = async (data?: any, forceReject = false) => {
     if (forceReject) {
       this.approval?.reject(new EthereumProviderError(4001, 'User Cancel'));
     } else {
       this.approval?.resolve(data);
     }
     this.approval = null;
-    this.emit('resolve', data);
+    this.clear()
   };
 
   rejectApproval = async (err?: string, stay = false, isInternal = false) => {
@@ -70,11 +67,9 @@ class NotificationService extends Events {
     if (isInternal) {
       this.approval?.reject(ethErrors.rpc.internal(err));
     } else {
-      this.approval?.reject(ethErrors.provider.userRejectedRequest<any>(err));
+      this.approval?.reject(new EthereumProviderError(4001, 'User Cancel'));
     }
-
-    await this.clear(stay);
-    this.emit('reject', err);
+    // await this.clear(stay);
   };
 
   // currently it only support one approval at the same time
@@ -85,7 +80,6 @@ class NotificationService extends Events {
         resolve,
         reject
       };
-
       this.openNotification(winProps);
     });
   };
@@ -93,6 +87,7 @@ class NotificationService extends Events {
   clear = async (stay = false) => {
     this.approval = null;
     if (this.notifiWindowId && !stay) {
+      await winMgr.remove(this.notifiWindowId);
       this.notifiWindowId = 0;
     }
   };

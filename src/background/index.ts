@@ -1,6 +1,7 @@
 import addServiceListener from './listener';
 import PortMessage from '../content-script/message/portMessage';
 import { providerController } from './controller';
+import { sessionService } from './service';
 import {Buffer} from 'buffer'
 
 globalThis.Buffer = Buffer;
@@ -166,27 +167,30 @@ chrome.runtime.onConnect.addListener((port) => {
     }
 
     const pm = new PortMessage(port);
-    pm.listen(async (msg : any) => {
-        console.log("【BG】pm.listen:", msg);
-        // const sessionId = port.sender?.tab?.id;
-        // const session = sessionService.getOrCreateSession(sessionId);
+    pm.listen(async (data : any) => {
+        console.log("【BG】pm.listen:", data);
+        const tabId = port.sender?.tab?.id;
+        if (!tabId) return;
+
+        const session = sessionService.getOrCreateSession(tabId);
+
         //
-        // const req = { data, session };
+        console.log("session hahah: ", session)
+        const req = { data, session };
         // for background push to respective page
         // req.session.pushMessage = (event, data) => {
         //     pm.send('message', { event, data });
         // };
-        try {
-            let s = await providerController(msg);
-            console.log("【BG】pm.listen33:", msg);
-            console.log("providerController(msg) then", s);
-            return s;
-        } catch (e) {
-            console.error("🔥 providerController 报错:", e);
-        }
-
-        console.log("【BG】pm.listen44:", msg);
-        // return providerController(msg);
+        // try {
+        //     let s = await providerController(req);
+        //     console.log("providerController(msg) then", s);
+        //     return s;
+        // } catch (e) {
+        //     console.error("🔥 providerController 报错:", e);
+        // }
+        //
+        // console.log("【BG】pm.listen44:", msg);
+        return providerController(req);
     });
 
     port.onDisconnect.addListener(() => {
