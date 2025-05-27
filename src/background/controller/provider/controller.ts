@@ -108,7 +108,6 @@ class ProviderController {
           },
           { route: "/evokeBoost/notification/sendkaspa" }
       )
-      return
     }
   //
   //
@@ -126,9 +125,9 @@ class ProviderController {
 
   //
   // @Reflect.metadata('SAFE', true)
-  //   getVersion = async () => {
-  //     return VERSION
-  //   };
+    getVersion = async () => {
+      return "1.0.0"
+    };
 }
 
 export default new ProviderController();

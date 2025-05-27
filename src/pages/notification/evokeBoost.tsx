@@ -14,6 +14,7 @@ const EvokeBoost = () => {
         const initRpc = async () => {
             try {
                 await initialize("./kaspa_bg.wasm");
+                console.log("123123123")
                 let network: Network = await Preference.getNetwork()
                 Kiwi.setNetwork(network.networkId)
                 setIsInitialized(true);

@@ -54,7 +54,7 @@ const handlers: Record<string, (message: any) => Promise<any> | any> = {
     "Contact.changeName": (msg) => contactService.changeName(msg.address, msg.name),
     "Contact.remove": (msg) => contactService.remove(msg.address),
 
-    "Notification.resolveApproval": () => notificationService.resolveApproval(),
+    "Notification.resolveApproval": (msg) => notificationService.resolveApproval(msg.data, msg.forceReject),
     "Notification.rejectApproval": (msg) => notificationService.rejectApproval(msg.err, msg.stay, msg.isInternal),
     "Notification.getApproval": () => notificationService.getApproval(),
     

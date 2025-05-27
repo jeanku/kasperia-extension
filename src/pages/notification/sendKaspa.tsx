@@ -124,7 +124,7 @@ const SendKaspa = () => {
 
     const reject = () => {
         noticeError("haha error");
-        Notification.rejectApproval("user cancel")
+        Notification.resolveApproval({code: 1, content: "hhahaha"})
     }
 
     return (

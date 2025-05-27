@@ -60,8 +60,6 @@ let channelName = 'kasperiaChannel';
 //     }
 // });
 
-console.log("inject Script... 123")
-
 import PortMessage from './message/portMessage';
 import BroadcastChannelMessage from './message/boardcastMessage';
 
@@ -83,6 +81,7 @@ function injectScript(): void {
         //
         const bcm = new BroadcastChannelMessage(channelName).listen(
             (data: any) => {
+                console.log("bcm listen request:", data)
                 pm.request(data)
             });
         //
