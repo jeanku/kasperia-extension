@@ -328,7 +328,10 @@ export class KasperiaProvider extends EventEmitter {
     };
 
     getVersion = async () => {
-        return "version"
+        return this._request({
+            method: 'getVersion',
+            params: {}
+        });
     };
 }
 

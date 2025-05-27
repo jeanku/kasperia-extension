@@ -1,4 +1,4 @@
-import React, { useState, KeyboardEvent } from "react";
+import React, { useState, KeyboardEvent, useEffect } from "react";
 import { Button, Input } from "antd-mobile";
 import { Keyring } from '@/chrome/keyring'
 import { SvgIcon } from '@/components/Icon/index'
@@ -20,6 +20,10 @@ const Unlock = () => {
             handleSubmit();
         }
     };
+
+    useEffect(() => {
+        console.log("Unlock 123456789012345678901234567890")
+    }, []);
 
     const handleSubmit = async () => {
         try {

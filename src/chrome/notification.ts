@@ -5,8 +5,8 @@ import { Transaction } from '@/model/kaspa'
 
 export class Notification extends Chrome {
 
-    static resolveApproval(): Promise<any> {
-        return Chrome.request({ action: "Notification.resolveApproval" })
+    static resolveApproval(data?: any, forceReject = false): Promise<any> {
+        return Chrome.request({ action: "Notification.resolveApproval", data, forceReject })
     }
 
     static rejectApproval(err?: string, stay = false, isInternal = false): Promise<any> {

@@ -45,7 +45,8 @@ const flowContext = flow
               session: { origin, name, icon }
           },
       } = ctx;
-      if (!permissionService.hasPermission(origin)) {
+      console.log("origin", origin, await permissionService.hasPermission(origin))
+      if (!await permissionService.hasPermission(origin)) {
           ctx.flowContinue = true;
           await notificationService.requestApproval(
               {
@@ -65,9 +66,9 @@ const flowContext = flow
         } = ctx.request;
         ctx.mapMethod = underline2Camelcase(method);
         if ((providerController as any)[ctx.mapMethod]) {
-            await (providerController as any)[ctx.mapMethod](params)
+            return await (providerController as any)[ctx.mapMethod](params)
         }
-        return next();
+        return
     })
   .callback();
 
