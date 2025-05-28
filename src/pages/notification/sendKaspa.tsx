@@ -130,7 +130,7 @@ const SendKaspa = () => {
     return (
         <article className="page-box">
             <HeadNav title='Sign Transaction'></HeadNav>
-            <div className="content-main sign-transactuon">
+            <div className="content-main sign-transactuon pb96">
                 <div className="sign-card">
                     <div className="sign-card-bg pt26">
                         <strong>Send to</strong>
@@ -157,7 +157,7 @@ const SendKaspa = () => {
 
                     : null
                 }
-                <div className="btn-pos-two">
+                <div className="btn-pos-two flexd-row post-bottom">
                     <Button block size="large" color="primary"
                             disabled={ pendingTx == null}
                             loading={btnLoading}

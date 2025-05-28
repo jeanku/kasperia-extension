@@ -10,17 +10,20 @@ import { isExtensionPopup } from './utils/util'
 import { Network } from './model/account'
 import { dispatchRpcConnect } from './dispatch/rpcclient'
 import {  Kiwi, initialize } from '@kasplex/kiwi-web'
+import { getBrowser } from '@/utils/util'
 import { Preference } from '@/chrome/preference'
 
 const RootComponent = () => {
     const rootElement = document.getElementById('root')!;
     const isExtension = isExtensionPopup();
-    if (!isExtension) {
-        rootElement.classList.remove('extension-container');
-    }
     useEffect(() => {
         const initRpc = async () => {
             try {
+                const browser = getBrowser()
+                const extensionIsInTab = await browser.tabs.getCurrent()
+                if(extensionIsInTab || !isExtension) {
+                    rootElement.classList.remove('extension-container');
+                }
                 await initialize("./kaspa_bg.wasm");
                 let network: Network = await Preference.getNetwork()
 

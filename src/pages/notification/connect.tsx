@@ -25,6 +25,7 @@ interface Props {
 const Connect =  () => {
     const [session, setSession] = useState<Session | undefined>(undefined)
     const [accounts, setAccounts] = useState<AddressBook[]>([])
+    const [defaultAddress, setDefaultAddress] = useState<string>('')
 
     const initRpc = async () => {
         try {
@@ -41,12 +42,21 @@ const Connect =  () => {
         setSession(approval.params.session)
     }
 
+    const changeAddress = (address: string) => {
+        setDefaultAddress(address);
+    }
+
     const getAccountList = async () => {
         await initRpc()
         let contacts: AddressBook[] = await Keyring.getAccountBook()
+        let defAddress = ''
         contacts = contacts.map((item) => {
             item.drive = item.drive!.map(r => {
                 r.address = new Wasm.PublicKey(r.pubKey).toAddress(Kiwi.network).toString()
+                if(!defAddress) {
+                    defAddress = r.address
+                    setDefaultAddress(defAddress)
+                }
                 return r
             })
             return item
@@ -85,16 +95,16 @@ const Connect =  () => {
                     <p className='txt-tit-tip'>Only connect with sites you trust</p>
                 </div>
                 <div className="list-box">
-                    <Radio.Group value="">
+                    <Radio.Group value={defaultAddress}>
                         {
-                            accounts.length > 0 ? (
+                            accounts.length > 0 && (
                                 accounts.map((item: AddressBook, index) => (
                                     <div className="contact-list-box mb20" key={index}>
                                         <strong className="list-tit-1">{item.name}</strong>
                                         {
-                                            item.drive!.map((dr, index) => (
-                                                <div className="list-item-box">
-                                                    <Radio>
+                                            item.drive!.map((dr, childIndex) => (
+                                                <div className="list-item-box" key={childIndex}>
+                                                    <Radio value={dr.address} onChange={() => changeAddress(dr.address)} >
                                                         <div className="list-item-left">
                                                             <strong>{dr.name}</strong>
                                                             <span>{formatAddress(dr.address)}</span>
@@ -105,7 +115,7 @@ const Connect =  () => {
                                         }
                                     </div>
                                 ))
-                            ) : null
+                            )
                         }
                     </Radio.Group>
                 </div>

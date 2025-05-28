@@ -139,6 +139,14 @@ export const hashString = async (str: string) => {
     return hashHex;
 }
 
+export const getBrowser = () => {
+    if (typeof (globalThis as any).browser === 'undefined') {
+        return chrome;
+    } else {
+        return (globalThis as any).browser;
+    }
+}
+
 export const openUrl = (url: string) => {
     if(!url.trim()) return
     window.open(url, '_blank')

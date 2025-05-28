@@ -35,6 +35,8 @@ import IconEyeOpen from '@/assets/icons/icon-eye-open.svg'
 import IconDiscord from '@/assets/icons/discord.svg'
 import IconTwitter from '@/assets/icons/twitter.svg'
 import IconGithub from '@/assets/icons/github.svg'
+import IconHistory from '@/assets/icons/icon-history.svg'
+import IconRightArrow from '@/assets/icons/icon-right-arrow.svg'
 import PngCoinDef from '@/assets/images/icon-coin-def.png'
 
 const svgRegistry = {
@@ -73,7 +75,9 @@ const svgRegistry = {
     IconEyeOpen,
     IconDiscord,
     IconTwitter,
-    IconGithub
+    IconGithub,
+    IconHistory,
+    IconRightArrow,
 };
 
 type IconName = keyof typeof svgRegistry;
