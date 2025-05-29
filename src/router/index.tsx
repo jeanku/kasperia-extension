@@ -67,7 +67,8 @@ import {
   Unlock as NotificationUnlock,
   SendKaspa as NotificationSendKaspa,
   Connect,
-  EvokeBoost
+  EvokeBoost,
+  History,
 } from "@/pages/notification";
 
 const AppRouter: React.FC = () => {
@@ -132,6 +133,7 @@ const AppRouter: React.FC = () => {
             <Route path="notification/unlock" element={  <NotificationUnlock /> } />
             <Route path="notification/sendkaspa" element={<NotificationSendKaspa />} />
             <Route path="notification/connect" element={<Connect />} />
+            <Route path="notification/history" element={<History />} />
           </Route>
 
           <Route path="*" element={<Nopage />} />

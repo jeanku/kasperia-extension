@@ -263,7 +263,7 @@ em {
         align-items: center;
         gap: 20px;
         padding-top: 10px;
-        padding-bottom: 40px;
+        padding-bottom: 30px;
         .adm-button-primary {
             margin-bottom: 0;
         }
@@ -1572,26 +1572,79 @@ em {
     background-color: $bg-color-input;
     border-radius: $border-radius;
     padding: 14px 15px;
+    margin-bottom: 12px;
     .logo-img {
         display: inline-block;
         width: 45px;
         height: 45px;
+        border-radius: $border-radius;
         margin-right: 16px;
     }
     .source-txt {
         flex: 2;
         strong {
+            display: block;
+            margin-bottom: 7px;
             font-size: 16px;
             font-weight: bold;
             color: $text-color;
         }
         p {
-            margin-top: 7px;
             font-size: 14px;
             color: $text-color-desc;
         }
     }
+}
 
+.sign-history-list {
+    .sign-history-item {
+        margin-top: 12px;
+        .history-head {
+            padding: 10px 16px;
+            box-sizing: border-box;
+            background-color: $bg-color-f26;
+            border-radius: $border-radius;
+            color: $text-color-desc;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .history-body {
+            margin-top:22px;
+            margin-bottom: 22px;
+            display: none;
+            strong {
+                display: block;
+                margin-bottom: 12px;
+                color: $text-color;
+                font-size: 16px;
+            }
+            p {
+                font-size: 14px;
+                color: $text-color-desc;
+                word-break: break-all;
+            }
+        }
+        &:hover,
+        &.active  {
+            .history-head {
+                color: $text-color-secondary;
+            }
+        }
+        &.active {
+            .history-head > div { 
+                position: relative;
+                top: 10px;
+                left: -5px;
+                transform: rotate(90deg);
+                transform-origin:50% 50% ;
+            }
+            .history-body {
+                display: block;
+            }
+        }
+    }
 }
 .page-more,
 .page-setting,

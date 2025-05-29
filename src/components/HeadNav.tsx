@@ -40,6 +40,8 @@ const HeadNav: React.FC<HeadNavProps> = ({
         switch(rightType) {
             case 'add':
                 return <img className="icon-add norem" src={IconAdd} alt="Add" onClick={ () => goPage()} />
+            case 'history':
+                return <SvgIcon iconName="IconHistory" offsetStyle={{position: 'relative', top: '-3px'}} onClick={ () => goPage()} />
             case 'arrow':
                 return (
                     <div className="nav-bar-right" onClick={ () => goPage()}>
