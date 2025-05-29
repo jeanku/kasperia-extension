@@ -74,28 +74,17 @@ function injectScript(): void {
         container.insertBefore(scriptTag, container.children[0]);
         container.removeChild(scriptTag);
 
-        // const { BroadcastChannelMessage, PortMessage } = Message;
-
-
         const pm = new PortMessage().connect();
-        //
         const bcm = new BroadcastChannelMessage(channelName).listen(
             (data: any) => {
-                console.log("bcm listen request:", data)
-                pm.request(data)
+                console.log("bcm -> port request:", {...data, "port": true})
+                return pm.request({...data, "port": true})
             });
-        //
-        // background notification
-        pm.on('message', (data: any) => {
-            console.log("haha pm.on", data)
-            bcm.send('message', data);
-        });
-        //
+
         document.addEventListener('beforeunload', () => {
             bcm.dispose();
             pm.dispose();
         });
-
     } catch (error) {
         console.error('Kasperia: Provider injection failed.', error);
     }
@@ -184,11 +173,8 @@ function shouldInjectProvider() {
     return doctypeCheck() && suffixCheck() && documentElementCheck() && !blockedDomainCheck() && !iframeCheck();
 }
 
-// if (shouldInjectProvider()) {
-//     injectScript();
-// }
-
-
-injectScript();
+if (shouldInjectProvider()) {
+    injectScript();
+}
 
 export {}

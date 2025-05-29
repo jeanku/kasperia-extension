@@ -116,7 +116,9 @@ export class KasperiaProvider extends EventEmitter {
     initialize = async () => {
         document.addEventListener('visibilitychange', this._requestPromiseCheckVisibility);
 
-        this._bcm.connect().on('message', this._handleBackgroundMessage);
+        console.log("bcm connect to content script ...")
+        this._bcm.connect()
+            // .on('message', this._handleBackgroundMessage);
         // domReadyCall(() => {
         //     const origin = window.top?.location.origin;
         //     const icon =
@@ -159,19 +161,19 @@ export class KasperiaProvider extends EventEmitter {
         // this.keepAlive();
     };
 
-    /**
-     * Sending a message to the extension to receive will keep the service worker alive.
-     */
-    private keepAlive = () => {
-        this._request({
-            method: 'keepAlive',
-            params: {}
-        }).then((v) => {
-            setTimeout(() => {
-                this.keepAlive();
-            }, 15000);
-        });
-    };
+    // /**
+    //  * Sending a message to the extension to receive will keep the service worker alive.
+    //  */
+    // private keepAlive = () => {
+    //     this._request({
+    //         method: 'keepAlive',
+    //         params: {}
+    //     }).then((v) => {
+    //         setTimeout(() => {
+    //             this.keepAlive();
+    //         }, 15000);
+    //     });
+    // };
 
     private _requestPromiseCheckVisibility = () => {
         if (document.visibilityState === 'visible') {
@@ -190,29 +192,15 @@ export class KasperiaProvider extends EventEmitter {
         // this.emit(event, data);
     };
 
-    // TODO: support multi request!
-    // request = async (data) => {
-    //   return this._request(data);
-    // };
-
     _request = async (data: any) => {
         if (!data) {
             throw Error("data not find");
         }
         this._requestPromiseCheckVisibility();
-
         return this._requestPromise.call(() => {
-            console.log('[request]', JSON.stringify(data, null, 2));
-            return this._bcm
-                .request(data)
-                .then((res) => {
-                    console.log('[request: success]', data, res);
-                    return res;
-                })
-                .catch((err) => {
-                    console.log('[request: error]', data.method, err);
-                    throw err;
-                });
+            return this._bcm.request(data).then((res) => res).catch((err) => {
+                throw err;
+            });
         });
     };
 
@@ -360,4 +348,4 @@ if (!window.mywallet) {
 // 通知外部页面插件已注入
 window.dispatchEvent(new Event('kasperia#initialized'));
 
-export {};
+export { kasperia };

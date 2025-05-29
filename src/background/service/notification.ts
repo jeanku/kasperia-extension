@@ -53,6 +53,7 @@ class NotificationService {
   getApproval = async () => this.approval?.data;
 
   resolveApproval = async (data?: any, forceReject = false) => {
+    console.log("resolveApproval", data, forceReject, this.approval)
     if (forceReject) {
       this.approval?.reject(new EthereumProviderError(4001, 'User Cancel'));
     } else {
@@ -69,7 +70,6 @@ class NotificationService {
     } else {
       this.approval?.reject(new EthereumProviderError(4001, 'User Cancel'));
     }
-    // await this.clear(stay);
   };
 
   // currently it only support one approval at the same time

@@ -14,8 +14,9 @@ export default class BroadcastChannelMessage extends Message {
 
     connect = () => {
         this._channel.onmessage = ({ data: { type, data } }) => {
+            console.log("bcm response:  ", type, data)
             if (type === 'message') {
-                this.emit('message', data);
+                // this.emit('message', data);
             } else if (type === 'response') {
                 this.onResponse(data);
             }
@@ -26,8 +27,8 @@ export default class BroadcastChannelMessage extends Message {
 
     listen = (listenCallback: any) => {
         this.listenCallback = listenCallback;
-
         this._channel.onmessage = ({ data: { type, data } }) => {
+            console.log("BCM listen onmessage", type)
             if (type === 'request') {
                 this.onRequest(data);
             }

@@ -18,14 +18,14 @@ class PortMessage extends Message {
   connect = (name?: string) => {
     this.port = browserRuntimeConnect(undefined, name ? { name } : undefined);
     this.port.onMessage.addListener((r: any) => {
-      console.log("r", r)
-      if (r._type_ === `${this._EVENT_PRE}message`) {
-        this.emit('message', r);
-        return;
-      }
+      console.log("r", r.data)
+      // if (r._type_ === `${this._EVENT_PRE}message`) {
+      //   this.emit('message', r);
+      //   return;
+      // }
       //
       if (r._type_ === `${this._EVENT_PRE}response`) {
-        this.onResponse(r);
+        this.onResponse(r.data);
       }
     });
 

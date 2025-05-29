@@ -22,23 +22,27 @@ abstract class Message extends EventEmitter {
             throw ethErrors.rpc.limitExceeded();
         }
         const ident = this._requestIdPool.shift()!;
+        console.log("request call .....",  ident)
         return new Promise((resolve, reject) => {
             this._waitingMap.set(ident, {
                 data,
                 resolve,
                 reject
             });
+            console.log("request send in promise",  ident, data)
             this.send('request', { ident, data });
         });
     };
 
     onResponse = async ({ ident, res, err }: any = {}) => {
         // the url may update
+        // console.log("_waitingMap.has(ident)", this._waitingMap.has(ident), ident, res, err)
         if (!this._waitingMap.has(ident)) {
             return;
         }
-
         const { resolve, reject } = this._waitingMap.get(ident)!;
+
+        console.log("_waitingMap resolve", this._waitingMap.has(ident), ident, res, err)
 
         this._requestIdPool.push(ident);
         this._waitingMap.delete(ident);
@@ -46,6 +50,7 @@ abstract class Message extends EventEmitter {
     };
 
     onRequest = async ({ ident, data }: any = {}) => {
+        console.log("Message, onRequest", this.listenCallback)
         if (this.listenCallback) {
             let res, err;
 

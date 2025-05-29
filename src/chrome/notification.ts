@@ -1,7 +1,6 @@
 import { Chrome } from '@/chrome/chrome'
 import { Network, KasPrice } from '@/model/account'
 import { TokenList, Oplist, } from '@/model/krc20'
-import { Transaction } from '@/model/kaspa'
 
 export class Notification extends Chrome {
 

@@ -59,8 +59,7 @@ const flowContext = flow
           )
       }
       return next()
-  })
-    .use(async (ctx: any, next: any) => {
+  }).use(async (ctx: any, next: any) => {
         const {
             data: { method, params }
         } = ctx.request;
@@ -68,17 +67,10 @@ const flowContext = flow
         if ((providerController as any)[ctx.mapMethod]) {
             return await (providerController as any)[ctx.mapMethod](params)
         }
-        return
     })
   .callback();
 
 export default (request: any) => {
   const ctx: any = { request: { ...request, requestedApproval: false } };
-  return flowContext(ctx).finally(() => {
-    // if (ctx.request.requestedApproval) {
-    //   flow.requestedApproval = false;
-    //   // only unlock notification if current flow is an approval flow
-    //   notificationService.unLock();
-    // }
-  });
+  return flowContext(ctx);
 };

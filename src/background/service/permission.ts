@@ -31,22 +31,20 @@ class PermissionService {
 
   async load() {
     if (!this.store) {
-      Storage.getData<PermissionStore>('permission').then(state => {
-        console.log("PermissionService load", state)
-        if (!state) {
-          this.store = {
-            dumpCache: []
-          }
-        } else {
-          this.store = state
-          const cache: ReadonlyArray<LRU.Entry<string, ConnectedSite>> = (this.store!.dumpCache || []).map((item) => ({
-            k: item.k,
-            v: item.v,
-            e: 0
-          }));
-          this.lruCache.load(cache);
+      let state = await Storage.getData<PermissionStore>('permission')
+      if (!state) {
+        this.store = {
+          dumpCache: []
         }
-      })
+      } else {
+        this.store = state
+        const cache: ReadonlyArray<LRU.Entry<string, ConnectedSite>> = (this.store!.dumpCache || []).map((item) => ({
+          k: item.k,
+          v: item.v,
+          e: 0
+        }));
+        await this.lruCache.load(cache);
+      }
     }
   }
 
@@ -112,6 +110,7 @@ class PermissionService {
     await this.load()
     if (!this.lruCache) return;
     const site = this.lruCache.get(origin);
+
     return site && site.isConnected;
   }
 
