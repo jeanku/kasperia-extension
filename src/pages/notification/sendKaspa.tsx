@@ -3,7 +3,7 @@ import HeadNav from '@/components/HeadNav'
 import { Button, DotLoading } from 'antd-mobile'
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { useNotice } from '@/components/NoticeBar/NoticeBar'
-import { formatAddress, formatBalance, stringToUint8Array } from '@/utils/util'
+import { formatAddress, formatBalance, stringToUint8Array, isEmptyObject } from '@/utils/util'
 import { Keyring } from '@/chrome/keyring'
 import { Wallet } from '@/model/wallet'
 import { Tx, Wasm, Kiwi, Rpc, Wallet as KiwiWallet } from '@kasplex/kiwi-web'
@@ -45,7 +45,6 @@ const SendKaspa = () => {
 
     const [pendingTx, setPendingTx] = useState<Promise<Tx.PendingTransaction> | null>(null)
     const rpcClient = useSelector((state: RootState) => state.rpc.client);
-
     const createTx = async (param: SendParams) => {
         try {
             let wallet: Wallet = await Keyring.getActiveWalletKeys()
@@ -58,7 +57,7 @@ const SendKaspa = () => {
                 priorityFee: 0n,
                 entries: entries,
                 networkId: Kiwi.getNetworkID(),
-                payload: params!.payload == "" ? undefined : stringToUint8Array(params!.payload)
+                payload: isEmptyObject(params!.payload) ? undefined : stringToUint8Array(params!.payload)
             }
             let priKey = new Wasm.PrivateKey(wallet.priKey)
             await Tx.Transaction.createTransactions(data).then(r => {
@@ -78,6 +77,7 @@ const SendKaspa = () => {
         let approval: Props = await Notification.getApproval()
         let param = approval.params.data
         param.amount = new BigNumber(param.amount).multipliedBy(new BigNumber(10).pow(8)).toFixed(0);
+        isEmptyObject(params!.payload) && (param.payload = "")
         setParams(param)
         if (!KiwiWallet.validate(param.toAddress || "")) {
             noticeError("address invalid")
@@ -158,15 +158,15 @@ const SendKaspa = () => {
                     : null
                 }
                 <div className="btn-pos-two flexd-row post-bottom">
+                    <Button block size="large" onClick={() => reject()}>
+                        Reject
+                    </Button>
                     <Button block size="large" color="primary"
                             disabled={ pendingTx == null}
                             loading={btnLoading}
                             loadingText={'Submitting'}
                             onClick={() => submitTransaction()}>
                         Sign & Pay
-                    </Button>
-                    <Button block size="large" onClick={() => reject()}>
-                        Reject
                     </Button>
                 </div>
             </div>

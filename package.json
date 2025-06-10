@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "dependencies": {
-    "@kasplex/kiwi-web": "^1.0.9",
+    "@kasplex/kiwi-web": "^1.0.12",
     "@metamask/browser-passworder": "^6.0.0",
     "@metamask/obs-store": "^9.1.0",
     "@noble/secp256k1": "^2.2.3",
