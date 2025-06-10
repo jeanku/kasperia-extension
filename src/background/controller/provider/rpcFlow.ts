@@ -64,6 +64,7 @@ const flowContext = flow
             data: { method, params }
         } = ctx.request;
         ctx.mapMethod = underline2Camelcase(method);
+        console.log("param ->->->->->", ctx.request)
         if ((providerController as any)[ctx.mapMethod]) {
             return await (providerController as any)[ctx.mapMethod](params)
         }

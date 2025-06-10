@@ -7,7 +7,7 @@ export enum NetworkType {
 
 export enum NetworkName {
     Mainnet = 'Mainnet',
-    Testnet = 'Testnet 10',
+    Testnet = 'Testnet10',
 }
 
 export enum TipMsgType  {
