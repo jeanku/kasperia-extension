@@ -2,56 +2,35 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 // import { NETWORK_TYPES, VERSION } from '@/shared/constant';
-import { keyringService, notificationService, permissionService } from '@/background/service';
+import { keyringService, notificationService, permissionService, preferenceService } from '@/background/service';
 
 // import { NetworkType } from '@/shared/types';
 // import { amountToSompi } from '@/ui/utils';
 import { ethErrors } from 'eth-rpc-errors';
 // import BaseController from '../base';
 // import wallet from '../wallet';
-
+import { NetworkName, NetworkType } from '@/types/enum'
 
 class ProviderController {
 
-  async requestAccounts(origin: string) {
-    if (!permissionService.hasPermission(origin)) {
-      throw ethErrors.provider.unauthorized();
-    }
+    requestAccounts = async () => {
+      const account = await preferenceService.getCurrentAccount();
+      return account?.address ? [account?.address] : []
+    };
 
-    // const _account = await wallet.getCurrentAccount();
-    // const account = _account ? [_account.address] : [];
-    // sessionService.broadcastEvent('accountsChanged', account);
-    // const connectSite = permissionService.getConnectedSite(origin);
-    // if (connectSite) {
-    //   const network = wallet.getNetworkName()
-    //   sessionService.broadcastEvent(
-    //     'networkChanged',
-    //     {
-    //       network
-    //     },
-    //     origin
-    //   );
-    // }
-    // return account
-  };
+    getAccounts = async () => {
+      const account = await preferenceService.getCurrentAccount();
+      return account?.address ? [account?.address] : []
+    };
 
-  // @Reflect.metadata('SAFE', true)
-  //   getAccounts = async ({ session: { origin } }) => {
-  //     if (!permissionService.hasPermission(origin)) {
-  //       return [];
-  //     }
-  //
-  //     const _account = await wallet.getCurrentAccount();
-  //     const account = _account ? [_account.address] : [];
-  //     return account
-  //   };
-  //
-  // @Reflect.metadata('SAFE', true)
-  //   getNetwork = async () => {
-  //     const networkType = wallet.getNetworkType()
-  //     return NETWORK_TYPES[networkType].name
-  //   };
-  //
+    getNetwork = async () => {
+      const network = await preferenceService.getNetwork()
+      if (network && network.networkId == NetworkType.Mainnet) {
+        return "kaspa_mainnet"
+      }
+      return "kaspa_testnet_10"
+    };
+
   // @Reflect.metadata('APPROVAL', ['SwitchNetwork', (req) => {
   //   const network = req.data.params.network;
   //   if ( NETWORK_TYPES[NetworkType.Mainnet].validNames.includes(network)) {
@@ -69,18 +48,17 @@ class ProviderController {
   //     return true;
   //   }
   // }])
-  //   switchNetwork = async (req) => {
-  //     const { data: { params: { networkType } } } = req;
-  //     wallet.setNetworkType(networkType)
-  //     return NETWORK_TYPES[networkType].name
+  //   switchNetwork = async (network: number) => {
+  //
+  //       wallet.setNetworkType(networkType)
+  //       return NETWORK_TYPES[networkType].name
   //   }
   //
   // @Reflect.metadata('SAFE', true)
-  //   getPublicKey = async () => {
-  //     const account = await wallet.getCurrentAccount();
-  //     if(!account) return ''
-  //     return account.pubkey;
-  //   };
+    getPublicKey = async () => {
+        const account = await preferenceService.getCurrentAccount();
+        return account?.pubKey
+    };
   //
   // @Reflect.metadata('SAFE', true)
   //   getBalance = async () => {

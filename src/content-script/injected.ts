@@ -175,6 +175,7 @@ export class KasperiaProvider extends EventEmitter {
     //     });
     // };
 
+
     private _requestPromiseCheckVisibility = () => {
         if (document.visibilityState === 'visible') {
             this._requestPromise.check(1);
@@ -204,16 +205,16 @@ export class KasperiaProvider extends EventEmitter {
         });
     };
 
+    getNetwork = async () => {
+        return this._request({
+            method: 'getNetwork'
+        });
+    };
+
     // public methods
     requestAccounts = async () => {
         return this._request({
             method: 'requestAccounts'
-        });
-    };
-
-    getNetwork = async () => {
-        return this._request({
-            method: 'getNetwork'
         });
     };
 
@@ -261,56 +262,6 @@ export class KasperiaProvider extends EventEmitter {
                 toAddress,
                 amount,
                 payload
-            }
-        });
-    };
-
-    // signTx = async (rawtx: string) => {
-    //   return this._request({
-    //     method: 'signTx',
-    //     params: {
-    //       rawtx
-    //     }
-    //   });
-    // };
-
-    /**
-     * push transaction
-     */
-    pushTx = async (rawtx: string) => {
-        return this._request({
-            method: 'pushTx',
-            params: {
-                rawtx
-            }
-        });
-    };
-
-    signPsbt = async (psbtHex: string, options?: any) => {
-        return this._request({
-            method: 'signPsbt',
-            params: {
-                psbtHex,
-                options
-            }
-        });
-    };
-
-    signPsbts = async (psbtHexs: string[], options?: any[]) => {
-        return this._request({
-            method: 'multiSignPsbt',
-            params: {
-                psbtHexs,
-                options
-            }
-        });
-    };
-
-    pushPsbt = async (psbtHex: string) => {
-        return this._request({
-            method: 'pushPsbt',
-            params: {
-                psbtHex
             }
         });
     };
