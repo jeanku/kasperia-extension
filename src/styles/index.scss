@@ -1585,7 +1585,7 @@ em {
         strong {
             display: block;
             margin-bottom: 7px;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: bold;
             color: $text-color;
         }
@@ -1943,6 +1943,58 @@ em {
     white-space: nowrap;
     //overflow: hidden;
     width: 1em;
+}
+
+.source-top {
+    position: relative;
+    width: 70%;
+    margin: 0 auto;
+    .source-box {
+        margin-bottom: 0;
+    }
+    .tip-test-tn {
+        top: 50%;
+        transform: translateY(-60%);
+    }
+
+}
+.title-tip {
+    font-size: 17px;
+    text-align: center;
+
+}
+.title-tip-2 {
+    font-size: 14px;
+    text-align: center;
+    color: $text-color;
+}
+.title-desc {
+    font-size: 14px;
+    text-align: center;
+    color: $border-color-666;
+    line-height: 22px;
+}
+.sign-info {
+    margin-top: 20px;
+    border-radius: 6px;
+    background-color: $bg-color-input;
+    padding: 12px 20px;
+    box-sizing: border-box;
+    text-align: center;
+    font-size: 16px;
+}
+.switch-network {
+    margin-top: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    span {
+        display: block;
+        font-size: 14px;
+        background-color: $bg-color-input;
+        padding: 8px 14px;
+        border-radius: 6px;
+    }
 }
 
 @keyframes ellipsis {

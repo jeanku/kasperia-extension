@@ -70,6 +70,7 @@ import {
   EvokeBoost,
   History,
   SwitchNetwork,
+  SignInfo,
 } from "@/pages/notification";
 
 const AppRouter: React.FC = () => {
@@ -136,6 +137,7 @@ const AppRouter: React.FC = () => {
             <Route path="notification/connect" element={<Connect />} />
             <Route path="notification/history" element={<History />} />
             <Route path="notification/network" element={<SwitchNetwork />} />
+            <Route path="notification/sign" element={<SignInfo />} />
           </Route>
 
           <Route path="*" element={<Nopage />} />

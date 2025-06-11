@@ -1,18 +1,17 @@
 import React, { useState, useEffect } from "react"
-import { Button } from 'antd-mobile'
+import { Radio, Button } from 'antd-mobile'
 import { Network } from '@/model/account';
 
-import PngCoinDef from '@/assets/images/icon-coin-def.png'
 
-const SwitchNetwork: React.FC = () => {
+const SignInfo: React.FC = () => {
     const [networkConfig, setNetworkConfig] = useState<Network[]>([])
     const [currentNetworkId, setCurrentNetworkId] = useState<number>(1)
     const [btnLoading, setBtnLoading] = useState<boolean>(false)
     const disabled = (networkId: number) => {
-        return networkId !== currentNetworkId
+        return networkId === currentNetworkId
     }
     const session = {
-        icon:  PngCoinDef,
+        icon:  'https://kaspa.org/img/kaspa-logo.svg',
         name: 'Kasware Wallet',
         origin: 'https://kaspa.org'
     }
@@ -54,29 +53,25 @@ const SwitchNetwork: React.FC = () => {
                 <span className="tip-test-tn">TN10</span>
             </section>
             <div className="content-main pb50">
-                <h6 className="title-tip">Allow this site to switch the network?</h6>
-                <div className="switch-network">
-                    <span>Testnet 10</span>
-                    { `>`}
-                    <span>Mainnet</span>
+                <h6 className="title-tip mb20">Signature request</h6>
+                <p className="title-desc mb20">Only sign this message if you fully understand the content andtrust the requesting site.</p>
+                <h6 className="title-tip-2">You are signing:</h6>
+                <div className="sign-info">
+                    haha
                 </div>
             </div>
             <div className="btn-pos-two flexd-row post-bottom">
                 <Button block size="large" >
-                    Cancel
+                    Reject
                 </Button>
                 <Button block size="large" color="primary" 
-                    disabled={ disabled(currentNetworkId) }
                     loading={btnLoading}
-                    onClick={() => {
-                        changeNetwork(currentNetworkId)
-                    }}
                     loadingText={'Submitting'}
                     >
-                    SwitchNetwork
+                    Sign
                 </Button>
             </div>
         </article>
     )
 }
-export { SwitchNetwork }
+export { SignInfo }
