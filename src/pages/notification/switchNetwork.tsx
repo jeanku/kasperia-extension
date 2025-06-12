@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react"
 import { Button } from 'antd-mobile'
 import { Network } from '@/model/account';
-
+import { SvgIcon } from '@/components/Icon/index'
 import PngCoinDef from '@/assets/images/icon-coin-def.png'
 
 const SwitchNetwork: React.FC = () => {
@@ -57,15 +57,15 @@ const SwitchNetwork: React.FC = () => {
                 <h6 className="title-tip">Allow this site to switch the network?</h6>
                 <div className="switch-network">
                     <span>Testnet 10</span>
-                    { `>`}
+                    <SvgIcon iconName="arrowRight" />
                     <span>Mainnet</span>
                 </div>
             </div>
             <div className="btn-pos-two flexd-row post-bottom">
-                <Button block size="large" >
+                <Button block className="fs16" size="large" >
                     Cancel
                 </Button>
-                <Button block size="large" color="primary" 
+                <Button block size="large" className="fs16" color="primary" 
                     disabled={ disabled(currentNetworkId) }
                     loading={btnLoading}
                     onClick={() => {
@@ -73,7 +73,7 @@ const SwitchNetwork: React.FC = () => {
                     }}
                     loadingText={'Submitting'}
                     >
-                    SwitchNetwork
+                    Switch Network
                 </Button>
             </div>
         </article>
