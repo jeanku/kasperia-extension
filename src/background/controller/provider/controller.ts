@@ -1,109 +1,81 @@
-/* eslint-disable no-unused-vars */
-/* eslint-disable @typescript-eslint/no-unused-vars */
+import { notificationService, preferenceService, keyringService } from '@/background/service';
+import { KaspaApi, Kiwi } from '@kasplex/kiwi-web'
 
-// import { NETWORK_TYPES, VERSION } from '@/shared/constant';
-import { keyringService, notificationService, permissionService, preferenceService } from '@/background/service';
-
-// import { NetworkType } from '@/shared/types';
-// import { amountToSompi } from '@/ui/utils';
-import { ethErrors } from 'eth-rpc-errors';
-// import BaseController from '../base';
-// import wallet from '../wallet';
-import { NetworkName, NetworkType } from '@/types/enum'
+interface RequestProps {
+    data: {
+        params:  any,
+    };
+    session: {
+        origin: string,
+        icon: string,
+        name: string,
+    }
+}
 
 class ProviderController {
 
-    requestAccounts = async () => {
-      const account = await preferenceService.getCurrentAccount();
-      return account?.address ? [account?.address] : []
-    };
-
     getAccounts = async () => {
-      const account = await preferenceService.getCurrentAccount();
-      return account?.address ? [account?.address] : []
+      const { address } = await keyringService.getActiveAccountAddressAndNetwork();
+      return [address]
     };
 
     getNetwork = async () => {
-      const network = await preferenceService.getNetwork()
-      if (network && network.networkId == NetworkType.Mainnet) {
-        return "kaspa_mainnet"
-      }
-      return "kaspa_testnet_10"
+        return await preferenceService.getNetwork()
     };
 
-  // @Reflect.metadata('APPROVAL', ['SwitchNetwork', (req) => {
-  //   const network = req.data.params.network;
-  //   if ( NETWORK_TYPES[NetworkType.Mainnet].validNames.includes(network)) {
-  //     req.data.params.networkType = NetworkType.Mainnet
-  //   } else if ( NETWORK_TYPES[NetworkType.Testnet].validNames.includes(network)) {
-  //     req.data.params.networkType = NetworkType.Testnet
-  //   } else if ( NETWORK_TYPES[NetworkType.Devnet].validNames.includes(network)) {
-  //     req.data.params.networkType = NetworkType.Devnet
-  //   } else {
-  //     throw new Error(`the network is invalid, supported networks: ${NETWORK_TYPES.map(v=>v.name).join(',')}`)
-  //   }
-  //
-  //   if (req.data.params.networkType === wallet.getNetworkType()) {
-  //     // skip approval
-  //     return true;
-  //   }
-  // }])
-  //   switchNetwork = async (network: number) => {
-  //
-  //       wallet.setNetworkType(networkType)
-  //       return NETWORK_TYPES[networkType].name
-  //   }
-  //
-  // @Reflect.metadata('SAFE', true)
+
     getPublicKey = async () => {
         const account = await preferenceService.getCurrentAccount();
         return account?.pubKey
     };
-  //
-  // @Reflect.metadata('SAFE', true)
-  //   getBalance = async () => {
-  //     const account = await wallet.getCurrentAccount();
-  //     if (!account) return null;
-  //     const balance = await wallet.getAddressBalance(account.address)
-  //     return {
-  //       confirmed: amountToSompi(balance.confirm_amount),
-  //       unconfirmed:amountToSompi(balance.pending_amount),
-  //       total:amountToSompi(balance.amount)
-  //     };
-  //   };
-  //
-  // @Reflect.metadata('APPROVAL', ['SignPsbt', (req) => {
-  //   const { data: { params: { toAddress, sompi } } } = req;
-  //
-  // }])
-    sendKaspa = async (param: any) => {
-      return await notificationService.requestApproval(
-          {
-            params: {
-              data: param,
+
+    getBalance = async () => {
+        const { address, network } = await keyringService.getActiveAccountAddressAndNetwork();
+        Kiwi.setNetwork(network!.networkId)
+        return await KaspaApi.getBalance(address) || {}
+    };
+
+    switchNetwork = async (request: RequestProps) => {
+        const network = await preferenceService.getNetwork()
+
+        if (network?.networkId === request.data.params.networkId) {
+            return network
+        }
+        console.log("start", request.data.params)
+        return await notificationService.requestApproval(
+            {
+                data: {
+                    networkId: network?.networkId,
+                    targetNetworkId:  request.data.params.networkId
+                },
+                session: request.session
             },
-          },
-          { route: "/evokeBoost/notification/sendkaspa" }
-      )
+            { route: "/evokeBoost/notification/switchNetwork" }
+        )
     }
-  //
-  //
-  // @Reflect.metadata('APPROVAL', ['SignText', () => {
-  //   // todo check text
-  // }])
-  //   signMessage = async ({ data: { params: { text, type } } }) => {
-  //     if (type === 'bip322-simple') {
-  //       return wallet.signBIP322Simple(text)
-  //     } else {
-  //       return wallet.signMessage(text)
-  //     }
-  //   }
 
+    sendKaspa = async (request: RequestProps) => {
+        return await notificationService.requestApproval(
+            {
+              data: request.data.params,
+              session: request.session
+            },
+          { route: "/evokeBoost/notification/sendkaspa" }
+        )
+    }
 
-  //
-  // @Reflect.metadata('SAFE', true)
+    signMessage = async (request: RequestProps) => {
+        return await notificationService.requestApproval(
+            {
+                data: request.data.params,
+                session: request.session
+            },
+            { route: "/evokeBoost/notification/sign" }
+        )
+    }
+
     getVersion = async () => {
-      return "1.0.0"
+      return "1.0.21"
     };
 }
 

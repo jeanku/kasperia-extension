@@ -211,18 +211,15 @@ export class KasperiaProvider extends EventEmitter {
         });
     };
 
-    // public methods
-    requestAccounts = async () => {
-        return this._request({
-            method: 'requestAccounts'
-        });
-    };
-
-    switchNetwork = async (network: string) => {
+    switchNetwork = async (networkId: number) => {
+        console.log("networkId", networkId !== 0 && networkId !== 1)
+        if (networkId !== 0 && networkId !== 1) {
+            throw Error("networkId invalid, networkId must be 0 or 1");
+        }
         return this._request({
             method: 'switchNetwork',
             params: {
-                network
+                networkId
             }
         });
     };

@@ -42,15 +42,12 @@ abstract class Message extends EventEmitter {
         }
         const { resolve, reject } = this._waitingMap.get(ident)!;
 
-        console.log("_waitingMap resolve", this._waitingMap.has(ident), ident, res, err)
-
         this._requestIdPool.push(ident);
         this._waitingMap.delete(ident);
         err ? reject(err) : resolve(res);
     };
 
     onRequest = async ({ ident, data }: any = {}) => {
-        console.log("Message, onRequest", this.listenCallback)
         if (this.listenCallback) {
             let res, err;
 

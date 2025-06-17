@@ -1,35 +1,62 @@
 import React, { useState, useEffect } from "react"
-import { Radio, Button } from 'antd-mobile'
-import { Network } from '@/model/account';
 
+import { Notification } from '@/chrome/notification'
+import { Keyring } from '@/chrome/keyring'
+import { Kiwi, Wasm, initialize } from '@kasplex/kiwi-web'
+import { Wallet } from '@/model/wallet'
+import { Network } from '@/model/account'
+import { Button } from 'antd-mobile'
 
-const SignInfo: React.FC = () => {
+interface Session {
+    origin: string;
+    icon: string;
+    name: string;
+}
+
+interface SignData {
+    text: string,
+    type: string,
+}
+
+interface RequestParam {
+    data: SignData
+    session: Session
+}
+
+const Sign = () => {
     const [networkConfig, setNetworkConfig] = useState<Network[]>([])
+
+    const [session, setSession] = useState<Session | undefined>(undefined)
+    const [data, setData] = useState<SignData | undefined>(undefined)
+
     const [currentNetworkId, setCurrentNetworkId] = useState<number>(1)
     const [btnLoading, setBtnLoading] = useState<boolean>(false)
     const disabled = (networkId: number) => {
         return networkId === currentNetworkId
     }
-    const session = {
-        icon:  'https://kaspa.org/img/kaspa-logo.svg',
-        name: 'Kasware Wallet',
-        origin: 'https://kaspa.org'
+
+    const getApproval = async () => {
+        let approval: RequestParam = await Notification.getApproval()
+        console.log("getApproval:", approval)
+        setSession(approval.session)
+        setData(approval.data)
     }
-    const networkList: Network[] = [
-        {
-            name: 'Mainnet',
-            networkId: 0,
-            url: 'https://kaspa.org',
-        },
-        {
-            name: 'Testnet',
-            networkId: 1,
-            url: 'https://testnet.kaspa.org',
-        }
-    ]
+
+    const reject = () => {
+        Notification.rejectApproval()
+    }
+
+    const sign = async () => {
+        let wallet: Wallet = await Keyring.getActiveWalletKeys()
+        let signstr = Wasm.signMessage({message: data?.text || "", privateKey: wallet.priKey})
+        console.log("sign str", signstr)
+        Notification.resolveApproval(signstr)
+    }
+
     useEffect(() => {
-        setNetworkConfig(networkList)
-        setCurrentNetworkId(networkList[0].networkId)
+        getApproval()
+        // setNetworkConfig(networkList)
+        // setCurrentNetworkId(networkList[0].networkId)
     }, [])
 
     const changeNetwork = async (index: number) => {
@@ -57,15 +84,16 @@ const SignInfo: React.FC = () => {
                 <p className="title-desc mb20">Only sign this message if you fully understand the content andtrust the requesting site.</p>
                 <h6 className="title-tip-2">You are signing:</h6>
                 <div className="sign-info">
-                    haha
+                    {data?.text}
                 </div>
             </div>
             <div className="btn-pos-two flexd-row post-bottom">
-                <Button block size="large" >
+                <Button block size="large" onClick={ reject } >
                     Reject
                 </Button>
                 <Button block size="large" color="primary" 
                     loading={btnLoading}
+                    onClick={ sign }
                     loadingText={'Submitting'}
                     >
                     Sign
@@ -74,4 +102,5 @@ const SignInfo: React.FC = () => {
         </article>
     )
 }
-export { SignInfo }
+
+export { Sign }

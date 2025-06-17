@@ -1,4 +1,4 @@
-import { AccountDisplay, Wallet } from '@/model/wallet';
+import { AccountDisplay } from '@/model/wallet';
 import { Preference } from '@/chrome/preference';
 import { Keyring } from '@/chrome/keyring';
 import store from '@/store';
@@ -12,13 +12,8 @@ export async function dispatchPreference(refresh: boolean=false) {
         let preference = await Preference.getAll()
         if (!preference.currentAccount || refresh) {
             let account: AccountDisplay = await Keyring.getActiveAccount()
-            console.log("account", account)
-            account.address = new Wasm.PublicKey(account.pubKey).toAddress(Kiwi.network).toString()
-
-            await Preference.setCurrentAccount(account)
             preference.currentAccount = account
         }
-        console.log("dispatchPreference", preference)
         const dispatch: Dispatch = store.dispatch;
         dispatch(setPreference(preference))
     } catch (error) {
@@ -39,8 +34,6 @@ export async function dispatchRefreshPreference(wallet: AccountDisplay) {
 export async function dispatchPreferenceAddNewAccount() {
     try {
         let account: AccountDisplay = await Keyring.getActiveAccount()
-        account.address = new Wasm.PublicKey(account.pubKey).toAddress(Kiwi.network).toString()
-        await Preference.setCurrentAccount(account)
         const dispatch: Dispatch = store.dispatch;
         return dispatch(setCurrentAccount(account));
     } catch (error) {

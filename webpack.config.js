@@ -8,6 +8,7 @@ const TerserPlugin = require('terser-webpack-plugin');
 module.exports = (env, argv) => {
     return {
         mode: 'production',
+        target: 'webworker',
         entry: {
             main: './src/index.tsx',
             background: './src/background/index.ts',

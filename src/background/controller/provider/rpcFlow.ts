@@ -8,29 +8,16 @@ import { keyringService, notificationService, permissionService } from '@/backgr
 import { PromiseFlow, underline2Camelcase } from '@/background/utils';
 import providerController from './controller';
 
-export const IS_CHROME = /Chrome\//i.test(navigator.userAgent);
-
-export const IS_FIREFOX = /Firefox\//i.test(navigator.userAgent);
-
-export const IS_LINUX = /linux/i.test(navigator.userAgent);
+// export const IS_CHROME = /Chrome\//i.test(navigator.userAgent);
+//
+// export const IS_FIREFOX = /Firefox\//i.test(navigator.userAgent);
+//
+// export const IS_LINUX = /linux/i.test(navigator.userAgent);
 
 
 const flow = new PromiseFlow();
 
 const flowContext = flow
-    // .use(async (ctx: any, next: any) => {
-    //     const {
-    //         data: { method }
-    //     } = ctx.request;
-    //     ctx.mapMethod = underline2Camelcase(method);
-    //     if (!(providerController as any)[ctx.mapMethod]) {
-    //         throw ethErrors.rpc.methodNotFound({
-    //             message: `method [${method}] doesn't has corresponding handler`,
-    //             data: ctx.request.data
-    //         });
-    //     }
-    //     return next();
-    // })
   .use(async (ctx: any, next: any) => {
       let isLocked = await keyringService.isLocked()
       if (isLocked) {
@@ -45,7 +32,6 @@ const flowContext = flow
               session: { origin, name, icon }
           },
       } = ctx;
-      console.log("origin", origin, await permissionService.hasPermission(origin))
       if (!await permissionService.hasPermission(origin)) {
           ctx.flowContinue = true;
           await notificationService.requestApproval(
@@ -63,10 +49,10 @@ const flowContext = flow
         const {
             data: { method, params }
         } = ctx.request;
+        const r = ctx.request
         ctx.mapMethod = underline2Camelcase(method);
-        console.log("param ->->->->->", ctx.request)
         if ((providerController as any)[ctx.mapMethod]) {
-            return await (providerController as any)[ctx.mapMethod](params)
+            return await (providerController as any)[ctx.mapMethod](ctx.request)
         }
     })
   .callback();

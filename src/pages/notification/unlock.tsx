@@ -29,7 +29,6 @@ const Unlock = () => {
         try {
             await Keyring.unLock(password);
             Notification.resolveApproval()
-            // notificationService.resolveApproval()
         } catch (error) {
             let content = error instanceof Error ? error.message : 'password error.';
             noticeError(content);

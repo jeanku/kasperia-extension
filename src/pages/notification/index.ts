@@ -4,4 +4,4 @@ export { Connect } from "./connect"
 export { EvokeBoost } from "./evokeBoost"
 export { History } from './history'
 export { SwitchNetwork } from "./switchNetwork"
-export { SignInfo } from './sign'
+export { Sign } from './sign'

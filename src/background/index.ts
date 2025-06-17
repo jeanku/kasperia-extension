@@ -6,107 +6,6 @@ import {Buffer} from 'buffer'
 
 globalThis.Buffer = Buffer;
 
-// let popupWindowId: number | null | undefined = null;
-
-// const getCurrentWindow = (): Promise<chrome.windows.Window> => {
-//     return new Promise((resolve) => {
-//         chrome.windows.getCurrent({populate: false}, resolve);
-//     });
-// };
-//
-// const createOrUpdatePopupWindow = async (url: string = "index.html") => {
-//     const currentWindow = await getCurrentWindow();
-//
-//     const windowWidth = 360;
-//     const windowHeight = 600;
-//     const leftPosition = (currentWindow.left || 0) + (currentWindow.width || 0) - windowWidth;
-//     const topPosition = currentWindow.top;
-//
-//     if (popupWindowId) {
-//         chrome.windows.update(popupWindowId, {focused: true}, () => {
-//             if (chrome.runtime.lastError) {
-//                 console.warn('Failed to focus existing popup:', chrome.runtime.lastError.message);
-//                 popupWindowId = null;
-//                 createOrUpdatePopupWindow();
-//             }
-//         });
-//     } else {
-//         chrome.windows.create(
-//             {
-//                 url: url,
-//                 type: 'popup',
-//                 width: windowWidth,
-//                 height: windowHeight,
-//                 left: leftPosition,
-//                 top: topPosition,
-//                 focused: true,
-//             },
-//             (newWindow) => {
-//                 if (chrome.runtime.lastError) {
-//                     console.error('Failed to open popup window:', chrome.runtime.lastError.message);
-//                 } else if (newWindow) {
-//                     popupWindowId = newWindow.id;
-//
-//                     // 清理关闭窗口时的 popupWindowId
-//                     chrome.windows.onRemoved.addListener((windowId) => {
-//                         if (windowId === popupWindowId) {
-//                             popupWindowId = null;
-//                         }
-//                     });
-//                 }
-//             }
-//         );
-//     }
-// };
-
-// let portInstance: chrome.runtime.Port | null = null;
-// chrome.runtime.onConnect.addListener((port) => {
-//     console.log("addListener", port)
-//     if (portInstance) {
-//         return;
-//     }
-//
-//     portInstance = port;
-//
-//     port.onMessage.addListener((msg) => {
-//         console.log("【BG】onMessage port:", msg);
-//
-//         if (msg.action === 'PING') {
-//             port.postMessage({action: 'PONG'});
-//         }
-//
-//         // if (msg.type === 'OPEN_KASPERIA') {
-//         //     createOrUpdatePopupWindow("index.html")
-//         // }
-//         //
-//         // if (msg.type === 'KASPERIA_SIGN_MESSAGE') {
-//         //     createOrUpdatePopupWindow("index.html#/unlock")
-//         // }
-//         //
-//         // if (msg.type === 'KASPERIA_SEND_KAS') {
-//         //     let data = msg.data.data
-//         //     createOrUpdatePopupWindow(`index.html#/tx/send?tick=${data.tick}&dec=${data.dec}&amount=${data.amount}`)
-//         // }
-//     });
-//
-//     // Clean up the port instance when it gets disconnected
-//     port.onDisconnect.addListener(() => {
-//         console.log("Port disconnected");
-//         portInstance = null;  // Reset port instance when disconnected
-//     });
-//
-//     return true;
-// });
-//
-//
-// chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-//     // if (portInstance) {
-//     //     portInstance.postMessage(request)
-//     // }
-//     console.log("request: ", request)
-//     return true;
-// });
-
 console.log("bg init ...")
 
 
@@ -234,7 +133,21 @@ let alivePort: any = null;
 //     }
 // }, 20000);
 
-
-
-
 addServiceListener()
+
+import { initialize } from '@kasplex/kiwi-web'
+const wasmUrl = chrome.runtime.getURL('kaspa_bg.wasm');
+await initialize(wasmUrl);
+
+// //
+// console.log(5555)
+// //
+// Kiwi.setNetwork(0)
+//
+// await Rpc.setInstance(Kiwi.network).connect()
+// let mnemonicStr = Mnemonic.random(12)
+//
+// console.log("mnemonicStr:", mnemonicStr)
+// let res = await KaspaApi.getBalance("kaspatest:qr6uzet8l842fz33kjl4jk0t6t7m43n8rxvfj6jms9jjz0n08rneuej3f0m08")
+// let res = await KaspaApi.getBalance("kaspa:qr6uzet8l842fz33kjl4jk0t6t7m43n8rxvfj6jms9jjz0n08rneuc5hjq97r")
+// console.log("balance:", res)

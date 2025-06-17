@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react"
 import HeadNav from '@/components/HeadNav'
 import { Button, DotLoading } from 'antd-mobile'
-import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useNotice } from '@/components/NoticeBar/NoticeBar'
 import { formatAddress, formatBalance, stringToUint8Array, isEmptyObject } from '@/utils/util'
 import { Keyring } from '@/chrome/keyring'
@@ -23,10 +23,15 @@ interface SendParams {
     payload: string;
 }
 
-interface Props {
-    params: {
-        data: SendParams
-    };
+interface Session {
+    origin: string;
+    icon: string;
+    name: string;
+}
+
+interface RequestParam {
+    data: SendParams
+    session: Session
 }
 
 const SendKaspa = () => {
@@ -74,8 +79,8 @@ const SendKaspa = () => {
     }
 
     const getApproval = async () => {
-        let approval: Props = await Notification.getApproval()
-        let param = approval.params.data
+        let approval: RequestParam = await Notification.getApproval()
+        let param = approval.data
         param.amount = new BigNumber(param.amount).multipliedBy(new BigNumber(10).pow(8)).toFixed(0);
         isEmptyObject(params!.payload) && (param.payload = "")
         setParams(param)
@@ -123,8 +128,7 @@ const SendKaspa = () => {
     }
 
     const reject = () => {
-        noticeError("haha error");
-        Notification.resolveApproval({code: 1, content: "hhahaha"})
+        Notification.rejectApproval()
     }
 
     return (

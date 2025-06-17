@@ -15,7 +15,7 @@ interface Approval {
     approvalType: string;
   };
   resolve(params?: any): void;
-  reject(err: EthereumProviderError<any>): void;
+  reject(err: Error): void;
 }
 
 export const IS_CHROME = /Chrome\//i.test(navigator.userAgent);
@@ -34,11 +34,13 @@ class NotificationService {
 
   constructor() {
     chrome.windows.onFocusChanged.addListener((winId) => {
+      console.log("onFocusChanged: ", this.notifiWindowId, winId, IS_CHROME && winId === chrome.windows.WINDOW_ID_NONE && IS_LINUX)
       if (this.notifiWindowId && winId !== this.notifiWindowId) {
-        if (IS_CHROME && winId === chrome.windows.WINDOW_ID_NONE && IS_LINUX) {
-          return;
-        }
-        this.rejectApproval();
+        return;
+        // if (IS_CHROME && winId === chrome.windows.WINDOW_ID_NONE) {
+        //   return;
+        // }
+        // this.rejectApproval();
       }
     });
 
@@ -53,14 +55,13 @@ class NotificationService {
   getApproval = async () => this.approval?.data;
 
   resolveApproval = async (data?: any, forceReject = false) => {
-    console.log("resolveApproval", data, forceReject, this.approval)
     if (forceReject) {
       this.approval?.reject(new EthereumProviderError(4001, 'User Cancel'));
     } else {
       this.approval?.resolve(data);
     }
     this.approval = null;
-    this.clear()
+    this.clear();
   };
 
   rejectApproval = async (err?: string, stay = false, isInternal = false) => {
@@ -70,10 +71,12 @@ class NotificationService {
     } else {
       this.approval?.reject(new EthereumProviderError(4001, 'User Cancel'));
     }
+    await this.clear(stay);
   };
 
   // currently it only support one approval at the same time
   requestApproval = async (data: any, winProps?: any): Promise<any> => {
+    console.log("requestApproval .............." )
     return new Promise((resolve, reject) => {
       this.approval = {
         data,

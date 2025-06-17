@@ -6,6 +6,7 @@ import { LockTime, AccountType } from '@/types/enum';
 import { hashString } from '@/utils/util';
 import { Preference } from '@/background/service/preference';
 import { ObservableStore } from '@metamask/obs-store';
+import { Wasm } from '@kasplex/kiwi-web'
 
 export class KeyRing {
 
@@ -126,16 +127,27 @@ export class KeyRing {
 
     async getActiveAccount() {
         let account = this.store.getState().account.find(account => account.active == true)!
-        return {
+        let network = await Preference.getNetwork()
+        let address = new Wasm.PublicKey(account.pubKey).toAddress(network!.networkId as Wasm.NetworkType).toString()
+        var _account = {
             id: account.id,
             name: account.name,
             pubKey: account.pubKey,
             active: account.active,
             type: account.type,
             accountName: account.accountName,
-            address: "",
+            address: address,
             balance: "0",
         }
+        await Preference.setCurrentAccount(_account)
+        return _account
+    }
+
+    async getActiveAccountAddressAndNetwork() {
+        let account = this.store.getState().account.find(account => account.active == true)!
+        let network = await Preference.getNetwork()
+        let address = new Wasm.PublicKey(account.pubKey).toAddress(network!.networkId as Wasm.NetworkType).toString()
+        return { network, address}
     }
 
     async getWalletList() {

@@ -166,12 +166,12 @@ export class Preference {
             },
             networkConfig: {
                 [NetworkType.Mainnet]: {
-                    name: NetworkName.Mainnet,
+                    name: NetworkName.Mainnet,  // kaspa_mainnet
                     networkId: NetworkType.Mainnet,
                     url: "",
                 },
                 [NetworkType.Testnet]: {
-                    name: NetworkName.Testnet,
+                    name: NetworkName.Testnet,  // kaspa_testnet_10
                     networkId: NetworkType.Testnet,
                     url: "",
                 }

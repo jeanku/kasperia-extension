@@ -1,44 +1,61 @@
 import React, { useState, useEffect } from "react"
 import { Button } from 'antd-mobile'
 import { Network } from '@/model/account';
+import { Session } from '@/types/type';
+import { Notification } from '@/chrome/notification'
+import { Preference } from '@/chrome/preference'
+import { Tx, Wasm, Kiwi, Rpc, Wallet as KiwiWallet } from '@kasplex/kiwi-web'
 
-import PngCoinDef from '@/assets/images/icon-coin-def.png'
+interface networkData {
+    networkId: number,
+    targetNetworkId: number,
+}
+
+interface RequestParam {
+    data: networkData
+    session: Session
+}
 
 const SwitchNetwork: React.FC = () => {
-    const [networkConfig, setNetworkConfig] = useState<Network[]>([])
-    const [currentNetworkId, setCurrentNetworkId] = useState<number>(1)
+    const [fromNetwork, setFromNetwork] = useState<Network | undefined>(undefined)
+    const [toNetwork, setToNetwork] = useState<Network | undefined>(undefined)
+
+    const [session, setSession] = useState<Session | undefined>(undefined)
     const [btnLoading, setBtnLoading] = useState<boolean>(false)
-    const disabled = (networkId: number) => {
-        return networkId !== currentNetworkId
+
+    const getApproval = async () => {
+        let approval: RequestParam = await Notification.getApproval()
+        setSession(approval.session)
+
+        let networks = await Preference.getNetworkConfig()
+        console.log("networks", networks)
+        setFromNetwork(networks[approval.data.networkId])
+        setToNetwork(networks[approval.data.targetNetworkId])
     }
-    const session = {
-        icon:  PngCoinDef,
-        name: 'Kasware Wallet',
-        origin: 'https://kaspa.org'
+
+    const reject = () => {
+        Notification.rejectApproval()
     }
-    const networkList: Network[] = [
-        {
-            name: 'Mainnet',
-            networkId: 0,
-            url: 'https://kaspa.org',
-        },
-        {
-            name: 'Testnet',
-            networkId: 1,
-            url: 'https://testnet.kaspa.org',
-        }
-    ]
+
     useEffect(() => {
-        setNetworkConfig(networkList)
-        setCurrentNetworkId(networkList[0].networkId)
+        getApproval()
     }, [])
 
-    const changeNetwork = async (index: number) => {
-        const selectedNetwork = networkConfig[index];
-        console.log('selectedNetwork', selectedNetwork)
-        console.log('currentNetworkId', currentNetworkId);
-        if (selectedNetwork.networkId === currentNetworkId) return;
-        setCurrentNetworkId(selectedNetwork.networkId)
+    const submit = async () => {
+        Notification.resolveApproval()
+
+        await Preference.setNetwork(toNetwork!)
+        Kiwi.setNetwork(toNetwork!.networkId)
+
+        // let address = new Wasm.PublicKey(currentAccount.pubKey).toAddress(network.networkId).toString()
+        // let account = {...currentAccount, address: address, balance: "0" }
+        // await Preference.setCurrentAccount(account)
+
+        // const selectedNetwork = networkConfig[index];
+        // console.log('selectedNetwork', selectedNetwork)
+        // console.log('currentNetworkId', currentNetworkId);
+        // if (selectedNetwork.networkId === currentNetworkId) return;
+        // setCurrentNetworkId(selectedNetwork.networkId)
     };
 
     return (
@@ -56,24 +73,21 @@ const SwitchNetwork: React.FC = () => {
             <div className="content-main pb50">
                 <h6 className="title-tip">Allow this site to switch the network?</h6>
                 <div className="switch-network">
-                    <span>Testnet 10</span>
+                    <span>{ fromNetwork?.name }</span>
                     { `>`}
-                    <span>Mainnet</span>
+                    <span>{ toNetwork?.name }</span>
                 </div>
             </div>
             <div className="btn-pos-two flexd-row post-bottom">
-                <Button block size="large" >
+                <Button block size="large" onClick={ reject } >
                     Cancel
                 </Button>
                 <Button block size="large" color="primary" 
-                    disabled={ disabled(currentNetworkId) }
-                    loading={btnLoading}
-                    onClick={() => {
-                        changeNetwork(currentNetworkId)
-                    }}
+                    loading={ btnLoading }
+                    onClick={ submit }
                     loadingText={'Submitting'}
                     >
-                    SwitchNetwork
+                    Switch Network
                 </Button>
             </div>
         </article>
