@@ -4,7 +4,8 @@ import { Network } from '@/model/account';
 import { Session } from '@/types/type';
 import { Notification } from '@/chrome/notification'
 import { Preference } from '@/chrome/preference'
-import { Tx, Wasm, Kiwi, Rpc, Wallet as KiwiWallet } from '@kasplex/kiwi-web'
+import { Kiwi } from '@kasplex/kiwi-web'
+import { SvgIcon } from '@/components/Icon/index'
 
 interface networkData {
     networkId: number,
@@ -42,20 +43,8 @@ const SwitchNetwork: React.FC = () => {
     }, [])
 
     const submit = async () => {
-        Notification.resolveApproval()
-
         await Preference.setNetwork(toNetwork!)
-        Kiwi.setNetwork(toNetwork!.networkId)
-
-        // let address = new Wasm.PublicKey(currentAccount.pubKey).toAddress(network.networkId).toString()
-        // let account = {...currentAccount, address: address, balance: "0" }
-        // await Preference.setCurrentAccount(account)
-
-        // const selectedNetwork = networkConfig[index];
-        // console.log('selectedNetwork', selectedNetwork)
-        // console.log('currentNetworkId', currentNetworkId);
-        // if (selectedNetwork.networkId === currentNetworkId) return;
-        // setCurrentNetworkId(selectedNetwork.networkId)
+        Notification.resolveApproval()
     };
 
     return (
@@ -74,16 +63,16 @@ const SwitchNetwork: React.FC = () => {
                 <h6 className="title-tip">Allow this site to switch the network?</h6>
                 <div className="switch-network">
                     <span>{ fromNetwork?.name }</span>
-                    { `>`}
+                    <SvgIcon iconName="arrowRight" />
                     <span>{ toNetwork?.name }</span>
                 </div>
             </div>
             <div className="btn-pos-two flexd-row post-bottom">
-                <Button block size="large" onClick={ reject } >
+                <Button block className="fs16" size="large" onClick = { reject }>
                     Cancel
                 </Button>
-                <Button block size="large" color="primary" 
-                    loading={ btnLoading }
+                <Button block size="large" className="fs16" color="primary" 
+                    loading={btnLoading}
                     onClick={ submit }
                     loadingText={'Submitting'}
                     >

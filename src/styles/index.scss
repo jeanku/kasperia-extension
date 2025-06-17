@@ -261,11 +261,14 @@ em {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        gap: 20px;
+        gap: 15px;
         padding-top: 10px;
         padding-bottom: 30px;
         .adm-button-primary {
             margin-bottom: 0;
+        }
+        .fs16 {
+            font-size: 16px;
         }
     }
 }
@@ -1993,7 +1996,7 @@ em {
         display: block;
         font-size: 14px;
         background-color: $bg-color-input;
-        padding: 8px 14px;
+        padding: 10px 16px;
         border-radius: 6px;
     }
 }
