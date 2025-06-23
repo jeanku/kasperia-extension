@@ -1,16 +1,15 @@
-import React, { useState, useCallback, useEffect } from "react"
+import React, { useState, useCallback, useEffect, useMemo } from "react"
 import HeadNav from '@/components/HeadNav'
 import { useNavigate, useLocation } from "react-router-dom";
 import { useNotice } from '@/components/NoticeBar/NoticeBar'
 import NumberInput from '@/components/NumberInput';
 import { useSelector } from "react-redux";
 import { RootState } from '@/store';
-import { formatAddress, formatBalance } from '@/utils/util';
+import { formatAddress, formatBalance, debounce } from '@/utils/util';
 import { TickState } from '@/types/enum';
 import { KasplexApi, Utils, Enum, Wasm, Kiwi, Script, Rpc } from '@kasplex/kiwi-web'
 import { Slider, Space, Checkbox, Button } from 'antd-mobile'
 import { SvgIcon } from '@/components/Icon'
-
 const Mint = () => {
     const navigate = useNavigate();
 
@@ -114,9 +113,12 @@ const Mint = () => {
 
     useEffect(() => {
         if (rpcClient && currentAccount) {
-            queryP2shBalance()
+            const timer = debounce(() => {
+                queryP2shBalance()
+            }, 300)
+            timer()
         }
-    }, [rpcClient, currentAccount])
+    }, [rpcClient, currentAccount, tick])
 
     const formatFee = () : string => {
         if (utxoCheck) {
