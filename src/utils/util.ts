@@ -27,7 +27,7 @@ export const formatBalance = (amount: string, dec: any): string => {
     if (!amount || !dec) {
         return "";
     }
-    
+
     const bigBalance = new Big(amount);
     if (bigBalance.eq(0)) {
         return "0";
@@ -113,9 +113,9 @@ export const formatNumber = (str: string): string => {
     const suffix = num < 0 ? '-' : '';
     const units = [
         { threshold: 1e12, suffix: 'T' },
-        { threshold: 1e9,  suffix: 'B' },
-        { threshold: 1e6,  suffix: 'M' },
-        { threshold: 1e3,  suffix: 'K' }
+        { threshold: 1e9, suffix: 'B' },
+        { threshold: 1e6, suffix: 'M' },
+        { threshold: 1e3, suffix: 'K' }
     ];
     const matchedUnit = units.find(unit => absNum >= unit.threshold);
     if (matchedUnit) {
@@ -148,11 +148,23 @@ export const getBrowser = () => {
 }
 
 export const openUrl = (url: string) => {
-    if(!url.trim()) return
+    if (!url.trim()) return
     window.open(url, '_blank')
 }
 
-export const isEmptyObject = (obj: any) =>{
-    if(!obj) return true
+export const isEmptyObject = (obj: any) => {
+    if (!obj) return true
     return Object.keys(obj).length === 0 && obj.constructor === Object;
+}
+
+export function debounce<F extends (...args: any[]) => any>(func: F, delay: number): (...args: Parameters<F>) => void {
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    return function (this: ThisParameterType<F>, ...args: Parameters<F>) {
+        if (timeoutId) {
+            clearTimeout(timeoutId);
+        }
+        timeoutId = setTimeout(() => {
+            func.apply(this, args);
+        }, delay);
+    };
 }
