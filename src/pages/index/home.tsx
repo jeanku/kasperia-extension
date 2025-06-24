@@ -143,7 +143,7 @@ const Home = () => {
         let curTime = new Date().getTime() / 1000
         if (curTime - kaspaActList.time <= 5) return
         setListLoadingType(1)
-        KaspaApi.getFullTransactions(address, { limit: "10", offset: "0" }).then((r: any) => {
+        KaspaApi.getFullTransactions(address, { limit: "10", resolve_previous_outpoints: "light" }).then((r: any) => {
             let txs = r as Transaction[]
             const data = txs.map(item => {
                 let amount = 0

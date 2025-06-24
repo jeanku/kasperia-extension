@@ -12,9 +12,9 @@ const EvokeBoost = () => {
     useEffect(() => {
         const initRpc = async () => {
             try {
-                await initialize("./kaspa_bg.wasm");
-                let network: Network = await Preference.getNetwork()
-                Kiwi.setNetwork(network.networkId)
+                // await initialize("./kaspa_bg.wasm");
+                // let network: Network = await Preference.getNetwork()
+                // Kiwi.setNetwork(network.networkId)
                 setIsInitialized(true);
             } catch (error) {
                 console.error('Error initializing Kiwi:', error);

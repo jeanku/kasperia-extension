@@ -27,9 +27,7 @@ const SwitchNetwork: React.FC = () => {
     const getApproval = async () => {
         let approval: RequestParam = await Notification.getApproval()
         setSession(approval.session)
-
         let networks = await Preference.getNetworkConfig()
-        console.log("networks", networks)
         setFromNetwork(networks[approval.data.networkId])
         setToNetwork(networks[approval.data.targetNetworkId])
     }
@@ -57,7 +55,6 @@ const SwitchNetwork: React.FC = () => {
                         <p>{session?.origin}</p>
                     </div>
                 </div>
-                <span className="tip-test-tn">TN10</span>
             </section>
             <div className="content-main pb50">
                 <h6 className="title-tip">Allow this site to switch the network?</h6>

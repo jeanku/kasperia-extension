@@ -135,7 +135,7 @@ let alivePort: any = null;
 
 addServiceListener()
 
-import { initialize } from '@kasplex/kiwi-web'
+import { initialize, Kiwi, Rpc } from '@kasplex/kiwi-web'
 const wasmUrl = chrome.runtime.getURL('kaspa_bg.wasm');
 await initialize(wasmUrl);
 

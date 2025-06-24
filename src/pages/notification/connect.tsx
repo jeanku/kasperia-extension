@@ -47,7 +47,7 @@ const Connect =  () => {
     }
 
     const getAccountList = async () => {
-        await initRpc()
+        // await initRpc()
         let contacts: AddressBook[] = await Keyring.getAccountBook()
         let defAddress = ''
         contacts = contacts.map((item) => {

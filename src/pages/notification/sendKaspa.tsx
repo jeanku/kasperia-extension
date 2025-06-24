@@ -93,9 +93,9 @@ const SendKaspa = () => {
             noticeError("trasfer amount at least 1 KAS")
             return
         }
-
-        console.log("getApproval param", param)
-        createTx(param)
+        if (rpcClient && rpcClient.isConnected) {
+            createTx(param)
+        }
     }
 
     useEffect(() => {
@@ -109,17 +109,7 @@ const SendKaspa = () => {
                 let ptx = await pendingTx
                 let resp = await ptx.submit()
                 setBtnLoading(false)
-                navigate('/tx/result', { state: { submitTx: {
-                    address: params!.toAddress,
-                    amount: params!.amount,
-                    payload: params!.payload,
-                    token: {
-                        balance: "",
-                        dec: "8",
-                        locked: "0",
-                        name: "KAS"
-                    },
-                }, txid: resp! }})
+                Notification.resolveApproval({txid: resp})
             }
         } catch (error) {
             noticeError(error);

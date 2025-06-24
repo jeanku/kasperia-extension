@@ -31,13 +31,9 @@ const Sign = () => {
 
     const [currentNetworkId, setCurrentNetworkId] = useState<number>(1)
     const [btnLoading, setBtnLoading] = useState<boolean>(false)
-    const disabled = (networkId: number) => {
-        return networkId === currentNetworkId
-    }
 
     const getApproval = async () => {
         let approval: RequestParam = await Notification.getApproval()
-        console.log("getApproval:", approval)
         setSession(approval.session)
         setData(approval.data)
     }
@@ -49,14 +45,11 @@ const Sign = () => {
     const sign = async () => {
         let wallet: Wallet = await Keyring.getActiveWalletKeys()
         let signstr = Wasm.signMessage({message: data?.text || "", privateKey: wallet.priKey})
-        console.log("sign str", signstr)
         Notification.resolveApproval(signstr)
     }
 
     useEffect(() => {
         getApproval()
-        // setNetworkConfig(networkList)
-        // setCurrentNetworkId(networkList[0].networkId)
     }, [])
 
     const changeNetwork = async (index: number) => {
