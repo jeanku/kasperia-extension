@@ -81,7 +81,6 @@ const SendKaspa = () => {
     const getApproval = async () => {
         let approval: RequestParam = await Notification.getApproval()
         let param = approval.data
-        param.amount = new BigNumber(param.amount).multipliedBy(new BigNumber(10).pow(8)).toFixed(0);
         isEmptyObject(params!.payload) && (param.payload = "")
         setParams(param)
         if (!KiwiWallet.validate(param.toAddress || "")) {
