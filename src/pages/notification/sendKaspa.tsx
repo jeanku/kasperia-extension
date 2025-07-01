@@ -81,7 +81,6 @@ const SendKaspa = () => {
     const getApproval = async () => {
         let approval: RequestParam = await Notification.getApproval()
         let param = approval.data
-        isEmptyObject(params!.payload) && (param.payload = "")
         setParams(param)
         if (!KiwiWallet.validate(param.toAddress || "")) {
             noticeError("address invalid")
