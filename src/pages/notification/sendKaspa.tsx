@@ -17,10 +17,14 @@ import RoundLine from '@/assets/icons/round-line.svg'
 import '@/styles/transaction.scss'
 
 
+interface SendOptions {
+    payload: string;
+}
+
 interface SendParams {
     toAddress: string;
     amount: string;
-    payload: string;
+    options: SendOptions;
 }
 
 interface Session {
@@ -42,7 +46,9 @@ const SendKaspa = () => {
     const [params, setParams] = useState<SendParams>({
         toAddress: "",
         amount: "",
-        payload: "",
+        options: {
+            payload: ""
+        },
     })
 
     const [estimateFee, setEstimateFee] = useState(0n)
@@ -62,7 +68,7 @@ const SendKaspa = () => {
                 priorityFee: 0n,
                 entries: entries,
                 networkId: Kiwi.getNetworkID(),
-                payload: isEmptyObject(params!.payload) ? undefined : stringToUint8Array(params!.payload)
+                payload: isEmptyObject(params!.options.payload) ? undefined : stringToUint8Array(params!.options.payload)
             }
             let priKey = new Wasm.PrivateKey(wallet.priKey)
             await Tx.Transaction.createTransactions(data).then(r => {
@@ -139,11 +145,11 @@ const SendKaspa = () => {
                         }
                     </div>
                 </div>
-                {params.payload ?
+                {params.options.payload ?
                     <>
                         <h6 className="sub-tit">Payload</h6>
                         <div className="text-area">
-                            <textarea placeholder="Please enter the payload" disabled rows={3} value={params.payload} />
+                            <textarea placeholder="Please enter the payload" disabled rows={3} value={params.options.payload} />
                         </div>
                     </>
 

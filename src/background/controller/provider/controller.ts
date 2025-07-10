@@ -55,7 +55,6 @@ class ProviderController {
     }
 
     sendKaspa = async (request: RequestProps) => {
-        console.log("request:", request)
         return await notificationService.requestApproval(
             {
               data: request.data.params,

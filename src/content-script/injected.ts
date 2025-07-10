@@ -252,13 +252,13 @@ export class KasperiaProvider extends EventEmitter {
         });
     };
 
-    sendKaspa = async (toAddress: string, amount: string, payload: string) => {
+    sendKaspa = async (toAddress: string, amount: string, options: any) => {
         return this._request({
             method: 'sendKaspa',
             params: {
                 toAddress,
                 amount,
-                payload
+                options
             }
         });
     };
