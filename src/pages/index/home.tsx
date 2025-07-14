@@ -262,6 +262,15 @@ const Home = () => {
 
     useEffect(() => {
         fetchBalance();
+        chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+            console.log('收到最新余额:', message);
+            // if (message.type === 'BALANCE_UPDATED') {
+            //     console.log('收到最新余额:', message.data.balance);
+            //
+            //     // 这里可以更新到页面 UI，例如 setState、或者 document.innerText 等
+            //     // updateUI(message.data.balance);
+            // }
+        });
     }, [rpcClient]);
 
     const filteredTokenList = useMemo(() => {

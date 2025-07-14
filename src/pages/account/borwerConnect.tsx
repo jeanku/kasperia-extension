@@ -10,7 +10,7 @@ const BorwerConnect = () => {
 
     return (
         <article className="page-box">
-            <HeadNav title='Kasware Wallet'></HeadNav>
+            <HeadNav title='Kasperia Wallet'></HeadNav>
             <section className="content-main connect-box pb96">
                 <div className='source-bpx'>
                     <img className="logo-img" src={DeforeImg} alt="" />
@@ -20,7 +20,7 @@ const BorwerConnect = () => {
                     </div>
                 </div>
                 <div className='contant-txt'>
-                    <p className='txt-tit-1'>Connect with Kasware Wallet</p>
+                    <p className='txt-tit-1'>Connect with Kasperia Wallet</p>
                     <p className='txt-tit-2'>Select the account to use on this site</p>
                     <p className='txt-tit-tip'>Only connect with sites you trust</p>
                 </div>

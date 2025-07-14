@@ -3,7 +3,7 @@ import { EventEmitter } from 'events';
 
 abstract class Message extends EventEmitter {
     private _requestIdPool = [...Array(500).keys()];
-    protected _EVENT_PRE = 'KASWARE_WALLET_';
+    protected _EVENT_PRE = 'KASPERIA_WALLET_';
     protected listenCallback: any;
 
     private _waitingMap = new Map<

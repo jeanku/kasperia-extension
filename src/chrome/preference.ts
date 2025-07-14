@@ -20,10 +20,6 @@ export class Preference extends Chrome {
     static setCurrentAccount(account: any): Promise<any> {
         return Chrome.request({ action: "Preference.setCurrentAccount", account: account })
     }
-    //
-    // static setCurrentAccountBalance(balance: string): Promise<any> {
-    //     return Chrome.request({ action: "Preference.setCurrentAccountBalance", balance: balance })
-    // }
 
     static setKrc20TokenList(data: TokenList[]): Promise<any> {
         return Chrome.request({ action: "Preference.setKrc20TokenList", data })

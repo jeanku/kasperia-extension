@@ -60,11 +60,13 @@ const handlers: Record<string, (message: any) => Promise<any> | any> = {
     
     "Permission.addConnectedSite": (msg) => permissionService.addConnectedSite(msg.origin, msg.name, msg.icon),
 };
+
 const handleError = (error: unknown, sendResponse: (response: any) => void) => {
     const errorMessage = error instanceof Error ? error.toString() : 'Unknown error';
     console.log(`[bg] onMessage error:, ${errorMessage}`);
     sendResponse({ error: errorMessage });
 };
+
 const addServiceListener = () => chrome.runtime.onMessage.addListener( (message, sender, sendResponse) => {
     const { action } = message;
     console.log(`[bg] onMessage:, ${action}`);

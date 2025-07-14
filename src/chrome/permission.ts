@@ -1,7 +1,6 @@
 import { Chrome } from '@/chrome/chrome'
 import { Network, KasPrice } from '@/model/account'
-import { TokenList, Oplist, } from '@/model/krc20'
-import { Transaction } from '@/model/kaspa'
+import { TokenList, Oplist } from '@/model/krc20'
 
 export class Permission extends Chrome {
 

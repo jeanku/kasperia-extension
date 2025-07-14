@@ -383,6 +383,11 @@ export class KeyRing {
     async resetExpire(ttl: number) {
         this.expire = new Date().getTime() + ttl
     }
+    
+    async getActiveAccountPublicKey() {
+        let account = this.store.getState().account.find(account => account.active == true)!
+        return account.pubKey
+    }
 }
 
 export default new KeyRing();

@@ -1,18 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable no-unused-vars */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import { ethErrors } from 'eth-rpc-errors';
-// import 'reflect-metadata';
-
 import { keyringService, notificationService, permissionService } from '@/background/service';
 import { PromiseFlow, underline2Camelcase } from '@/background/utils';
 import providerController from './controller';
-
-// export const IS_CHROME = /Chrome\//i.test(navigator.userAgent);
-//
-// export const IS_FIREFOX = /Firefox\//i.test(navigator.userAgent);
-//
-// export const IS_LINUX = /linux/i.test(navigator.userAgent);
 
 
 const flow = new PromiseFlow();

@@ -37,11 +37,9 @@ class ProviderController {
 
     switchNetwork = async (request: RequestProps) => {
         const network = await preferenceService.getNetwork()
-
         if (network?.networkId === request.data.params.networkId) {
             return network
         }
-        console.log("start", request.data.params)
         return await notificationService.requestApproval(
             {
                 data: {
@@ -75,7 +73,7 @@ class ProviderController {
     }
 
     getVersion = async () => {
-      return "1.0.21"
+        return "1.0.21"
     };
 }
 

@@ -1,11 +1,11 @@
 import { ethErrors } from 'eth-rpc-errors';
 
-import { KaswareProvider } from './index';
+import { KasperiaProvider } from './index';
 
 class PushEventHandlers {
-  provider: KaswareProvider;
+  provider: KasperiaProvider;
 
-  constructor(provider: KaswareProvider) {
+  constructor(provider: KasperiaProvider) {
     this.provider = provider;
   }
 
