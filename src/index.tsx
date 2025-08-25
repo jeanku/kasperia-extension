@@ -17,23 +17,23 @@ const RootComponent = () => {
     const rootElement = document.getElementById('root')!;
     const isExtension = isExtensionPopup();
     useEffect(() => {
-        const initRpc = async () => {
-            try {
-                const browser = getBrowser()
-                const extensionIsInTab = await browser.tabs.getCurrent()
-                if(extensionIsInTab || !isExtension) {
-                    rootElement.classList.remove('extension-container');
-                }
-                await initialize("./kaspa_bg.wasm");
-                let network: Network = await Preference.getNetwork()
-
-                Kiwi.setNetwork(network.networkId)
-                dispatchRpcConnect(network)
-            } catch (error) {
-                console.error('Error initializing Kiwi:', error);
-            }
-        }
-        initRpc()
+        // const initRpc = async () => {
+        //     try {
+        //         const browser = getBrowser()
+        //         const extensionIsInTab = await browser.tabs.getCurrent()
+        //         if(extensionIsInTab || !isExtension) {
+        //             rootElement.classList.remove('extension-container');
+        //         }
+        //         await initialize("./kaspa_bg.wasm");
+        //         let network: Network = await Preference.getNetwork()
+        //
+        //         Kiwi.setNetwork(network.networkId)
+        //         dispatchRpcConnect(network)
+        //     } catch (error) {
+        //         console.error('Error initializing Kiwi:', error);
+        //     }
+        // }
+        // initRpc()
     }, []);
 
     return (

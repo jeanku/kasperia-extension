@@ -1,4 +1,6 @@
-import { keyringService, preferenceService, contactService, notificationService, permissionService } from './service';
+import { keyringService, preferenceService, contactService, notificationService, permissionService,
+    accountService, commonService
+} from './service';
 
 const handlers: Record<string, (message: any) => Promise<any> | any> = {
     "Keyring.isBoot": () => keyringService.isBoot(),
@@ -11,9 +13,9 @@ const handlers: Record<string, (message: any) => Promise<any> | any> = {
     "Keyring.setActiveWallet": (msg) => keyringService.setActiveWallet(msg.id),
     "Keyring.getActiveWalletKeys": () => keyringService.getActiveWalletKeys(),
     "Keyring.getActiveAccount": () => keyringService.getActiveAccount(),
-    "Keyring.getActiveWalletWithAccounts": () => keyringService.getActiveWalletWithAccounts(),
+    "Keyring.getActiveAccountWithSubAccounts": () => keyringService.getActiveAccountWithSubAccounts(),
     "Keyring.getWalletList": () => keyringService.getWalletList(),
-    "Keyring.addWallet": (msg) => keyringService.addWallet(msg.wallet),
+    // "Keyring.addWallet": (msg) => keyringService.addWallet(msg.wallet),
     "Keyring.removeWallet": (msg) => keyringService.removeWallet(msg.id),
     "Keyring.setWalletName": (msg) => keyringService.setWalletName(msg.id, msg.name),
     "Keyring.checkPassword": (msg) => keyringService.checkPassword(msg.password),
@@ -59,11 +61,24 @@ const handlers: Record<string, (message: any) => Promise<any> | any> = {
     "Notification.getApproval": () => notificationService.getApproval(),
     
     "Permission.addConnectedSite": (msg) => permissionService.addConnectedSite(msg.origin, msg.name, msg.icon),
+
+    "Account.getBalance": () => accountService.getBalance(),
+    "Account.addListener": () => accountService.addListener(),
+    "Account.getConnectState": () => accountService.getConnectState(),
+    "Account.accounts": () => accountService.accounts(),
+    "Account.accountsBalance": (msg) => accountService.accountsBalance(msg.addresses),
+    "Account.setActiveAccount": (msg) => accountService.setActiveAccount(msg.id),
+    "Account.addAccountFromPrivateKey": (msg) => accountService.addAccountFromPrivateKey(msg.privateKey),
+    "Account.addAccountFromMnemonic": (msg) => accountService.addAccountFromMnemonic(msg.mnemonic, msg.passphrase),
+
+    "Common.addressFromPrivateKey": (msg) => commonService.addressFromPrivateKey(msg.privateKey),
+    "Common.checkMnemonic": (msg) => commonService.checkMnemonic(msg.mnemonic),
+    "Common.addressFromMnemonic": (msg) => commonService.addressFromMnemonic(msg.mnemonic, msg.passphrase),
 };
 
 const handleError = (error: unknown, sendResponse: (response: any) => void) => {
-    const errorMessage = error instanceof Error ? error.toString() : 'Unknown error';
-    console.log(`[bg] onMessage error:, ${errorMessage}`);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.log(`[bg] onMessage error:, ${errorMessage}`, error);
     sendResponse({ error: errorMessage });
 };
 
@@ -76,7 +91,7 @@ const addServiceListener = () => chrome.runtime.onMessage.addListener( (message,
             throw Error(`${action} not found`)
         }
         handler(message).then((result: any) => {
-            sendResponse(result);
+            sendResponse(convertBigIntToString(result))
         }).catch((error: { toString: () => any; }) => {
             handleError(error, sendResponse);
         });
@@ -85,5 +100,20 @@ const addServiceListener = () => chrome.runtime.onMessage.addListener( (message,
     }
     return true;
 });
+
+function convertBigIntToString(obj: any): any {
+    if (typeof obj === 'bigint') {
+        return obj.toString();
+    } else if (Array.isArray(obj)) {
+        return obj.map(convertBigIntToString);
+    } else if (obj && typeof obj === 'object') {
+        const newObj: any = {};
+        for (const key in obj) {
+            newObj[key] = convertBigIntToString(obj[key]);
+        }
+        return newObj;
+    }
+    return obj;
+}
 
 export default addServiceListener;

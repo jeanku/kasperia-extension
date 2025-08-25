@@ -1,7 +1,7 @@
 import addServiceListener from './listener';
 import PortMessage from '../content-script/message/portMessage';
 import { providerController } from './controller';
-import { sessionService } from './service';
+import { sessionService, accountService } from './service';
 import {Buffer} from 'buffer'
 
 globalThis.Buffer = Buffer;
@@ -11,7 +11,6 @@ console.log("bg init ...")
 
 // for page provider
 chrome.runtime.onConnect.addListener((port) => {
-    console.log("haha: addListener", port)
     if (port.name === 'popup' || port.name === 'notification' || port.name === 'tab') {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const pm = new PortMessage(port as any);
@@ -102,7 +101,6 @@ const INTERNAL_STAYALIVE_PORT = 'CT_Internal_port_alive';
 let alivePort: any = null;
 
 setInterval(() => {
-    console.log('Highlander', Date.now());
     if (alivePort == null) {
         // eslint-disable-next-line no-undef
         alivePort = chrome.runtime.connect({ name: INTERNAL_STAYALIVE_PORT });
@@ -122,37 +120,14 @@ setInterval(() => {
 
     if (alivePort) {
         alivePort.postMessage({ content: 'keep alive~', name: "123" });
-        if (chrome.runtime.lastError) {
-            console.log(`(DEBUG Highlander): postMessage error: ${chrome.runtime.lastError.message}`);
-        } else {
-            console.log(`(DEBUG Highlander): sent through ${alivePort.name} port`);
-        }
     }
 }, 20000);
 
+
 addServiceListener()
 
-import { initialize, Kiwi, Rpc } from '@kasplex/kiwi-web'
+import { initialize } from '@kasplex/kiwi-web'
 const wasmUrl = chrome.runtime.getURL('kaspa_bg.wasm');
 await initialize(wasmUrl);
 
-setInterval(function () {
-    chrome.runtime.sendMessage({
-        type: 'BALANCE_UPDATED',
-        data: {
-            balance: 1000
-        }
-    });
-}, 5000)
-// //
-// console.log(5555)
-// //
-// Kiwi.setNetwork(0)
-//
-// await Rpc.setInstance(Kiwi.network).connect()
-// let mnemonicStr = Mnemonic.random(12)
-//
-// console.log("mnemonicStr:", mnemonicStr)
-// let res = await KaspaApi.getBalance("kaspatest:qr6uzet8l842fz33kjl4jk0t6t7m43n8rxvfj6jms9jjz0n08rneuej3f0m08")
-// let res = await KaspaApi.getBalance("kaspa:qr6uzet8l842fz33kjl4jk0t6t7m43n8rxvfj6jms9jjz0n08rneuc5hjq97r")
-// console.log("balance:", res)
+accountService.init()

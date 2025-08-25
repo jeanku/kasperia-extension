@@ -1,7 +1,8 @@
 import { Chrome } from '@/chrome/chrome'
 import { Network, KasPrice } from '@/model/account'
-import { TokenList, Oplist, } from '@/model/krc20'
+import { TokenList, Oplist } from '@/model/krc20'
 import { Transaction } from '@/model/kaspa'
+import { AccountDisplay } from "@/model/wallet"
 
 export class Preference extends Chrome {
 
@@ -83,5 +84,9 @@ export class Preference extends Chrome {
 
     static setContractAddress(data: Record<string, string>): Promise<any> {
         return Chrome.request({ action: "Preference.setContractAddress", data })
+    }
+
+    static setAccounts(accounts: AccountDisplay[]): Promise<any> {
+        return Chrome.request({ action: "Preference.setAccounts", accounts })
     }
 }

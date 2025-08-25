@@ -1,15 +1,15 @@
 import React from "react"
 import { useNavigate } from "react-router-dom";
-import HeadNav from '@/components/HeadNav'
 import { Button, Input } from 'antd-mobile'
-import { Wallet as WalletModel } from '@/model/wallet'
-import { Keyring } from '@/chrome/keyring'
-import { Kiwi, Wallet } from '@kasplex/kiwi-web'
-import { AccountType } from '@/types/enum'
+
+import { Common } from '@/chrome/common'
+import { Account } from '@/chrome/account'
+import { dispatchRefreshPreference } from "@/dispatch/preference"
+
+import HeadNav from '@/components/HeadNav'
 import { SvgIcon } from '@/components/Icon/index'
 import { useNotice } from '@/components/NoticeBar/NoticeBar'
 import { useClipboard } from '@/components/useClipboard'
-import { dispatchPreferenceAddNewAccount } from "@/dispatch/preference"
 
 const FromPrivatekey = () => {
     const { noticeError } = useNotice();
@@ -21,46 +21,25 @@ const FromPrivatekey = () => {
     const [address, setAddress] = React.useState('')
     const [btnLoading, setBtnLoading] = React.useState(false)
 
-    const submitDisabledKey = () => {
+    const checkPrivateKey = async () => {
         try {
-            if (privateKey === "") {
-                return true
-            }
-            let wallet = Wallet.fromPrivateKey(privateKey)
-            let _address = wallet.toAddress(Kiwi.network).toString()
-            if (address !== _address) {
-                setAddress(_address)
-            }
-            return false
+            let addr = await Common.addressFromPrivateKey(privateKey)
+            setAddress(addr);
+            setStepValue(2)
         } catch (error) {
-            console.error("error", error)
+            noticeError(error)
         }
-        return true
     }
 
     const createAccount = async () => {
         try {
-            let wallet = Wallet.fromPrivateKey(privateKey)
-            let _wallet: WalletModel = {
-                id: "",
-                mnemonic: "",
-                name: "",
-                priKey: wallet.toPrivateKey().toString(),
-                pubKey: wallet.toPublicKey().toString(),
-                index: 0,
-                active: true,
-                type: AccountType.PrivateKey,
-                accountName: ""
-            }
             setBtnLoading(true)
-            await Keyring.addWallet(_wallet)
-            dispatchPreferenceAddNewAccount().then(r => {
-                setBtnLoading(false)
+            let account = await Account.addAccountFromPrivateKey(privateKey)
+            dispatchRefreshPreference(account).then(r => {
                 navigate('/home')
             })
         } catch (error) {
-            let content = error instanceof Error ? error.message : 'system error.';
-            noticeError(content);
+            noticeError(error);
             setBtnLoading(false)
         }
     }
@@ -86,7 +65,7 @@ const FromPrivatekey = () => {
                         </div>
                     </article>
                     <div className="mnemonic-btn-pos">
-                        <Button block size="large" color="primary" disabled={submitDisabledKey()} onClick={() => setStepValue(2)}>
+                        <Button block size="large" color="primary" disabled={ !privateKey } onClick={ checkPrivateKey }>
                             Continue
                         </Button>
                     </div>

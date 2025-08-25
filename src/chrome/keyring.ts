@@ -1,5 +1,5 @@
 import { Chrome } from '@/chrome/chrome'
-import { Wallet, Account } from '@/model/wallet'
+import { Wallet, SubAccountAdd } from '@/model/wallet'
 
 export class Keyring {
 
@@ -71,10 +71,11 @@ export class Keyring {
         return Chrome.request({ action: "Keyring.clear" })
     }
 
-    static async getActiveWalletWithAccounts(): Promise<any> {
-        return Chrome.request({ action: "Keyring.getActiveWalletWithAccounts" })
+    static async getActiveAccountWithSubAccounts(): Promise<any> {
+        return Chrome.request({ action: "Keyring.getActiveAccountWithSubAccounts" })
     }
-    static async addDriveAccount(id: string, account: Account): Promise<any> {
+    
+    static async addDriveAccount(id: string, account: SubAccountAdd): Promise<any> {
         return Chrome.request({ action: "Keyring.addDriveAccount", id, account })
     }
     static async switchDriveAccount(id: string, index: number): Promise<any> {

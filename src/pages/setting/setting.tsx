@@ -3,13 +3,17 @@ import HeadNav from '@/components/HeadNav'
 import Footer from '@/components/Footer'
 import { useNavigate } from "react-router-dom";
 import { Keyring } from "@/chrome/keyring"
-import { Kiwi } from '@kasplex/kiwi-web'
 import { SvgIcon } from '@/components/Icon/index'
 import { openUrl } from '@/utils/util'
-const Setting = () => {
-    const navigate = useNavigate();
+import { useSelector } from "react-redux";
+import { RootState } from '@/store';
 
+const Setting = () => {
+
+    const navigate = useNavigate();
     const [isPopUp, setIsPopUp] = useState(true);
+    const { preference} = useSelector((state: RootState) => state.preference);
+
     const lockFn = () => {
         Keyring.lock()
         navigate('/unlock', { replace: true });
@@ -48,7 +52,7 @@ const Setting = () => {
                 <div className="list-item-box" onClick={() => navigate('/network/index')}>
                     <div className="list-item-left">
                         <strong>Network</strong>
-                        <span>{Kiwi.getNetworkID()}</span>
+                        <span>{preference.network.name}</span>
                     </div>
                     <SvgIcon iconName="arrowRight" />
                 </div>

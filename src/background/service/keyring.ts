@@ -1,12 +1,12 @@
 import { decrypt, encrypt } from '@metamask/browser-passworder';
 import { KeyRingAccess, KeyRingAccount, KeyRingState} from '@/model/account';
-import { Wallet, Account } from '@/model/wallet';
+import { SubAccountAdd, AccountDisplay } from '@/model/wallet';
 import { Storage } from '@/utils/storage';
 import { LockTime, AccountType } from '@/types/enum';
 import { hashString } from '@/utils/util';
 import { Preference } from '@/background/service/preference';
 import { ObservableStore } from '@metamask/obs-store';
-import { Wasm } from '@kasplex/kiwi-web'
+import { Wasm, Kiwi, Wallet as KiwiWallet } from '@kasplex/kiwi-web'
 
 export class KeyRing {
 
@@ -93,7 +93,7 @@ export class KeyRing {
         return { priKey: account.priKey, pubKey: account.pubKey };
     }
 
-    async getActiveWalletWithAccounts() {
+    async getActiveAccountWithSubAccounts() {
         let wallet = this.store.getState().account.find(account => account.active == true);
         if (!wallet) {
             throw Error("Account not find")
@@ -102,11 +102,12 @@ export class KeyRing {
             return {
                 id: wallet.id,
                 type: wallet.type,
+                name: wallet.name,
                 path: 0,
                 drive: [{
                     name: wallet.accountName,
                     index: 0,
-                    pubKey: wallet.pubKey
+                    address: new Wasm.PublicKey(wallet.pubKey).toAddress(Kiwi.network).toString()
                 }]
             }
         } else {
@@ -114,40 +115,35 @@ export class KeyRing {
                 id: wallet.id,
                 type: wallet.type,
                 path: wallet.path!,
-                mnemonic: wallet.mnemonic,
-                passphrase: wallet.passphrase,
+                name: wallet.name,
                 drive: wallet.drive?.map((item) => ({
                     name: item.name,
                     index: item.index,
-                    pubKey: item.pubKey
+                    address: new Wasm.PublicKey(item.pubKey).toAddress(Kiwi.network).toString()
                 }))
             }
         }
     }
 
-    async getActiveAccount() {
+    async getActiveAccount(): Promise<AccountDisplay> {
         let account = this.store.getState().account.find(account => account.active == true)!
-        let network = await Preference.getNetwork()
-        let address = new Wasm.PublicKey(account.pubKey).toAddress(network!.networkId as Wasm.NetworkType).toString()
-        var _account = {
+        return {
             id: account.id,
             name: account.name,
             pubKey: account.pubKey,
             active: account.active,
             type: account.type,
             accountName: account.accountName,
-            address: address,
+            address: new Wasm.PublicKey(account.pubKey).toAddress(Kiwi.network).toString(),
             balance: "0",
         }
-        await Preference.setCurrentAccount(_account)
-        return _account
     }
 
     async getActiveAccountAddressAndNetwork() {
         let account = this.store.getState().account.find(account => account.active == true)!
         let network = await Preference.getNetwork()
-        let address = new Wasm.PublicKey(account.pubKey).toAddress(network!.networkId as Wasm.NetworkType).toString()
-        return { network, address}
+        let address = new Wasm.PublicKey(account.pubKey).toAddress(Kiwi.network).toString()
+        return { network, address }
     }
 
     async getWalletList() {
@@ -163,37 +159,76 @@ export class KeyRing {
         }));
     }
 
-    async addWallet(wallet: Wallet) {
-        wallet.id = await hashString((wallet.mnemonic ? wallet.mnemonic : wallet.priKey) + "2ee3957e6f11e9acc86e83")
+    // add a new account by mnemonic
+    async addAccountFromMnemonic(mnemonic: string, passphrase: string) {
+        let id = await hashString(mnemonic + passphrase + "2ee3957e6f11e9acc86e83")
         let accounts = this.store.getState().account
         let exist = accounts.find(r => {
-            return r.id === wallet.id
+            return r.id === id
         })
         if (exist) {
-            throw Error("wallet exist.")
+            throw Error("wallet exist")
         }
         if (accounts.length > 100) {
             throw Error("Create wallet limited")
         }
-
         this.store.getState().account.map(r => r.active = false)
-
         let index = (accounts.length > 0 ? accounts[accounts.length - 1].index : 0) + 1
-        wallet.index = index
-        wallet.name = (wallet.mnemonic ? "HD" : "Single") + ' Wallet #' + index
-        wallet.accountName = "Account 1"
-        wallet.active = true
-        if (wallet.mnemonic != "") {
-            wallet.path = 0
-            wallet.drive = [{
+        let wallet = KiwiWallet.fromMnemonic(mnemonic, passphrase)
+        let pubKey = wallet.toPublicKey().toString()
+        let priKey = wallet.toPrivateKey().toString()
+        this.store.getState().account.push({
+            id: id,
+            name: "HD" + ' Wallet #' + index,
+            index: index,
+            active: true,
+            pubKey: pubKey,
+            priKey: priKey,
+            mnemonic: mnemonic,
+            passphrase: passphrase,
+            type: AccountType.PrivateKey,
+            accountName: "Account 1",
+            path: 0,
+            drive: [{
                 name: "Account 1",
                 index: 0,
-                pubKey: wallet.pubKey,
-                priKey: wallet.priKey
+                pubKey: pubKey,
+                priKey: priKey
             }]
+        })
+        this.persistToStorage()
+        return this.getActiveAccount()
+    }
+
+    // add a new account by private key
+    async addAccountFromPrivateKey(privateKey: string) {
+        let id = await hashString(privateKey + "2ee3957e6f11e9acc86e83")
+        let accounts = this.store.getState().account
+        let exist = accounts.find(r => {
+            return r.id === id
+        })
+        if (exist) {
+            throw Error("wallet exist")
         }
-        this.store.getState().account.push(wallet)
-        return this.persistToStorage()
+        if (accounts.length > 100) {
+            throw Error("Create wallet limited")
+        }
+        this.store.getState().account.map(r => r.active = false)
+        let index = (accounts.length > 0 ? accounts[accounts.length - 1].index : 0) + 1
+        let pk = new Wasm.PrivateKey(privateKey)
+        this.store.getState().account.push({
+            id: id,
+            name: "Single" + ' Wallet #' + index,
+            index: index,
+            active: true,
+            pubKey: pk.toPublicKey().toString(),
+            priKey: privateKey,
+            mnemonic: "",
+            type: AccountType.PrivateKey,
+            accountName: "Account 1",
+        })
+        this.persistToStorage()
+        return this.getActiveAccount()
     }
 
     async removeWallet(id: string) {
@@ -262,7 +297,7 @@ export class KeyRing {
         await Storage.clearData();
     }
 
-    async addDriveAccount(id: string, account: Account) {
+    async addDriveAccount(id: string, account: SubAccountAdd) {
         let accounts = this.store.getState().account
         let _account = accounts.find(r => {
             return r.id === id
@@ -270,16 +305,28 @@ export class KeyRing {
         if (!_account) {
             throw Error("Wallet not find")
         }
+        if (_account.type == AccountType.PrivateKey) {
+            throw Error("Account type invalid")
+        }
+
         if (!_account.drive || _account.drive.length == 0) {
             _account.drive = []
         }
-
-        _account.drive.push(account)
-        _account.path = account.index
-        _account.pubKey = account.pubKey
-        _account.priKey = account.priKey
+        let index = _account.drive![_account.drive!.length - 1].index + 1
+        let wallet = KiwiWallet.fromMnemonic(_account.mnemonic, _account.passphrase).newWallet(index)
+        const item = {
+            name: account.name,
+            index: index,
+            pubKey: wallet.toPublicKey().toString(),
+            priKey: wallet.toPrivateKey().toString(),
+        }
+        _account.drive.push(item)
+        _account.path = item.index
+        _account.pubKey = item.pubKey
+        _account.priKey = item.priKey
         _account.accountName = account.name
-        await this.persistToStorage()
+        this.persistToStorage()
+        return this.getActiveAccount()
     }
 
     async switchDriveAccount(id: string, index: number) {
@@ -300,7 +347,6 @@ export class KeyRing {
         wallet.pubKey = account.pubKey
         wallet.priKey = account.priKey
         wallet.accountName = account.name
-        console.log("wallet", wallet)
         await this.persistToStorage()
     }
 
@@ -309,20 +355,19 @@ export class KeyRing {
         let account = accounts.find(r => {
             return r.id === id
         })
-        if (!account) return
-        if (account.type == AccountType.PrivateKey) {
-            account.accountName = name
-            return
+        if (!account) {
+            throw Error("Account not find")
         }
-        account.drive?.map(r => {
-            if (r.index == index) {
-                r.name = name
-            }
-        })
-        if (account.path && account.path == index) {
-            account.accountName = name
+        account.accountName = name
+        if (account.type == AccountType.Mnemonic) {
+            account.drive?.map(r => {
+                if (r.index == index) {
+                    r.name = name
+                }
+            })
         }
-        await this.persistToStorage()
+        this.persistToStorage()
+        return this.getActiveAccount()
     }
 
     async getPrivateKey(password: string, id: string, index: number) {
@@ -385,8 +430,7 @@ export class KeyRing {
     }
     
     async getActiveAccountPublicKey() {
-        let account = this.store.getState().account.find(account => account.active == true)!
-        return account.pubKey
+        return this.store.getState().account.find(account => account.active == true)!
     }
 }
 

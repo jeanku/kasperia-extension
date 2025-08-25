@@ -9,6 +9,7 @@ import CountUp from 'react-countup';
 import { SvgIcon } from '@/components/Icon/index'
 import { formatAddress, formatBalance, getDecimals, formatDate, formatHash } from "@/utils/util"
 import { Preference } from "@/chrome/preference"
+import { Account } from "@/chrome/account"
 import { RootState } from '@/store';
 import { KasplexApi, KaspaApi, Kiwi, Modules } from '@kasplex/kiwi-web'
 import { isEqual } from 'lodash';
@@ -20,7 +21,6 @@ import {
 import store from '@/store';
 import { useClipboard } from '@/components/useClipboard';
 import { Dispatch } from 'redux';
-
 import IconArrorRight from '@/assets/images/home-arrow-right.png'
 
 type LoadingType = 0 | 1 | 2
@@ -29,31 +29,17 @@ const Home = () => {
     const { handleCopy } = useClipboard();
     const navigate = useNavigate();
 
-    const [address, setAddress] = useState<string>("");
+    const [connect, setConnect] = useState<boolean>(false);
     const [balance, setBalance] = useState("0");
     const [listLoadingType, setListLoadingType] = useState<LoadingType>(1);
-
     const [filteredValue, setfilteredValue] = useState('');
 
-    const [krc20TokenList, setKrc20TokenList] = useState<{
-        time: number,
-        list: Array<TokenList>
-    }>({ time: 0, list: [] });
+    const [krc20TokenList, setKrc20TokenList] = useState<{ time: number, list: Array<TokenList> }>({ time: 0, list: [] });
+    const [krc20OpList, setKrc20OpList] = useState<{ time: number, list: Array<Oplist> }>({ time: 0, list: [] });
 
-    const [krc20OpList, setKrc20OpList] = useState<{
-        time: number,
-        list: Array<Oplist>
-    }>({ time: 0, list: [] });
+    const [kaspaActList, setKaspaActList] = useState<{ time: number, list: Array<Transaction> }>({ time: 0, list: [] });
 
-    const [kaspaActList, setKaspaActList] = useState<{
-        time: number,
-        list: Array<Transaction>
-    }>({ time: 0, list: [] });
-
-    const [kaspaPrice, setKaspaPrice] = useState<{
-        time: number,
-        price: number
-    }>({ time: 0, price: 0 });
+    const [kaspaPrice, setKaspaPrice] = useState<{ time: number, price: number }>({ time: 0, price: 0 });
 
     const underlineRef = useRef(null);
 
@@ -62,10 +48,8 @@ const Home = () => {
     const [homeTabValue, setHomeTabValue] = useState(homeTabs[0]);
     const [activityTabValue, setActivityTabValue] = useState(activityTabs[0]);
 
-    const currentAccount = useSelector((state: RootState) => state.preference.preference?.currentAccount);
     const contractAddressMap = useSelector((state: RootState) => state.preference.preference?.contractAddress || {});
     const { preference } = useSelector((state: RootState) => state.preference);
-    const rpcClient = useSelector((state: RootState) => state.rpc.client);
 
     const fetchKrc20TokenList = async () => {
         let curTime = new Date().getTime() / 1000
@@ -143,6 +127,7 @@ const Home = () => {
         let curTime = new Date().getTime() / 1000
         if (curTime - kaspaActList.time <= 5) return
         setListLoadingType(1)
+        const address = preference.currentAccount?.address!
         KaspaApi.getFullTransactions(address, { limit: "10", resolve_previous_outpoints: "light" }).then((r: any) => {
             let txs = r as Transaction[]
             const data = txs.map(item => {
@@ -183,19 +168,6 @@ const Home = () => {
             setListLoadingType(0)
         })
     }
-
-    const fetchBalance = async () => {
-        try {
-            const res = await rpcClient?.getBalanceByAddress({ address: preference!.currentAccount!.address });
-            let _balance = res?.balance.toString()
-            if (_balance && _balance !== preference?.currentAccount!.balance) {
-                setBalance(_balance);
-                Preference.updateAccountsBalance(preference!.currentAccount!.address, _balance);
-            }
-        } catch (err) {
-            console.error("Failed to fetch balance:", err);
-        }
-    };
 
     const getKasPrice = async () => {
         let curTime = new Date().getTime() / 1000
@@ -242,11 +214,7 @@ const Home = () => {
     }
 
     useEffect(() => {
-        console.log("preference", preference)
-        if (!preference.currentAccount) return;
-        setAddress(preference.currentAccount!.address)
-        setBalance(preference.currentAccount!.balance)
-
+        if (!preference) return;
         setKrc20TokenList({ time: 0, list: preference!.krc20TokenList || [] })
         setKrc20OpList({ time: 0, list: preference!.krc20OpList || [] })
         setKaspaActList({ time: 0, list: preference!.kaspaTxList || [] })
@@ -258,20 +226,47 @@ const Home = () => {
             }
             getKasPrice()
         }
-    }, [currentAccount]);
+
+        const handler = (message: any, sender: chrome.runtime.MessageSender, sendResponse: any) => {
+            if (message.type == "balance-changed") {
+                if (message.data.address == preference.currentAccount!.address) {
+                    setBalance(message.data.balance)
+                }
+            }
+        };
+        chrome.runtime.onMessage.addListener(handler);
+        return () => {
+            chrome.runtime.onMessage.removeListener(handler);
+        };
+    }, [preference]);
 
     useEffect(() => {
-        fetchBalance();
-        chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-            console.log('收到最新余额:', message);
-            // if (message.type === 'BALANCE_UPDATED') {
-            //     console.log('收到最新余额:', message.data.balance);
-            //
-            //     // 这里可以更新到页面 UI，例如 setState、或者 document.innerText 等
-            //     // updateUI(message.data.balance);
-            // }
-        });
-    }, [rpcClient]);
+        getConnectState()
+        Account.addListener()
+    }, []);
+
+    const getConnectState = async () => {
+        Account.getConnectState().then(state => {
+            if (!state) {
+                chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+                    if (message.type == "connected") {
+                        setConnect(true)
+                        getBalance()
+                    }
+                });
+            } else {
+                setConnect(state)
+                getBalance()
+            }
+        })
+    }
+
+    const getBalance = async () => {
+        const _balance = await Account.getBalance()
+        if (balance != _balance) {
+            setBalance(_balance)
+        }
+    }
 
     const filteredTokenList = useMemo(() => {
         const keyword = filteredValue.toLowerCase();
@@ -289,7 +284,7 @@ const Home = () => {
     }
 
     const toKrc20 = (token: TokenList) => {
-        navigate("/krc20", { state: { token, address: address } })
+        navigate("/krc20", { state: { token, address: preference.currentAccount!.address } })
     }
 
     const toOpinfo = (index: number) => {
@@ -308,7 +303,7 @@ const Home = () => {
         <div className="page-box">
             <div className="nav-bar">
                 <div className="nav-left no-cursor">
-                    {rpcClient && rpcClient?.isConnected ? (<><span>{Kiwi.getNetworkID()}</span></>) :
+                    {connect ? (<><span>{preference.network?.name}</span></>) :
                         (<><span>Connecting</span><DotLoading color='#74E6D8' /></>)
                     }
                 </div>
@@ -325,7 +320,7 @@ const Home = () => {
                         <UserOutline fontSize={24} />
                         <div className="account-info">
                             <strong>{preference?.currentAccount?.accountName}</strong>
-                            <p className="cursor-pointer" onClick={() => handleCopy(address)} ><em className="one-line">{formatAddress(address, 6)}</em><SvgIcon iconName="IconCopy" color="#7F7F7F" offsetStyle={{ marginLeft: '5px' }} /></p>
+                            <p className="cursor-pointer" onClick={() => handleCopy(preference.currentAccount!.address)} ><em className="one-line">{formatAddress(preference.currentAccount!.address, 6)}</em><SvgIcon iconName="IconCopy" color="#7F7F7F" offsetStyle={{ marginLeft: '5px' }} /></p>
                         </div>
                         <SvgIcon className="cursor-pointer" iconName="arrowRight" onClick={() => navigate('/account/switch',
                             { state: { id: preference.currentAccount?.id } })} />
@@ -441,7 +436,7 @@ const Home = () => {
                                                             </div>
                                                         ) : (
                                                             <div className="history-left">
-                                                                <em className={item.to !== address ? 'history-icon sub' : 'history-icon'}>{item.to !== address ? "-" : "+"}</em>
+                                                                <em className={item.to !== preference.currentAccount!.address ? 'history-icon sub' : 'history-icon'}>{item.to !== preference.currentAccount!.address ? "-" : "+"}</em>
                                                                 <strong className="history-amount">{formatBalance(item.amt || "0", getTickDec(item.tick, item.ca))} {item.tick || item.name}</strong>
                                                             </div>
                                                         )

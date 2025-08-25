@@ -26,8 +26,7 @@ const Index = () => {
             await Keyring.checkPassword(password)
             navigate(`/export/${type}`, {state: {id, password, index}})
         } catch (error) {
-            let content = error instanceof Error ? error.message : 'password error.';
-            noticeError(content);
+            noticeError(error);
         }
     }
 

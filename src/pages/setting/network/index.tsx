@@ -6,12 +6,10 @@ import { Radio } from 'antd-mobile'
 import { SvgIcon } from '@/components/Icon/index'
 import { useSelector } from "react-redux";
 import { RootState } from '@/store';
-import { setRpcClient } from "@/store/rpcSlice";
+import { Preference } from '@/chrome/preference';
+import { setPreference } from "@/store/preferenceSlice";
 
-import { dispatchRefreshNetwork } from '@/dispatch/preference'
-import { dispatchRpcConnect } from '@/dispatch/rpcclient'
 import { Network } from '@/model/account';
-import { Kiwi } from "@kasplex/kiwi-web";
 import store from '@/store';
 import { Dispatch } from 'redux';
 
@@ -19,7 +17,6 @@ const NetworkIndex: React.FC = () => {
     const navigate = useNavigate()
     const [networkConfig, setNetworkConfig] = useState<Network[]>([])
     const { preference} = useSelector((state: RootState) => state.preference);
-    const currentNetworkId = Kiwi.network
 
     useEffect(() => {
         if (preference?.networkConfig) {
@@ -29,13 +26,11 @@ const NetworkIndex: React.FC = () => {
 
     const changeNetwork = async (index: number) => {
         const selectedNetwork = networkConfig[index];
-        if (selectedNetwork.networkId === currentNetworkId) return;
+        if (selectedNetwork.networkId === preference.network.networkId) return;
         try {
+            let prefrence = await Preference.setNetwork(selectedNetwork)
             const dispatch: Dispatch = store.dispatch;
-            dispatch(setRpcClient(null));
-
-            await dispatchRefreshNetwork(selectedNetwork, preference?.currentAccount!);
-            dispatchRpcConnect(selectedNetwork);
+            dispatch(setPreference(prefrence))
             navigate('/home');
         } catch (error) {
             console.error('Failed to change network:', error);
@@ -46,7 +41,7 @@ const NetworkIndex: React.FC = () => {
         <article className="page-box">
             <HeadNav url="/contact/add" title='Switch Network'></HeadNav>
             <div className="content-main list-box pb50">
-                <Radio.Group value={currentNetworkId} >
+                <Radio.Group value={preference.network.networkId} >
                     {
                         networkConfig.map((item: Network) => {
                             return (
@@ -57,7 +52,7 @@ const NetworkIndex: React.FC = () => {
                                             <span>{item.url || '-'}</span>
                                         </div>
                                     </Radio>
-                                    <div onClick={() => navigate("/network/update", { state: { network: item, isChecked: currentNetworkId === item.networkId } })}>
+                                    <div onClick={() => navigate("/network/update", { state: { network: item, isChecked: preference.network.networkId === item.networkId } })}>
                                         <SvgIcon iconName="arrowRight" />
                                     </div>
                                 </div>

@@ -6,8 +6,7 @@ import { SvgIcon } from '@/components/Icon/index'
 import { Keyring } from '@/chrome/keyring'
 import { AccountType } from '@/types/enum'
 import { formatAddress } from '@/utils/util'
-import { Wallet as WalletModel } from '@/model/wallet'
-import { Kiwi, Wasm } from '@kasplex/kiwi-web'
+import { AccountWithSubDisplay } from '@/model/wallet'
 import { useNotice } from '@/components/NoticeBar/NoticeBar'
 import { dispatchPreferenceAddNewAccount } from '@/dispatch/preference'
 
@@ -15,14 +14,15 @@ import RemoveInset from '@/assets/images/remove-img.png'
 import { Action } from 'antd-mobile/es/components/popover'
 import IconAdd from '@/assets/images/icon-add.png'
 
-const SwitchAccount = () => {
+const Switch = () => {
 
     const navigate = useNavigate();
     const { noticeSuccess, noticeError } = useNotice();
 
     const [visibleMask, setVisibleMask] = useState(false)
     const [dealItemIndex, setDealItemIndex] = useState(0);
-    const [currentWallet, setCurrentWallet] = useState<WalletModel | null>(null)
+    const [currentWallet, setCurrentWallet] = useState<AccountWithSubDisplay | null>(null)
+
     const [activeIndex, setActiveIndex] = useState<number>(0)
     const [accountList, setAccountList] = useState<Array<{
         name: string,
@@ -31,16 +31,9 @@ const SwitchAccount = () => {
     }>>([])
 
     const  getAccountList = async () => {
-        let wallet: WalletModel = await Keyring.getActiveWalletWithAccounts()
-        let accounts = wallet.drive!.map(r => {
-            return {
-                name: r.name,
-                index: r.index,
-                address: new Wasm.PublicKey(r.pubKey).toAddress(Kiwi.network).toString()
-            }
-        })
-        setAccountList(accounts!)
-        setActiveIndex(wallet.path! || 0)
+        let wallet: AccountWithSubDisplay = await Keyring.getActiveAccountWithSubAccounts()
+        setAccountList(wallet.drive)
+        setActiveIndex(wallet.path)
         setCurrentWallet(wallet)
     }
 
@@ -118,7 +111,7 @@ const SwitchAccount = () => {
                     {
                         currentWallet?.type == AccountType.Mnemonic ? (
                             <img className="icon-add norem" src={IconAdd} alt="Add"
-                                onClick={() => navigate("/account/switch/add", {state: {wallet: currentWallet}})}/>
+                                onClick={() => navigate("/account/switch/add", {state: {id: currentWallet.id}})}/>
                         ) : null
                     }
                 </div>
@@ -179,4 +172,4 @@ const SwitchAccount = () => {
     )
 }
 
-export {SwitchAccount}
+export { Switch }

@@ -26,8 +26,7 @@ const PrivateKey = () => {
                 setPrivateKey(resp)
             })
         } catch (error) {
-            let content = error instanceof Error ? error.message : 'system error.';
-            noticeError(content);
+            noticeError(error);
         }
     }, []);
 

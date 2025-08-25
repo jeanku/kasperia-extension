@@ -23,7 +23,7 @@ import {
   EditName,
   Receive,
   SwitchAdd,
-  SwitchAccount,
+  Switch,
   SwitchUpdate,
 } from "@/pages/account/index";
 
@@ -89,7 +89,7 @@ const AppRouter: React.FC = () => {
             <Route path="/account/editName" element={<EditName />} />
             <Route path="/account/createpwd" element={<CreatePwd />} />
             <Route path="/account/createWallet" element={<CreateWallet />} />
-            <Route path="/account/switch" element={<SwitchAccount />} />
+            <Route path="/account/switch" element={<Switch />} />
             <Route path="/account/switch/add" element={<SwitchAdd />} />
             <Route path="/account/switch/update" element={<SwitchUpdate />} />
             

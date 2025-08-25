@@ -1,13 +1,14 @@
-import React, { useState, useEffect, useMemo } from "react"
+import React, { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom";
 import { Mask, Button, Popover } from 'antd-mobile'
 import { Action } from 'antd-mobile/es/components/popover'
 import HeadNav from '@/components/HeadNav'
 import { Keyring } from "@/chrome/keyring"
+import { Account } from "@/chrome/account"
 import { AccountType } from "@/types/enum"
 import { Preference } from "@/chrome/preference"
 import { dispatchRefreshPreference } from "@/dispatch/preference"
-import { setAccountsBalance } from "@/store/preferenceSlice";
+import { setAccountsBalance, setCurrentAccount } from "@/store/preferenceSlice";
 import { formatAddress, formatBalance } from "@/utils/util"
 import { AccountDisplay } from "@/model/wallet"
 import { isEqual } from 'lodash';
@@ -18,7 +19,6 @@ import { Dispatch } from 'redux';
 import { useSelector } from "react-redux";
 import { RootState } from '@/store';
 import { useNotice } from '@/components/NoticeBar/NoticeBar'
-import { Wasm, Kiwi } from '@kasplex/kiwi-web'
 
 import RemoveInset from '@/assets/images/remove-img.png'
 
@@ -31,45 +31,30 @@ const Index = () => {
 
     const [accountListData, setAccountListData] = useState<Array<AccountDisplay>>([])
 
-    const rpcClient = useSelector((state: RootState) => state.rpc.client);
-
     const [dealItemIndex, setDealItemIndex] = useState(0);
 
-    const { preference} = useSelector((state: RootState) => state.preference);
+    const [accountKasBalance, setAccountKasBalance] = useState<Record<string, string>>({})
 
-    const [accountKasBalance, setAccountKasBalance] = useState<Record<string, string>>(preference?.accountsBalance || {})
-    
-    const fetchWalletList = async () => {
-        let accounts: AccountDisplay[] = await Keyring.getWalletList();
-        accounts.map(account => {
-            account.address = new Wasm.PublicKey(account.pubKey).toAddress(Kiwi.network).toString()
-        })
+    const accountsBalanceCache= useSelector((state: RootState) => state.preference.preference?.accountsBalance || undefined);
+
+    const setAccountsAndBalance = async () => {
+        let accounts = await Account.accounts();
         setAccountListData(accounts)
+        let addresses = accounts.map(account => account.address)
+        const balance = await Account.accountsBalance(addresses);
+        if (!isEqual(balance, accountsBalanceCache)) {
+            Preference.setAccountsBalance(balance)
+            setAccountKasBalance(balance)
+            const dispatch: Dispatch = store.dispatch;
+            dispatch(setAccountsBalance(balance))
+        }
     };
 
-    useMemo(() => {
-        if (accountListData.length == 0 || !rpcClient?.isConnected) return
-        let addresses = accountListData.map(account => account.address)
-        rpcClient?.getBalancesByAddresses({
-            addresses: addresses
-        }).then((r: Wasm.IGetBalancesByAddressesResponse) => {
-            const balanceMap: Record<string, string> = r.entries.reduce(
-                (acc: { [x: string]: any; }, entry: Wasm.IBalancesByAddressesEntry) => {
-                    acc[entry.address.toString()] = entry.balance.toString();
-                    return acc;
-                }, {} as Record<string, string>);
-            if (!isEqual(balanceMap, preference?.accountsBalance)) {
-                Preference.setAccountsBalance(balanceMap)
-                setAccountKasBalance(balanceMap)
-
-                const dispatch: Dispatch = store.dispatch;
-                dispatch(setAccountsBalance(balanceMap))
-            }
-        })
-    }, [accountListData, rpcClient])
-
     useEffect(() => {
-        fetchWalletList()
+        if (accountsBalanceCache != undefined) {
+            setAccountKasBalance(accountsBalanceCache)
+        }
+        setAccountsAndBalance()
     }, []);
 
     const popoverAction = (key: string, index: number) => {
@@ -94,20 +79,20 @@ const Index = () => {
 
     const setAccountActive = async (index: number) => {
         if (accountListData[index].active) {
-            navigate(-1)
-            return
+            return navigate(-1)
         }
         let selectedAccount = accountListData[index]
-        Keyring.setActiveWallet(accountListData[index].id)
-
+        await Account.setActiveAccount(accountListData[index].id)
         setAccountListData(accountListData.map(r => {
             r.active = r.id == selectedAccount.id
             return r
         }))
+
         selectedAccount.balance = accountKasBalance[selectedAccount.address] || "0"
-        dispatchRefreshPreference(selectedAccount).then(r => {
-            navigate(-1)
-        })
+
+        const dispatch: Dispatch = store.dispatch;
+        dispatch(setCurrentAccount(selectedAccount))
+        navigate(-1)
     }
 
     const removeConfirm = async () => {
@@ -195,7 +180,7 @@ export { CreateWallet } from "./createWallet"
 export { EditName } from "./editName"
 export { Receive } from "./receive"
 export { Unlock } from "./unlock"
+export { Switch } from "./switch"
 export { SwitchAdd } from "./switchAdd"
-export { SwitchAccount } from "./switchAccount"
 export { SwitchUpdate } from "./switchUpdate"
 export { Index }

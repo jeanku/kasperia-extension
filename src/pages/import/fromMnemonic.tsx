@@ -1,22 +1,21 @@
+import { produce } from "immer";
 import React, { useState } from 'react';
 import { Radio, Checkbox, Button, Input } from 'antd-mobile'
-import HeadNav from '@/components/HeadNav'
-import { Wallet as WalletModel } from '@/model/wallet'
-import { AccountType } from '@/types/enum'
-import { produce } from "immer";
-import { useNotice } from '@/components/NoticeBar/NoticeBar'
-import { useClipboard } from '@/components/useClipboard'
-import { Keyring } from '@/chrome/keyring'
-import { dispatchPreferenceAddNewAccount, dispatchPreference } from "@/dispatch/preference"
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { Mnemonic, Wallet, Kiwi } from '@kasplex/kiwi-web'
+import { Common } from '@/chrome/common'
+import { Account } from '@/chrome/account'
+import { dispatchRefreshPreference } from "@/dispatch/preference"
+
+import HeadNav from '@/components/HeadNav'
 import { SvgIcon } from '@/components/Icon/index'
+import { useClipboard } from '@/components/useClipboard'
+import { useNotice } from '@/components/NoticeBar/NoticeBar'
 
 const FromMnemonic = () => {
     const navigate = useNavigate();
     const { state } = useLocation();
-    const { noticeSuccess, noticeError } = useNotice();
+    const { noticeError } = useNotice();
     const { handleCopy } = useClipboard();
 
     const [mnemonicValue, setMnemonicValue] = React.useState<string[]>(new Array(12).fill(""));
@@ -24,6 +23,7 @@ const FromMnemonic = () => {
     const [mnemonicLength, setMnemonicLength] = React.useState(12)
 
     const [passphrase, setPassphrase] = React.useState(false)
+    const [address, setAddress] = React.useState<string>("")
 
     const [mnemonicValid, setMnemonicValid] = React.useState(false)
     const [btnLoading, setBtnLoading] = useState(false)
@@ -32,14 +32,24 @@ const FromMnemonic = () => {
     const [stepValue, setStepValue] = React.useState(1)
 
     const visablePassphrase = passphrase ? 'visable' : 'hidden'
-    const [isNew] = useState<string>(state?.new || "")
 
     const updateMnemonicAtIndex = (index: number, newValue: string) => {
         setMnemonicValue(prev => {
             const newState = produce(prev, draft => {
                 draft[index] = newValue;
             });
-            setMnemonicValid(Mnemonic.validate(newState.join(" ")))
+            let filter = newState.filter((item) => item != "")
+            if (filter.length == mnemonicLength) {
+                Common.addressFromMnemonic(newState.join(" "), "").then((address) => {
+                    if (address) {
+                        setMnemonicValid(address != "")
+                        setAddress(address)
+                    } else {
+                        setMnemonicValid(false)
+                        setAddress("")
+                    }
+                })
+            }
             return newState;
         });
     };
@@ -52,14 +62,6 @@ const FromMnemonic = () => {
         }
     }
 
-    const showAddress = () => {
-        if (!mnemonicValid) {
-            return ""
-        }
-        let wallet = Wallet.fromMnemonic(mnemonicValue.join(" "), pwdValue)
-        return wallet.toAddress(Kiwi.network).toString()
-    }
-
     const goBack = () => {
         if (stepValue === 2) {
             return setStepValue(1)
@@ -69,34 +71,13 @@ const FromMnemonic = () => {
 
     const createAccount = async () => {
         try {
-            let mnemonic = mnemonicValue.join(" ")
-            let wallet = Wallet.fromMnemonic(mnemonic, pwdValue)
-            let privateKey = wallet.toPrivateKey().toString()
-            let _wallet: WalletModel = {
-                id: "",
-                mnemonic: mnemonic,
-                name: "",
-                priKey: privateKey.toString(),
-                pubKey: wallet.toPublicKey().toString(),
-                index: 0,
-                active: true,
-                type: AccountType.Mnemonic,
-                passphrase: pwdValue,
-                accountName: ""
-            }
             setBtnLoading(true)
-            await Keyring.addWallet(_wallet)
-            if (isNew) {
-                dispatchPreference().then(r => {
-                    setBtnLoading(false)
-                    navigate('/home')
-                })
-            } else {
-                dispatchPreferenceAddNewAccount().then(r => {
-                    setBtnLoading(false)
-                    navigate('/home')
-                })
-            }
+            let mnemonic = mnemonicValue.join(" ")
+
+            let account = await Account.addAccountFromMnemonic(mnemonic, pwdValue)
+            dispatchRefreshPreference(account).then(r => {
+                navigate('/home')
+            })
         } catch (error) {
             setBtnLoading(false)
             noticeError(error);
@@ -110,13 +91,18 @@ const FromMnemonic = () => {
         e.preventDefault();
         const pastedText = e.clipboardData.getData('text').trim();
         const words = pastedText.split(/\s+/); // 按任意空白符分割
-
         for (let i = 0; i < words.length; i++) {
             const targetIndex = startIndex + i;
             if (targetIndex >= mnemonicLength) break; // 确保不超出 12 个单词
             updateMnemonicAtIndex(targetIndex, words[i])
         }
     };
+
+    const changePwdValue = async (val: string) => {
+        setPwdValue(val)
+        let address = await Common.addressFromMnemonic(mnemonicValue.join(" "), val)
+        setAddress(address)
+    }
 
     const gridList = mnemonicValue.map((item, index) => (
         <div className="grid-item" key={index}>
@@ -136,13 +122,6 @@ const FromMnemonic = () => {
     return (
         <div className="page-box">
             <HeadNav title="Create a new HD Wallet" onBack={() => goBack()}></HeadNav>
-            {/* <div className="nav-bar">
-                <div className="nav-left" onClick={() => goBack()}>
-                    <img className="arrow-left" src={arrowLeftImg} alt="" onClick={() => setStepValue(1)} />
-                </div>
-                <strong className="nav-bar-title">Create a new HD Wallet</strong>
-                <div></div>
-            </div> */}
             <article className="page-mnemonic page-from-seed">
                 <div className="page-btn-tab">
                     <div className={`btn-tab-item ${stepValue === 1 ? 'active' : ''}`} onClick={() => setStepValue(1)}>Step 1</div>
@@ -187,7 +166,7 @@ const FromMnemonic = () => {
                         {gridList}
                     </div>
                     <div className="page-content  mb20">
-                        <Button block size="large" color="primary" disabled={mnemonicValid === false} onClick={() => setStepValue(2)}>
+                        <Button block size="large" color="primary" disabled={ !mnemonicValid } onClick={ () => setStepValue(2) }>
                             Continue
                         </Button>
                     </div>
@@ -201,15 +180,15 @@ const FromMnemonic = () => {
                                 <span>Default</span>
                                 <SvgIcon iconName="IconRight" color='#FFFFFF' /> 
                             </div>
-                            <div className="sel-def-address" onClick={() => handleCopy(showAddress()) }>
+                            <div className="sel-def-address" onClick={() => handleCopy(address) }>
                                 <SvgIcon iconName="IconCopy" size={26} color='#FFFFFF' /> 
-                                <span>{showAddress()}</span>
+                                <span>{ address }</span>
                             </div>
                         </div>
                         <div className="mnemonic-check check-span-pl0">
                             <Checkbox block onChange={(val: boolean) => {
                                 if (!val) {
-                                    setPwdValue("")
+                                    changePwdValue("")
                                 }
                                 setPassphrase(val)
                             }}
@@ -224,7 +203,7 @@ const FromMnemonic = () => {
                                     value={pwdValue}
                                     maxLength={200}
                                     onChange={val => {
-                                        setPwdValue(val)
+                                        changePwdValue(val)
                                     }}
                                 />
                                 <p className="page-tip">

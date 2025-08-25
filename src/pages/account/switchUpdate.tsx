@@ -1,9 +1,8 @@
 import React, { useState } from "react"
 import { Button, Input } from 'antd-mobile'
 import { Keyring } from '@/chrome/keyring'
-import { SvgIcon } from '@/components/Icon/index'
 import HeadNav from '@/components/HeadNav'
-import { dispatchPreferenceAddNewAccount } from '@/dispatch/preference'
+import { dispatchRefreshPreference } from '@/dispatch/preference'
 import { useNavigate, useLocation } from "react-router-dom";
 
 const SwitchUpdate = () => {
@@ -17,9 +16,9 @@ const SwitchUpdate = () => {
     const [name, setName] = useState<string>('')
 
     const submit = async () => {
-        await Keyring.setAccountName(id, account.index, name)
+        const _account = await Keyring.setAccountName(id, account.index, name)
         if (isActive) {
-            return dispatchPreferenceAddNewAccount().then(_ => {
+            return dispatchRefreshPreference(_account).then(_ => {
                 navigate(-1)
             })
         }

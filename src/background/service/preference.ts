@@ -7,6 +7,8 @@ import {Storage} from '@/utils/storage';
 import {KeyRing} from './keyring';
 import {ObservableStore} from '@metamask/obs-store';
 import { NetworkName, NetworkType } from '@/types/enum'
+import { keyringService, accountService } from '@/background/service';
+import { Wasm, Rpc, Kiwi } from '@kasplex/kiwi-web'
 
 
 export class Preference {
@@ -33,16 +35,20 @@ export class Preference {
 
     static async setNetwork(network: Network) {
         await Preference.load()
+        Kiwi.setNetwork(network.networkId)
+        let account = await keyringService.getActiveAccount()
         let data = {
-            network: network, currentAccount: undefined, krc20TokenList: [], krc20OpList: [], kaspaTx: [], accountsBalance: {}
+            network: network, currentAccount: account, krc20TokenList: [], krc20OpList: [], kaspaTx: [], accountsBalance: {}
         }
         Preference.store?.updateState(data)
-        return Preference.persistToStorage()
+        accountService.reconnect()
+        Preference.persistToStorage()
+        return Preference.store?.getState()
     }
 
     static async setCurrentAccount(account: AccountDisplay) {
         await Preference.load()
-        let data = { currentAccount: account, krc20TokenList: [], krc20OpList: [], kaspaTxList: [], accountsBalance: {}}
+        let data = { currentAccount: account, krc20TokenList: [], krc20OpList: [], kaspaTxList: []}
         Preference.store?.updateState(data)
         return Preference.persistToStorage()
     }
@@ -51,14 +57,6 @@ export class Preference {
         await Preference.load()
         return Preference.store?.getState().currentAccount
     }
-
-    // static async setCurrentAccountBalance(balance: string) {
-    //     await Preference.load()
-    //     let account = Preference.store?.getState().currentAccount!
-    //     account!.balance = balance
-    //     Preference.store?.updateState({currentAccount: account})
-    //     return Preference.persistToStorage()
-    // }
 
     static async setKrc20TokenList(data: TokenList[]) {
         await Preference.load()
@@ -116,6 +114,7 @@ export class Preference {
 
     static async updateAccountsBalance(address: string, balance:string) {
         await Preference.load()
+        console.log("updateAccountsBalance:")
         let state = Preference.store?.getState().accountsBalance! || {}
         let currentAccount = Preference.store?.getState().currentAccount
         if (currentAccount && currentAccount.address == address) {
@@ -127,7 +126,7 @@ export class Preference {
 
     static async getAccountsBalance()  {
         await Preference.load()
-        return Preference.store?.getState().accountsBalance
+        return Preference.store?.getState().accountsBalance || {}
     }
 
     static async getLockTime() {

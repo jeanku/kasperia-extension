@@ -29,7 +29,24 @@ export type AccountDisplay = {
     active: boolean,
     accountName:string,
     type: AccountType,
-
     address: string,
     balance: string,
+}
+
+export type SubAccount = {
+    name: string,
+    index: number,
+    address: string,
+}
+
+export type SubAccountAdd = {
+    name: string,
+}
+
+export type AccountWithSubDisplay = {
+    id: string,
+    name: string,
+    type: AccountType,
+    path:number,
+    drive:  SubAccount[],
 }
