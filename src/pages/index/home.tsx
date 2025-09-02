@@ -143,30 +143,29 @@ const Home = () => {
         let curTime = new Date().getTime() / 1000
         if (curTime - kaspaActList.time <= 5) return
         setListLoadingType(1)
-        KaspaApi.getFullTransactions(address, { limit: "50", offset: "0" }).then((r: any) => {
+        KaspaApi.getFullTransactions(address, { limit: "50", resolve_previous_outpoints: "light" }).then((r: any) => {
             let txs = r as Transaction[]
             const data = txs.map(item => {
                 let amount = 0
+                var isFromOtherAddress = true
                 let totalInput = item.inputs.reduce((sum, input) => {
                     if (input.previous_outpoint_address == address) {
-                        amount -= input.previous_outpoint_amount
+                        isFromOtherAddress = false
                     }
                     return sum + input.previous_outpoint_amount;
                 }, 0);
+                var myOutAmount = 0
                 let totalOutput = item.outputs.reduce((sum, output) => {
                     if (output.script_public_key_address == address) {
-                        amount += output.amount
+                        myOutAmount += output.amount
                     }
                     return sum + output.amount;
                 }, 0);
                 item.fee = totalInput - totalOutput
-                item.amount = amount < 0 ? amount + item.fee : amount
-                if (item.amount == 0 && item.outputs.length > 0) {
-                    if (item.outputs[0].script_public_key_address == address) {
-                        item.amount = item.outputs[0].amount
-                    } else {
-                        item.amount = -(item.outputs[0].amount)
-                    }
+                if (isFromOtherAddress) {
+                    item.amount = myOutAmount
+                } else {
+                    item.amount = -(totalInput - myOutAmount)
                 }
                 item.inputs = []
                 item.outputs = []
@@ -175,7 +174,6 @@ const Home = () => {
             if (kaspaActList.time == 0 || !isEqual(data, kaspaActList.list)) {
                 setKaspaActList({ time: curTime, list: data })
                 Preference.setKaspaTxList(data)
-
                 const dispatch: Dispatch = store.dispatch;
                 dispatch(setKaspaTxListSlice(data))
             }
