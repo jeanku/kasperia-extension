@@ -139,7 +139,7 @@ const Home = () => {
         })
     }
 
-    const getKaspaActlist = async () => {
+    const getKaspaTxlist = async () => {
         let curTime = new Date().getTime() / 1000
         if (curTime - kaspaActList.time <= 5) return
         setListLoadingType(1)
@@ -225,7 +225,7 @@ const Home = () => {
             fetchKrc20TokenList()
         } else if (key === homeTabs[1]) {
             if (activityTabValue === activityTabs[0]) {
-                getKaspaActlist()
+                getKaspaTxlist()
             } else {
                 getKrc20list()
             }
@@ -235,7 +235,7 @@ const Home = () => {
     const handleActivityTab = async (key: string) => {
         setActivityTabValue(key)
         if (key === activityTabs[0]) {
-            getKaspaActlist()
+            getKaspaTxlist()
         } else {
             getKrc20list()
         }
