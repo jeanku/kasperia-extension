@@ -1,71 +1,8 @@
+import PortMessage from './message/portMessage';
+import BroadcastChannelMessage from './message/boardcastMessage';
+
 let channelName = 'kasperiaChannel';
-//
-// let portInstance: chrome.runtime.Port | null = null;
-//
-// // Connect to the background script
-// const connectToBackground = (): void => {
-//     if (portInstance) {
-//         console.log("Already connected to background.");
-//         return;
-//     }
-//
-//     portInstance = chrome.runtime.connect({ name: channelName });
-//
-//     // Listen for messages from the background script
-//     portInstance.onMessage.addListener((response: any) => {
-//         window.postMessage(response, '*');
-//     });
-//
-//     // Handle disconnection from background
-//     portInstance.onDisconnect.addListener(() => {
-//         portInstance = null; // Reset port when disconnected
-//     });
-// };
-//
-// // Message event type (for stricter typing)
-// interface KasperiaMessageEvent extends MessageEvent {
-//     data: {
-//         type: string;
-//         [key: string]: any;
-//     };
-// }
-//
-// // Add event listener to handle messages from the window
-// window.addEventListener('message', (event: KasperiaMessageEvent) => {
-//     console.log("content addEventListener", event);
-//
-//     // Make sure the event comes from the same window
-//     if (event.source !== window) return;
-//
-//     if (event.data.type === 'KASPERIA_SIGN_MESSAGE') {
-//         console.log("Received OPEN_KASPERIA message in content script");
-//
-//         // Ensure we are connected to the background script
-//         connectToBackground();
-//
-//         // Forward the message to the background
-//         if (portInstance) {
-//             portInstance.postMessage({ type: 'OPEN_KASPERIA' });
-//         }
-//     }
-//
-//     if (event.data.type === 'KASPERIA_SEND_KAS') {
-//         console.log("Received KASPERIA_SEND_KAS message in content script");
-//
-//         connectToBackground();
-//
-//         if (portInstance) {
-//             portInstance.postMessage({ type: 'KASPERIA_SEND_KAS', data: event.data });
-//         }
-//     }
-// });
 
-console.log("inject Script... 123")
-
-// import PortMessage from './message/portMessage';
-// import BroadcastChannelMessage from './message/boardcastMessage';
-
-// Inject custom script into the page
 function injectScript(): void {
     try {
         console.log("injectScript...")
@@ -76,23 +13,17 @@ function injectScript(): void {
         container.insertBefore(scriptTag, container.children[0]);
         container.removeChild(scriptTag);
 
-        // const { BroadcastChannelMessage, PortMessage } = Message;
+        const pm = new PortMessage().connect();
+        const bcm = new BroadcastChannelMessage(channelName).listen(
+            (data: any) => {
+                console.log("bcm -> port request:", {...data, "port": true})
+                return pm.request({...data, "port": true})
+            });
 
-        // const pm = new PortMessage().connect();
-        //
-        // const bcm = new BroadcastChannelMessage(channelName).listen(
-        //     (data: any) => pm.request(data));
-        //
-        // // background notification
-        // pm.on('message', (data) => {
-        //     bcm.send('message', data);
-        // });
-        //
-        // document.addEventListener('beforeunload', () => {
-        //     bcm.dispose();
-        //     pm.dispose();
-        // });
-
+        document.addEventListener('beforeunload', () => {
+            bcm.dispose();
+            pm.dispose();
+        });
     } catch (error) {
         console.error('Kasperia: Provider injection failed.', error);
     }
@@ -185,7 +116,5 @@ function shouldInjectProvider() {
 //     injectScript();
 // }
 
-
 injectScript();
-
 export {}

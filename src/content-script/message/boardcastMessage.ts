@@ -14,8 +14,9 @@ export default class BroadcastChannelMessage extends Message {
 
     connect = () => {
         this._channel.onmessage = ({ data: { type, data } }) => {
+            console.log("board cast message onmessage in connect", type, data)
             if (type === 'message') {
-                this.emit('message', data);
+                // this.emit('message', data);
             } else if (type === 'response') {
                 this.onResponse(data);
             }
@@ -26,8 +27,8 @@ export default class BroadcastChannelMessage extends Message {
 
     listen = (listenCallback: any) => {
         this.listenCallback = listenCallback;
-
         this._channel.onmessage = ({ data: { type, data } }) => {
+            console.log("board cast message onmessage in listen", type, data)
             if (type === 'request') {
                 this.onRequest(data);
             }
@@ -37,6 +38,7 @@ export default class BroadcastChannelMessage extends Message {
     };
 
     send = (type: any, data: any) => {
+        console.log("board cast message send", type, data)
         this._channel.postMessage({
             type,
             data

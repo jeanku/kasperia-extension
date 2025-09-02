@@ -35,6 +35,8 @@ import IconEyeOpen from '@/assets/icons/icon-eye-open.svg'
 import IconDiscord from '@/assets/icons/discord.svg'
 import IconTwitter from '@/assets/icons/twitter.svg'
 import IconGithub from '@/assets/icons/github.svg'
+import IconHistory from '@/assets/icons/icon-history.svg'
+import IconRightArrow from '@/assets/icons/icon-right-arrow.svg'
 import PngCoinDef from '@/assets/images/icon-coin-def.png'
 
 const svgRegistry = {
@@ -73,20 +75,22 @@ const svgRegistry = {
     IconEyeOpen,
     IconDiscord,
     IconTwitter,
-    IconGithub
+    IconGithub,
+    IconHistory,
+    IconRightArrow,
 };
 
 type IconName = keyof typeof svgRegistry;
 
 const svgCache: Record<string, string> = {};
 export const SvgIcon = ({
-    iconName,
-    size = 24,
-    color = "#D8D8D8",
-    offsetStyle = {},
-    onClick,
-    className,
-}: {
+                            iconName,
+                            size = 24,
+                            color = "#D8D8D8",
+                            offsetStyle = {},
+                            onClick,
+                            className,
+                        }: {
     iconName: IconName;
     size?: number;
     color?: string,
@@ -98,7 +102,7 @@ export const SvgIcon = ({
     const isPng = iconName.startsWith('Png');
     useEffect(() => {
         if (isPng) return;
-        const cacheKey = `${iconName}-${color || 'color'}`; 
+        const cacheKey = `${iconName}-${color || 'color'}`;
         if (svgCache[cacheKey]) {
             setSvgContent(svgCache[cacheKey]);
             return;

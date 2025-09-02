@@ -7,7 +7,7 @@ import { useNotice } from '@/components/NoticeBar/NoticeBar'
 import { formatBalance, formatAddress, checkAddressPrefix, toTokenUnits } from '@/utils/util'
 import { Kiwi, Wallet, Wasm } from '@kasplex/kiwi-web'
 import { Big } from 'big.js';
-import { AddressBook } from '@/model/transaction'
+import { AddressListDisplay } from '@/model/account'
 import { TokenList } from '@/model/krc20'
 import { Address } from '@/model/contact'
 import NumberInput from '@/components/NumberInput';
@@ -35,8 +35,8 @@ const Send = () => {
 
     const [contactTabValue, setContactTabValue] = useState<string>("")
 
-    const [contactValue, setContactValue] = useState<AddressBook[] | null>(null)
-    const [contactAccountValue, setContactAccountValue] = useState<AddressBook[] | null>(null)
+    const [contactValue, setContactValue] = useState<Address[] | null>(null)
+    const [contactAccountValue, setContactAccountValue] = useState<AddressListDisplay[] | null>(null)
     const [kasTips, setKasTips] = useState<string>('')
 
     const submitDisabled = useMemo(() => {
@@ -98,14 +98,7 @@ const Send = () => {
                 break
             case "Accounts":
                 if (!contactAccountValue) {
-                    let contacts: AddressBook[] = await Keyring.getAccountBook()
-                    contacts = contacts.map((item) => {
-                        item.drive = item.drive!.map(r => {
-                            r.address = new Wasm.PublicKey(r.pubKey).toAddress(Kiwi.network).toString()
-                            return r
-                        })
-                        return item
-                    })
+                    let contacts: AddressListDisplay[] = await Keyring.getAccountListDisplay()
                     setContactAccountValue(contacts);
                 }
                 break;
@@ -214,7 +207,7 @@ const Send = () => {
                     {
                         contactTabValue == "Contacts" ? (
                             contactValue && contactValue.length > 0 ? (
-                                contactValue.map((item: AddressBook, index) => (
+                                contactValue.map((item: Address, index) => (
                                     <div className="contact-list-box" key={index}>
                                         <div className="contact-list-item" key={address} onClick={() => {
                                             setAddress(item.address)
@@ -232,7 +225,7 @@ const Send = () => {
                     {
                         contactTabValue == "Accounts" ? (
                             contactAccountValue && contactAccountValue.length > 0 ? (
-                                contactAccountValue.map((item: AddressBook, index) => (
+                                contactAccountValue.map((item: AddressListDisplay, index) => (
                                     <div className="contact-list-box mb20" key={index}>
                                         <strong>{item.name}</strong>
                                         {

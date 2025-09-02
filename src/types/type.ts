@@ -27,3 +27,9 @@ export interface AccountData {
     icon: string,
     url: string
 }
+
+export interface Session {
+    origin: string;
+    icon: string;
+    name: string;
+}

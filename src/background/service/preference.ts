@@ -4,7 +4,7 @@ import { AccountDisplay } from '@/model/wallet';
 import {Oplist} from '@/model/krc20';
 import {Transaction} from '@/model/kaspa';
 import {Storage} from '@/utils/storage';
-import {KeyRing} from './keyring';
+import { keyringService } from './index';
 import {ObservableStore} from '@metamask/obs-store';
 import { NetworkName, NetworkType } from '@/types/enum'
 
@@ -28,7 +28,7 @@ export class Preference {
 
     static async getNetwork() {
         await Preference.load()
-        return Preference.store?.getState().network
+        return Preference.store!.getState().network
     }
 
     static async setNetwork(network: Network) {
@@ -141,6 +141,13 @@ export class Preference {
         return Preference.persistToStorage()
     }
 
+    static async resetCurrentAccount() {
+        await Preference.load()
+        let account = await keyringService.getActiveAccountDisplay()
+        Preference.store?.updateState({currentAccount: account})
+        return Preference.persistToStorage()
+    }
+
     static async setKasprice(price: KasPrice) {
         await Preference.load()
         Preference.store?.updateState({kasPrice: price})
@@ -162,7 +169,7 @@ export class Preference {
             network: {
                 networkId: 0,
                 url: "",
-                name: ""
+                name: NetworkName.Mainnet
             },
             networkConfig: {
                 [NetworkType.Mainnet]: {

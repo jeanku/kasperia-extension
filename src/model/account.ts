@@ -61,3 +61,9 @@ export type PreferenceState = {
     lockTime: number,
     kasPrice?: KasPrice,
 }
+
+export type AddressListDisplay = {
+    id: string,
+    name: string,
+    drive: Array<{name: string, address: string, active: boolean, index: number}>,
+}

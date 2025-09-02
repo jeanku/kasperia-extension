@@ -14,7 +14,6 @@ const Boost = () => {
     useEffect(() => {
         const init = async () => {
             let state: KeyRingAccess = await Keyring.state()
-            console.log("KeyRingAccess:", state)
             if (!state.isBooted) {
                 navigate("/index", { replace: true})
                 return

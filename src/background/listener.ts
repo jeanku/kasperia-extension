@@ -1,4 +1,4 @@
-import { keyringService, preferenceService, contactService } from './service';
+import { keyringService, preferenceService, contactService, notificationService, permissionService } from './service';
 
 const handlers: Record<string, (message: any) => Promise<any> | any> = {
     "Keyring.isBoot": () => keyringService.isBoot(),
@@ -10,7 +10,10 @@ const handlers: Record<string, (message: any) => Promise<any> | any> = {
     "Keyring.getWalletById": (msg) => keyringService.getWalletById(msg.password, msg.id),
     "Keyring.setActiveWallet": (msg) => keyringService.setActiveWallet(msg.id),
     "Keyring.getActiveWalletKeys": () => keyringService.getActiveWalletKeys(),
-    "Keyring.getActiveAccount": () => keyringService.getActiveAccount(),
+
+    "Keyring.getActiveAccountDisplay": () => keyringService.getActiveAccountDisplay(),
+    "Keyring.getActiveAccountAndSyncPreference": () => keyringService.getActiveAccountAndSyncPreference(),
+
     "Keyring.getActiveWalletWithAccounts": () => keyringService.getActiveWalletWithAccounts(),
     "Keyring.getWalletList": () => keyringService.getWalletList(),
     "Keyring.addWallet": (msg) => keyringService.addWallet(msg.wallet),
@@ -23,7 +26,7 @@ const handlers: Record<string, (message: any) => Promise<any> | any> = {
     "Keyring.setAccountName": (msg) => keyringService.setAccountName(msg.id, msg.index, msg.name),
     "Keyring.getPrivateKey": (msg) => keyringService.getPrivateKey(msg.password, msg.id, msg.index),
     "Keyring.removeAccount": (msg) => keyringService.removeAccount(msg.id, msg.index),
-    "Keyring.getAccountBook": () => keyringService.getAccountBook(),
+    "Keyring.getAccountListDisplay": () => keyringService.getAccountListDisplay(),
     "Keyring.clear": () => keyringService.clear(),
 
     // Preference handlers
@@ -47,6 +50,12 @@ const handlers: Record<string, (message: any) => Promise<any> | any> = {
     "Preference.setLockTime": (msg) => preferenceService.setLockTime(msg.lockTime),
     "Preference.setKasPrice": (msg) => preferenceService.setKasprice(msg.price),
     "Preference.setContractAddress": (msg) => preferenceService.setContractAddress(msg.data),
+
+    "Notification.resolveApproval": (msg) => notificationService.resolveApproval(msg.data, msg.forceReject),
+    "Notification.rejectApproval": (msg) => notificationService.rejectApproval(msg.err, msg.stay, msg.isInternal),
+    "Notification.getApproval": () => notificationService.getApproval(),
+    "Permission.addConnectedSite": (msg) => permissionService.addConnectedSite(msg.origin, msg.name, msg.icon),
+
 
     // Contact handlers
     "Contact.add": (msg) => contactService.add(msg.address),

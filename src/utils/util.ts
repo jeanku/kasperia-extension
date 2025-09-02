@@ -143,3 +143,8 @@ export const openUrl = (url: string) => {
     if(!url.trim()) return
     window.open(url, '_blank')
 }
+
+export const isEmptyObject = (obj: any) => {
+    if (!obj) return true
+    return Object.keys(obj).length === 0 && obj.constructor === Object;
+}

@@ -23,7 +23,6 @@ const RootComponent = () => {
             try {
                 await initialize("./kaspa_bg.wasm");
                 let network: Network = await Preference.getNetwork()
-
                 Kiwi.setNetwork(network.networkId)
                 dispatchRpcConnect(network)
             } catch (error) {

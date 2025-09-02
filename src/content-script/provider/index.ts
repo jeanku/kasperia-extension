@@ -13,13 +13,13 @@ import { $, domReadyCall } from './utils';
 
 const log = (event: string, ...args: any[]) => {
   console.log(
-    `%c [kasware] (${new Date().toTimeString().slice(0, 8)}) ${event}`,
+    `%c [kasperia] (${new Date().toTimeString().slice(0, 8)}) ${event}`,
     'font-weight: 600; background-color: #7d6ef9; color: white;',
     ...args
   );
 };
 const script = document.currentScript;
-const channelName = script?.getAttribute('channel') || 'KASWARE';
+const channelName = script?.getAttribute('channel') || 'KASPERIA';
 
 export interface Interceptor {
   onRequest?: (data: any) => any;
@@ -40,7 +40,7 @@ export enum TxType {
 }
 
 const EXTENSION_CONTEXT_INVALIDATED_CHROMIUM_ERROR = 'Extension context invalidated.';
-export class KaswareProvider extends EventEmitter {
+export class KasperiaProvider extends EventEmitter {
   _selectedAddress: string | null = null;
   _network: string | null = null;
   _isConnected = false;
@@ -139,17 +139,13 @@ export class KaswareProvider extends EventEmitter {
     event: string;
     data: unknown;
   }) => {
+    console.log("_handleBackgroundMessage", event, data)
     // if (this._pushEventHandlers.) {
     //   return this._pushEventHandlers[event](data);
     // }
 
     this.emit(event, data);
   };
-
-  // TODO: support multi request!
-  // request = async (data) => {
-  //   return this._request(data);
-  // };
 
   _request = async (data: any) => {
     if (!data) {
@@ -159,7 +155,6 @@ export class KaswareProvider extends EventEmitter {
     this._requestPromiseCheckVisibility();
 
     return this._requestPromise.call(() => {
-      log('[request]', JSON.stringify(data, null, 2));
       return this._bcm
         .request(data)
         .then((res) => {
@@ -235,57 +230,6 @@ export class KaswareProvider extends EventEmitter {
     });
   };
 
-  // signTx = async (rawtx: string) => {
-  //   return this._request({
-  //     method: 'signTx',
-  //     params: {
-  //       rawtx
-  //     }
-  //   });
-  // };
-
-  /**
-   * push transaction
-   */
-  pushTx = async (rawtx: string) => {
-    return this._request({
-      method: 'pushTx',
-      params: {
-        rawtx
-      }
-    });
-  };
-
-  signPsbt = async (psbtHex: string, options?: any) => {
-    return this._request({
-      method: 'signPsbt',
-      params: {
-        psbtHex,
-        type: TxType.SIGN_TX,
-        options
-      }
-    });
-  };
-
-  signPsbts = async (psbtHexs: string[], options?: any[]) => {
-    return this._request({
-      method: 'multiSignPsbt',
-      params: {
-        psbtHexs,
-        options
-      }
-    });
-  };
-
-  pushPsbt = async (psbtHex: string) => {
-    return this._request({
-      method: 'pushPsbt',
-      params: {
-        psbtHex
-      }
-    });
-  };
-
   getVersion = async () => {
     return this._request({
       method: 'getVersion'
@@ -293,15 +237,8 @@ export class KaswareProvider extends EventEmitter {
   };
 }
 
-declare global {
-  interface Window {
-    kasware: KaswareProvider;
-  }
-}
+const provider = new KasperiaProvider();
 
-const provider = new KaswareProvider();
-
-// 防止被覆盖
 if (!window.mywallet) {
   Object.defineProperty(window, 'kasperia', {
     value: new Proxy(provider, {
@@ -311,7 +248,6 @@ if (!window.mywallet) {
   });
 }
 
-// 通知外部页面插件已注入
 window.dispatchEvent(new Event('kasperia#initialized'));
 
 export {};

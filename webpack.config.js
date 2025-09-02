@@ -8,6 +8,7 @@ const TerserPlugin = require('terser-webpack-plugin');
 module.exports = (env, argv) => {
     return {
         mode: 'production',
+        target: 'webworker',
         entry: {
             main: './src/index.tsx',
             background: './src/background/index.ts',
@@ -162,9 +163,9 @@ module.exports = (env, argv) => {
                 new TerserPlugin({
                     terserOptions: {
                         mangle: false,
-                        compress: {
-                            drop_console: true
-                        }
+                        // compress: {
+                        //     drop_console: true
+                        // }
                     },
                     extractComments: false,
                 })

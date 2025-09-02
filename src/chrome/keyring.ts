@@ -43,8 +43,12 @@ export class Keyring {
         return Chrome.request({ action: "Keyring.getActiveWalletKeys" })
     }
 
-    static async getActiveAccount(): Promise<any> {
-        return Chrome.request({ action: "Keyring.getActiveAccount" })
+    static async getActiveAccountDisplay(): Promise<any> {
+        return Chrome.request({ action: "Keyring.getActiveAccountDisplay" })
+    }
+
+    static async getActiveAccountAndSyncPreference(): Promise<any> {
+        return Chrome.request({ action: "Keyring.getActiveAccountAndSyncPreference" })
     }
 
     static async getWalletList(): Promise<any> {
@@ -89,7 +93,7 @@ export class Keyring {
     static async removeAccount(id: string, index:number): Promise<any> {
         return Chrome.request({ action: "Keyring.removeAccount", id, index })
     }
-    static async getAccountBook(): Promise<any> {
-        return Chrome.request({ action: "Keyring.getAccountBook" })
+    static async getAccountListDisplay(): Promise<any> {
+        return Chrome.request({ action: "Keyring.getAccountListDisplay" })
     }
 }

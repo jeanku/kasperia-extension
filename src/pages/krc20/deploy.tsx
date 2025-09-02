@@ -6,7 +6,7 @@ import { KasplexApi, Kiwi, Wasm, Wallet, Utils, Enum } from '@kasplex/kiwi-web'
 import { formatAddress } from '@/utils/util'
 import { formatNumber, isValidTickString, checkAddressPrefix } from '@/utils/util'
 import { SvgIcon } from '@/components/Icon'
-import { AddressBook } from '@/model/transaction'
+import { AddressListDisplay } from '@/model/account'
 import { Address } from '@/model/contact'
 import { Keyring } from '@/chrome/keyring'
 import { Contact } from '@/chrome/contact'
@@ -29,8 +29,8 @@ const Deploy = () => {
     const [decimal, setDecimal] = useState<string>(state?.decimal || '')
 
     const [contactTabValue, setContactTabValue] = useState<string>("Recent")
-    const [contactValue, setContactValue] = useState<AddressBook[] | null>(null)
-    const [contactAccountValue, setContactAccountValue] = useState<AddressBook[] | null>(null)
+    const [contactValue, setContactValue] = useState<Address[] | null>(null)
+    const [contactAccountValue, setContactAccountValue] = useState<AddressListDisplay[] | null>(null)
 
     const btnDisabled = () => {
         return !tick || !maxSupply || !limit
@@ -135,14 +135,7 @@ const Deploy = () => {
                 break
             case "Accounts":
                 if (!contactAccountValue) {
-                    let contacts: AddressBook[] = await Keyring.getAccountBook()
-                    contacts = contacts.map((item) => {
-                        item.drive = item.drive!.map(r => {
-                            r.address = new Wasm.PublicKey(r.pubKey).toAddress(Kiwi.network).toString()
-                            return r
-                        })
-                        return item
-                    })
+                    let contacts: AddressListDisplay[] = await Keyring.getAccountListDisplay()
                     setContactAccountValue(contacts);
                 }
                 break;
@@ -271,7 +264,7 @@ const Deploy = () => {
                     {
                         contactTabValue == "Contacts" ? (
                             contactValue && contactValue.length > 0 ? (
-                                contactValue.map((item: AddressBook, index) => (
+                                contactValue.map((item: Address, index) => (
                                     <div className="contact-list-box" key={index}>
                                         <div className="contact-list-item" key={address} onClick={() => {
                                             setPreAddress(item.address)
@@ -289,7 +282,7 @@ const Deploy = () => {
                     {
                         contactTabValue == "Accounts" ? (
                             contactAccountValue && contactAccountValue.length > 0 ? (
-                                contactAccountValue.map((item: AddressBook, index) => (
+                                contactAccountValue.map((item: AddressListDisplay, index) => (
                                     <div className="contact-list-box mb20" key={index}>
                                         <strong>{item.name}</strong>
                                         {

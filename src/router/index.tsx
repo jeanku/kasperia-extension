@@ -64,6 +64,16 @@ import Donation from "@/pages/setting/more/donation";
 import ChangePwd from "@/pages/setting/more/changepwd";
 import AutoLock from "@/pages/setting/more/autoLock";
 
+import {
+  Unlock as NotificationUnlock,
+  SendKaspa as NotificationSendKaspa,
+  Connect,
+  EvokeBoost,
+  History,
+  SwitchNetwork,
+  Sign as NotificatioSign,
+} from "@/pages/notification";
+
 const AppRouter: React.FC = () => {
   return (
     <HashRouter>
@@ -118,8 +128,18 @@ const AppRouter: React.FC = () => {
             <Route path="/setting/donation" element={<Donation />} />
             <Route path="/setting/changepwd" element={<ChangePwd />} />
             <Route path="/setting/autolock" element={<AutoLock />} />
-
+          
           </Route>{/**/}
+
+          <Route path="/evokeBoost" element={<EvokeBoost />} >
+            <Route path="notification/unlock" element={  <NotificationUnlock /> } />
+            <Route path="notification/sendkaspa" element={<NotificationSendKaspa />} />
+            <Route path="notification/connect" element={<Connect />} />
+            <Route path="notification/history" element={<History />} />
+            <Route path="notification/switchNetwork" element={<SwitchNetwork />} />
+            <Route path="notification/sign" element={<NotificatioSign />} />
+          </Route>
+
           <Route path="*" element={<Nopage />} />
         </Routes>
     </HashRouter>

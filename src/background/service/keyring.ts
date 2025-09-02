@@ -2,10 +2,12 @@ import { decrypt, encrypt } from '@metamask/browser-passworder';
 import { KeyRingAccess, KeyRingAccount, KeyRingState} from '@/model/account';
 import { Wallet, Account } from '@/model/wallet';
 import { Storage } from '@/utils/storage';
+import { PublicKey } from '@/utils/wallet/pubkey';
 import { LockTime, AccountType } from '@/types/enum';
 import { hashString } from '@/utils/util';
-import { Preference } from '@/background/service/preference';
 import { ObservableStore } from '@metamask/obs-store';
+import { preferenceService } from './index';
+
 
 export class KeyRing {
 
@@ -47,7 +49,7 @@ export class KeyRing {
     async unlock(password: string) {
         try {
             if (await this.isLocked()) {
-                let locktime = await Preference.getLockTime()
+                let locktime = await preferenceService.getLockTime()
                 if (this.store.getState().password !== "" && this.store.getState().password === password) {
                     this.locked = false
                     this.expire = new Date().getTime() + locktime
@@ -124,8 +126,10 @@ export class KeyRing {
         }
     }
 
-    async getActiveAccount() {
+    // getActiveAccountDisplay return baseic account info
+    async getActiveAccountDisplay() {
         let account = this.store.getState().account.find(account => account.active == true)!
+        let network = await preferenceService.getNetwork()
         return {
             id: account.id,
             name: account.name,
@@ -133,9 +137,16 @@ export class KeyRing {
             active: account.active,
             type: account.type,
             accountName: account.accountName,
-            address: "",
+            address: new PublicKey(account.pubKey).toAddress(network.networkId).toString(),
             balance: "0",
         }
+    }
+
+    // getActiveAccountAndSyncPreference return baseic account info
+    async getActiveAccountAndSyncPreference() {
+        let accountDisplay = await this.getActiveAccountDisplay()
+        preferenceService.setCurrentAccount(accountDisplay)
+        return accountDisplay
     }
 
     async getWalletList() {
@@ -246,7 +257,7 @@ export class KeyRing {
 
     async clear(): Promise<void> {
         this.store.updateState({password: "", account: []})
-        Preference.store = undefined
+        preferenceService.store = undefined
         await Storage.clearData();
     }
 
@@ -270,25 +281,34 @@ export class KeyRing {
         await this.persistToStorage()
     }
 
+    // switch account with drive index
     async switchDriveAccount(id: string, index: number) {
         let accounts = this.store.getState().account
         let wallet = accounts.find(r => {
             return r.id === id
         })
+
         if (!wallet) {
             throw Error("Wallet not find")
         }
-        let account = wallet.drive!.find(r => {
-            return r.index == index
+
+        this.store.getState().account.map(account => {
+            account.active = account.id === id;
         })
-        if (!account) {
-            throw Error("Account index not find")
+
+        if (wallet.drive && wallet.drive.length > 0) {
+            let account = wallet.drive!.find(r => {
+                return r.index == index
+            })
+            if (!account) {
+                throw Error("Account index not find")
+            }
+            wallet.path = index
+            wallet.pubKey = account.pubKey
+            wallet.priKey = account.priKey
+            wallet.accountName = account.name
         }
-        wallet.path = index
-        wallet.pubKey = account.pubKey
-        wallet.priKey = account.priKey
-        wallet.accountName = account.name
-        console.log("wallet", wallet)
+        preferenceService.resetCurrentAccount()
         await this.persistToStorage()
     }
 
@@ -353,23 +373,33 @@ export class KeyRing {
         await this.persistToStorage()
     }
 
-    async getAccountBook() {
-        return this.store.getState().account.map(({ id, name, pubKey, active, mnemonic, type, accountName, drive }) => ({
-            name,
+    async getAccountListDisplay() {
+        let network = await preferenceService.getNetwork()
+        return this.store.getState().account.map(({id, name, pubKey, type, accountName, drive, active }) => ({
+            id, name,
             drive: type == AccountType.Mnemonic ? drive?.map((item) => ({
+                index: item.index,
                 name: item.name,
-                pubKey: item.pubKey
-            })) : [
-                {
-                    name: accountName,
-                    pubKey
-                }
-            ]
+                address:  new PublicKey(item.pubKey).toAddress(network.networkId).toString(),
+                active: pubKey === item.pubKey
+            })) : [{
+                index: 0,
+                name: accountName,
+                address:  new PublicKey(pubKey).toAddress(network.networkId).toString(),
+                active: active
+            }]
         }));
     }
 
     async resetExpire(ttl: number) {
         this.expire = new Date().getTime() + ttl
+    }
+
+    // getActiveAddress returns selected account's address
+    async getActiveAddress() {
+        let account = this.store.getState().account.find(account => account.active == true)!
+        let network = await preferenceService.getNetwork()
+        return new PublicKey(account.pubKey).toAddress(network.networkId).toString()
     }
 }
 

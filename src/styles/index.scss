@@ -261,10 +261,14 @@ em {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        gap: 20px;
-        padding-bottom: 40px;
+        gap: 15px;
+        padding-top: 10px;
+        padding-bottom: 30px;
         .adm-button-primary {
             margin-bottom: 0;
+        }
+        .fs16 {
+            font-size: 16px;
         }
     }
 }
@@ -1522,7 +1526,7 @@ em {
     }
 }
 .contant-txt {
-    margin-top: 32px;
+    margin-top: 22px;
     .txt-tit-1 {
         font-size: 20px;
         color: $text-color;
@@ -1532,7 +1536,7 @@ em {
         font-size: 16px;
         color: $text-color;
         margin-top: 12px;
-        margin-bottom: 12px;
+        margin-bottom: 6px;
     }
     .txt-tit-tip {
         font-size: 14px;
@@ -1564,33 +1568,86 @@ em {
         }
     }
 }
-.source-bpx {
+.source-box {
     display: flex;
     align-items: center;
     justify-content: space-between;
     background-color: $bg-color-input;
     border-radius: $border-radius;
     padding: 14px 15px;
+    margin-bottom: 12px;
     .logo-img {
         display: inline-block;
         width: 45px;
         height: 45px;
+        border-radius: $border-radius;
         margin-right: 16px;
     }
     .source-txt {
         flex: 2;
         strong {
-            font-size: 16px;
+            display: block;
+            margin-bottom: 7px;
+            font-size: 15px;
             font-weight: bold;
             color: $text-color;
         }
         p {
-            margin-top: 7px;
             font-size: 14px;
             color: $text-color-desc;
         }
     }
+}
 
+.sign-history-list {
+    .sign-history-item {
+        margin-top: 12px;
+        .history-head {
+            padding: 10px 16px;
+            box-sizing: border-box;
+            background-color: $bg-color-f26;
+            border-radius: $border-radius;
+            color: $text-color-desc;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .history-body {
+            margin-top:22px;
+            margin-bottom: 22px;
+            display: none;
+            strong {
+                display: block;
+                margin-bottom: 12px;
+                color: $text-color;
+                font-size: 16px;
+            }
+            p {
+                font-size: 14px;
+                color: $text-color-desc;
+                word-break: break-all;
+            }
+        }
+        &:hover,
+        &.active  {
+            .history-head {
+                color: $text-color-secondary;
+            }
+        }
+        &.active {
+            .history-head > div { 
+                position: relative;
+                top: 10px;
+                left: -5px;
+                transform: rotate(90deg);
+                transform-origin:50% 50% ;
+            }
+            .history-body {
+                display: block;
+            }
+        }
+    }
 }
 .page-more,
 .page-setting,
@@ -1889,6 +1946,59 @@ em {
     white-space: nowrap;
     //overflow: hidden;
     width: 1em;
+}
+
+.source-top {
+    position: relative;
+    width: 70%;
+    margin: 0 auto;
+    .source-box {
+        margin-bottom: 0;
+    }
+    .tip-test-tn {
+        top: 50%;
+        transform: translateY(-60%);
+    }
+
+}
+.title-tip {
+    font-size: 17px;
+    text-align: center;
+
+}
+.title-tip-2 {
+    font-size: 14px;
+    text-align: center;
+    color: $text-color;
+}
+.title-desc {
+    font-size: 14px;
+    text-align: center;
+    color: $border-color-666;
+    line-height: 22px;
+}
+.sign-info {
+    margin-top: 20px;
+    border-radius: 6px;
+    background-color: $bg-color-input;
+    padding: 12px 20px;
+    box-sizing: border-box;
+    text-align: center;
+    word-break: break-all;
+    font-size: 16px;
+}
+.switch-network {
+    margin-top: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    span {
+        display: block;
+        font-size: 14px;
+        background-color: $bg-color-input;
+        padding: 10px 16px;
+        border-radius: 6px;
+    }
 }
 
 @keyframes ellipsis {

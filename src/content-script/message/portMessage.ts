@@ -18,38 +18,39 @@ class PortMessage extends Message {
   connect = (name?: string) => {
     this.port = browserRuntimeConnect(undefined, name ? { name } : undefined);
     this.port.onMessage.addListener((r: any) => {
-      console.log("r", r)
-      // if (_type_ === `${this._EVENT_PRE}message`) {
-      //   this.emit('message', data);
+      console.log("port message callback:", r.data)
+      // if (r._type_ === `${this._EVENT_PRE}message`) {
+      //   this.emit('message', r);
       //   return;
       // }
       //
-      // if (_type_ === `${this._EVENT_PRE}response`) {
-      //   this.onResponse(data);
-      // }
+      if (r._type_ === `${this._EVENT_PRE}response`) {
+        this.onResponse(r.data);
+      }
     });
 
     return this;
   };
 
+  //
   listen = (listenCallback: any) => {
     if (!this.port) return;
     this.listenCallback = listenCallback;
-    this.port.onMessage.addListener((r: any) => {
-      console.log("r", r)
-      // if (_type_ === `${this._EVENT_PRE}request`) {
-      //   this.onRequest(data);
-      // }
+    this.port.onMessage.addListener((message: any) => {
+      const { _type_, data } = message || {};
+      console.log("port.onMessage")
+      if (_type_ === `${this._EVENT_PRE}request`) {
+        this.onRequest(data);
+      }
     });
-
     return this;
   };
 
-  send = (data: any) => {
-    console.log("data", data)
+  send = (type: string, data: any) => {
+    console.log("port message send", type, data)
     if (!this.port) return;
     try {
-      // this.port.postMessage({ _type_: `${this._EVENT_PRE}${type}`, data });
+      this.port.postMessage({ _type_: `${this._EVENT_PRE}${type}`, data });
     } catch (e) {
       // DO NOTHING BUT CATCH THIS ERROR
     }

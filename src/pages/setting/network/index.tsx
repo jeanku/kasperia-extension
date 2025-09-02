@@ -10,6 +10,7 @@ import { setRpcClient } from "@/store/rpcSlice";
 
 import { dispatchRefreshNetwork } from '@/dispatch/preference'
 import { dispatchRpcConnect } from '@/dispatch/rpcclient'
+import { Preference } from '@/chrome/preference'
 import { Network } from '@/model/account';
 import { Kiwi } from "@kasplex/kiwi-web";
 import store from '@/store';
@@ -22,6 +23,8 @@ const NetworkIndex: React.FC = () => {
     const currentNetworkId = Kiwi.network
 
     useEffect(() => {
+        console.log("NetworkIndex preference1", preference.networkConfig)
+        console.log("NetworkIndex preference2", preference.network)
         if (preference?.networkConfig) {
             setNetworkConfig(Object.values(preference?.networkConfig))
         }
