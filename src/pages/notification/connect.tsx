@@ -43,6 +43,8 @@ const Connect =  () => {
             item.drive!.map(r => {
                 if(r.active) {
                     setDefaultAddress(r.address)
+                    setAccountIndex(r.index);
+                    setAccountId(item.id);
                 }
             })
         })

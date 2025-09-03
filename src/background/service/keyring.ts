@@ -288,6 +288,10 @@ export class KeyRing {
             return r.id === id
         })
 
+        console.log("switchDriveAccount", id, index)
+
+        console.log("accounts", accounts)
+
         if (!wallet) {
             throw Error("Wallet not find")
         }

@@ -30,6 +30,8 @@ export class Account {
             await Rpc.setInstance(network.networkId, network.url).connect()
         }
         const address = await keyringService.getActiveAddress()
+        console.log("address", address)
+        console.log("info:", await Rpc.getInstance().client.getInfo())
         return Rpc.getInstance().client.getBalanceByAddress({address: address!})
     }
 }
