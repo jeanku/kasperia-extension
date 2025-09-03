@@ -197,6 +197,15 @@ export class KasperiaProvider extends EventEmitter {
         });
     };
 
+    disconnect = async (origin: string) => {
+        return this._request({
+            method: 'disconnect',
+            params: {
+                origin,
+            }
+        });
+    };
+
     getVersion = async () => {
         return this._request({
             method: 'getVersion',

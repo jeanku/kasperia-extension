@@ -1,4 +1,4 @@
-import { notificationService, preferenceService, keyringService, accountService } from '@/background/service';
+import { notificationService, preferenceService, keyringService, accountService, permissionService } from '@/background/service';
 import { KaspaApi, Kiwi } from '@kasplex/kiwi-web'
 
 interface RequestProps {
@@ -71,8 +71,12 @@ class ProviderController {
         )
     }
 
-    getVersion = async () => {
-        return "1.0.21"
+    disconnect = async (request: RequestProps) => {
+        let origin = request.session.origin
+        if (origin) {
+            permissionService.removeConnectedSite(origin)
+        }
+        return
     };
 }
 
