@@ -148,3 +148,15 @@ export const isEmptyObject = (obj: any) => {
     if (!obj) return true
     return Object.keys(obj).length === 0 && obj.constructor === Object;
 }
+
+export function debounce<F extends (...args: any[]) => any>(func: F, delay: number): (...args: Parameters<F>) => void {
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    return function (this: ThisParameterType<F>, ...args: Parameters<F>) {
+        if (timeoutId) {
+            clearTimeout(timeoutId);
+        }
+        timeoutId = setTimeout(() => {
+            func.apply(this, args);
+        }, delay);
+    };
+}
