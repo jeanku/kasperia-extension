@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react"
 import { Notification } from '@/chrome/notification'
 import { Keyring } from '@/chrome/keyring'
 import { Kiwi, Wasm, initialize } from '@kasplex/kiwi-web'
-import { Wallet } from '@/model/wallet'
+import { WalletPrivateKey } from '@/model/wallet'
 import { Network } from '@/model/account'
 import { Button } from 'antd-mobile'
 
@@ -43,7 +43,7 @@ const Sign = () => {
     }
 
     const sign = async () => {
-        let wallet: Wallet = await Keyring.getActiveWalletKeys()
+        let wallet: WalletPrivateKey = await Keyring.getActiveWalletPrivateKeyForKaspa()
         let signstr = Wasm.signMessage({message: data?.text || "", privateKey: wallet.priKey})
         Notification.resolveApproval(signstr)
     }
@@ -54,8 +54,6 @@ const Sign = () => {
 
     const changeNetwork = async (index: number) => {
         const selectedNetwork = networkConfig[index];
-        console.log('selectedNetwork', selectedNetwork)
-        console.log('currentNetworkId', currentNetworkId);
         if (selectedNetwork.networkId === currentNetworkId) return;
         setCurrentNetworkId(selectedNetwork.networkId)
     };

@@ -5,9 +5,9 @@ import { SvgIcon } from '@/components/Icon/index'
 import { useNavigate } from "react-router-dom";
 import { useNotice } from '@/components/NoticeBar/NoticeBar'
 import { formatBalance, formatAddress, checkAddressPrefix, toTokenUnits } from '@/utils/util'
-import { Kiwi, Wallet, Wasm } from '@kasplex/kiwi-web'
+import { Kiwi, Wallet } from '@kasplex/kiwi-web'
 import { Big } from 'big.js';
-import { AddressListDisplay } from '@/model/account'
+import { AccountsSubListDisplay } from '@/model/account'
 import { TokenList } from '@/model/krc20'
 import { Address } from '@/model/contact'
 import NumberInput from '@/components/NumberInput';
@@ -36,7 +36,7 @@ const Send = () => {
     const [contactTabValue, setContactTabValue] = useState<string>("")
 
     const [contactValue, setContactValue] = useState<Address[] | null>(null)
-    const [contactAccountValue, setContactAccountValue] = useState<AddressListDisplay[] | null>(null)
+    const [accountsValue, setAccountsValue] = useState<AccountsSubListDisplay[] | null>(null)
     const [kasTips, setKasTips] = useState<string>('')
 
     const submitDisabled = useMemo(() => {
@@ -97,9 +97,9 @@ const Send = () => {
                 }
                 break
             case "Accounts":
-                if (!contactAccountValue) {
-                    let contacts: AddressListDisplay[] = await Keyring.getAccountListDisplay()
-                    setContactAccountValue(contacts);
+                if (!accountsValue) {
+                    let accounts = await Keyring.getAccountsSubListDisplay()
+                    setAccountsValue(accounts);
                 }
                 break;
             default:
@@ -224,8 +224,8 @@ const Send = () => {
 
                     {
                         contactTabValue == "Accounts" ? (
-                            contactAccountValue && contactAccountValue.length > 0 ? (
-                                contactAccountValue.map((item: AddressListDisplay, index) => (
+                            accountsValue && accountsValue.length > 0 ? (
+                                accountsValue.map((item, index) => (
                                     <div className="contact-list-box mb20" key={index}>
                                         <strong>{item.name}</strong>
                                         {

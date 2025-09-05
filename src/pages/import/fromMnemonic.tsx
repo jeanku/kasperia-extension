@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
 import { Radio, Checkbox, Button, Input } from 'antd-mobile'
 import HeadNav from '@/components/HeadNav'
-import { Wallet as WalletModel } from '@/model/wallet'
-import { AccountType } from '@/types/enum'
 import { produce } from "immer";
 import { useNotice } from '@/components/NoticeBar/NoticeBar'
 import { useClipboard } from '@/components/useClipboard'
 import { Keyring } from '@/chrome/keyring'
-import { dispatchPreferenceAddNewAccount, dispatchPreference } from "@/dispatch/preference"
+import { dispatchRefreshPreference } from "@/dispatch/preference"
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { Mnemonic, Wallet, Kiwi } from '@kasplex/kiwi-web'
@@ -69,34 +67,12 @@ const FromMnemonic = () => {
 
     const createAccount = async () => {
         try {
-            let mnemonic = mnemonicValue.join(" ")
-            let wallet = Wallet.fromMnemonic(mnemonic, pwdValue)
-            let privateKey = wallet.toPrivateKey().toString()
-            let _wallet: WalletModel = {
-                id: "",
-                mnemonic: mnemonic,
-                name: "",
-                priKey: privateKey.toString(),
-                pubKey: wallet.toPublicKey().toString(),
-                index: 0,
-                active: true,
-                type: AccountType.Mnemonic,
-                passphrase: pwdValue,
-                accountName: ""
-            }
             setBtnLoading(true)
-            await Keyring.addWallet(_wallet)
-            if (isNew) {
-                dispatchPreference().then(r => {
-                    setBtnLoading(false)
-                    navigate('/home')
-                })
-            } else {
-                dispatchPreferenceAddNewAccount().then(r => {
-                    setBtnLoading(false)
-                    navigate('/home')
-                })
-            }
+            let mnemonic = mnemonicValue.join(" ")
+            let account = await Keyring.addAccountFromMnemonic(mnemonic, pwdValue)
+            dispatchRefreshPreference(account).then(r => {
+                navigate('/home')
+            })
         } catch (error) {
             setBtnLoading(false)
             noticeError(error);

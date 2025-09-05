@@ -5,13 +5,12 @@ import { useNavigate } from "react-router-dom";
 import { useNotice } from '@/components/NoticeBar/NoticeBar'
 import { formatAddress, formatBalance, stringToUint8Array, isEmptyObject } from '@/utils/util'
 import { Keyring } from '@/chrome/keyring'
-import { Wallet } from '@/model/wallet'
+import { WalletPrivateKey } from '@/model/wallet'
 import { Tx, Wasm, Kiwi, Rpc, Wallet as KiwiWallet } from '@kasplex/kiwi-web'
 
 import { RootState } from '@/store';
 import { useSelector } from "react-redux";
 import { Notification } from '@/chrome/notification';
-import BigNumber from 'bignumber.js';
 
 import RoundLine from '@/assets/icons/round-line.svg'
 import '@/styles/transaction.scss'
@@ -58,9 +57,9 @@ const SendKaspa = () => {
     const rpcClient = useSelector((state: RootState) => state.rpc.client);
     const createTx = async (param: SendParams) => {
         try {
-            let wallet: Wallet = await Keyring.getActiveWalletKeys()
+            let wallet: WalletPrivateKey = await Keyring.getActiveWalletPrivateKeyForKaspa()
             const outputs = Tx.Output.createOutputs(param.toAddress, BigInt(param.amount))
-            const fromAddress = new Wasm.PublicKey(wallet.pubKey).toAddress(Kiwi.network).toString();
+            const fromAddress = new Wasm.PrivateKey(wallet.priKey).toAddress(Kiwi.network).toString();
             const { entries } = await Rpc.getInstance().client.getUtxosByAddresses([fromAddress])
             let data = {
                 changeAddress: fromAddress,

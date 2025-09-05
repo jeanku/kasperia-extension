@@ -7,7 +7,7 @@ import { Oplist, TokenList } from '@/model/krc20';
 import { Transaction } from '@/model/kaspa';
 import CountUp from 'react-countup';
 import { SvgIcon } from '@/components/Icon/index'
-import { formatAddress, formatBalance, getDecimals, formatDate, formatHash } from "@/utils/util"
+import { formatAddress, formatETHAddress, formatBalance, getDecimals, formatDate, formatHash } from "@/utils/util"
 import { Preference } from "@/chrome/preference"
 import { RootState } from '@/store';
 import { KasplexApi, KaspaApi, Kiwi, Modules } from '@kasplex/kiwi-web'
@@ -30,6 +30,7 @@ const Home = () => {
     const navigate = useNavigate();
 
     const [address, setAddress] = useState<string>("");
+    const [ethAddress, setEthAddress] = useState<string>("");
     const [balance, setBalance] = useState("0");
     const [listLoadingType, setListLoadingType] = useState<LoadingType>(1);
 
@@ -243,6 +244,8 @@ const Home = () => {
         console.log("preference", preference)
         if (!preference.currentAccount) return;
         setAddress(preference.currentAccount!.address)
+        setEthAddress(preference.currentAccount!.ethAddress)
+        console.log("eth address", preference.currentAccount!.ethAddress)
         setBalance(preference.currentAccount!.balance)
 
         setKrc20TokenList({ time: 0, list: preference!.krc20TokenList || [] })
@@ -313,8 +316,9 @@ const Home = () => {
                     <section className="continer-box">
                         <UserOutline fontSize={24} />
                         <div className="account-info">
-                            <strong>{preference?.currentAccount?.accountName}</strong>
+                            <strong>{preference?.currentAccount?.subName}</strong>
                             <p className="cursor-pointer" onClick={() => handleCopy(address)} ><em className="one-line">{formatAddress(address, 6)}</em><SvgIcon iconName="IconCopy" color="#7F7F7F" offsetStyle={{ marginLeft: '5px' }} /></p>
+                            <p className="cursor-pointer" onClick={() => handleCopy(ethAddress)} ><em className="one-line">{formatETHAddress(ethAddress, 6)}</em><SvgIcon iconName="IconCopy" color="#7F7F7F" offsetStyle={{ marginLeft: '5px' }} /></p>
                         </div>
                         <SvgIcon className="cursor-pointer" iconName="arrowRight" onClick={() => navigate('/account/switch',
                             { state: { id: preference.currentAccount?.id } })} />

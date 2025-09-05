@@ -29,7 +29,7 @@ export class Account {
             Kiwi.setNetwork(network.networkId)
             await Rpc.setInstance(network.networkId, network.url).connect()
         }
-        const address = await keyringService.getActiveAddress()
+        const address = await keyringService._getActiveAddress()
         console.log("address", address)
         console.log("info:", await Rpc.getInstance().client.getInfo())
         return Rpc.getInstance().client.getBalanceByAddress({address: address!})

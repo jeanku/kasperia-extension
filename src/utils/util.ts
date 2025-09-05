@@ -15,12 +15,19 @@ export const formatHash = (hash: string, startLength: number = 6, endLength: num
 }
 
 export const formatAddress = (address: string, skip: number = 6): string => {
-    if (address.length < 30) {
+    if (!address || address.length < 30) {
         return ""
     }
     let resp = address.split(":")
     if (resp.length !== 2 && resp[1].length <= 12) return address
     return `${resp[0]}:${resp[1].slice(0, skip)}...${resp[1].slice(-skip)}`
+}
+
+export const formatETHAddress = (address: string, skip: number = 6): string => {
+    if (!address || address.length < 30) {
+        return ""
+    }
+    return `${address.slice(0, skip)}...${address.slice(-skip)}`
 }
 
 export const formatBalance = (amount: string, dec: any): string => {

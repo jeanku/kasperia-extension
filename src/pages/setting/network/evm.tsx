@@ -10,12 +10,13 @@ import { setRpcClient } from "@/store/rpcSlice";
 
 import { dispatchRefreshNetwork } from '@/dispatch/preference'
 import { dispatchRpcConnect } from '@/dispatch/rpcclient'
+import { Preference } from '@/chrome/preference'
 import { Network } from '@/model/account';
 import { Kiwi } from "@kasplex/kiwi-web";
 import store from '@/store';
 import { Dispatch } from 'redux';
 
-const NetworkIndex: React.FC = () => {
+const EMVNetwork: React.FC = () => {
     const navigate = useNavigate()
     const [networkConfig, setNetworkConfig] = useState<Network[]>([])
     const { preference} = useSelector((state: RootState) => state.preference);
@@ -70,4 +71,4 @@ const NetworkIndex: React.FC = () => {
         </article>
     )
 }
-export default NetworkIndex
+export default EMVNetwork

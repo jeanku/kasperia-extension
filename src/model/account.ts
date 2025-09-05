@@ -1,14 +1,7 @@
 import {Oplist, TokenList } from '@/model/krc20'
 import { Transaction } from '@/model/kaspa'
-import { Wallet, AccountDisplay } from '@/model/wallet'
-
-// export type TokenList = {
-//     balance: string,
-//     dec: string
-//     locked: string
-//     opScoreMod: string
-//     tick: string
-// }
+import { Account, AccountDisplay } from '@/model/wallet'
+import { AccountType } from '@/types/enum';
 
 export type KeyRingAccess = {
     isBooted: boolean,
@@ -17,20 +10,14 @@ export type KeyRingAccess = {
 
 export type KeyRingAccount = {
     password: string,
-    account: Wallet[],
+    id: string,
+    account: Map<string, Account>,
 }
 
 export type KeyRingState = {
     booted: string,
     vault: string
 }
-
-// export type Krc20List = {
-//     tick: string,
-//     name: string,
-//     balance: string,
-//     dec: string
-// }
 
 export type AccountBalance = {
     address: string,
@@ -62,8 +49,16 @@ export type PreferenceState = {
     kasPrice?: KasPrice,
 }
 
-export type AddressListDisplay = {
+export type AccountSubListDisplay = {
+    id: string,
+    type: AccountType,
+    path: number,
+    drive: Array<{name: string, address: string, active: boolean, path: number}>,
+}
+
+
+export type AccountsSubListDisplay = {
     id: string,
     name: string,
-    drive: Array<{name: string, address: string, active: boolean, index: number}>,
+    drive: Array<{name: string, address: string, active: boolean, path: number}>,
 }

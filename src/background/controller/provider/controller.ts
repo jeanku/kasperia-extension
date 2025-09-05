@@ -15,18 +15,16 @@ interface RequestProps {
 class ProviderController {
 
     getAccounts = async () => {
-        const address = await keyringService.getActiveAddress();
+        const address = await keyringService._getActiveAddress();
         return [address]
     };
 
     getNetwork = async () => {
         return await preferenceService.getNetwork()
     };
-
-
+    
     getPublicKey = async () => {
-        const account = await preferenceService.getCurrentAccount();
-        return account?.pubKey
+        return await keyringService.getActivePublicKey() || ""
     };
 
     getBalance = async () => {

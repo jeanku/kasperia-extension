@@ -18,7 +18,7 @@ import { Dispatch } from 'redux';
 import { useSelector } from "react-redux";
 import { RootState } from '@/store';
 import { useNotice } from '@/components/NoticeBar/NoticeBar'
-import { Wasm, Kiwi } from '@kasplex/kiwi-web'
+import { Wasm } from '@kasplex/kiwi-web'
 
 import RemoveInset from '@/assets/images/remove-img.png'
 
@@ -40,11 +40,7 @@ const Index = () => {
     const [accountKasBalance, setAccountKasBalance] = useState<Record<string, string>>(preference?.accountsBalance || {})
     
     const fetchWalletList = async () => {
-        let accounts: AccountDisplay[] = await Keyring.getWalletList();
-        accounts.map(account => {
-            account.address = new Wasm.PublicKey(account.pubKey).toAddress(Kiwi.network).toString()
-        })
-        setAccountListData(accounts)
+        setAccountListData(await Keyring.getAccountList())
     };
 
     useMemo(() => {
@@ -113,11 +109,10 @@ const Index = () => {
     const removeConfirm = async () => {
         setVisibleMask(false)
         if (accountListData.length === 1) {
-            noticeError("current wallet can't deleted")
-            return
+            return noticeError("current wallet can't deleted")
         }
         let account = accountListData[dealItemIndex]
-        await Keyring.removeWallet(account.id)
+        await Keyring.removeAccount(account.id)
         let accounts = accountListData.filter(r => {
             return r.id !== account.id
         })

@@ -1,13 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Radio, Space, Checkbox, Button, Input } from 'antd-mobile'
 import { useNotice } from '@/components/NoticeBar/NoticeBar'
-import { Wallet as WalletModel } from '@/model/wallet'
 import { Keyring } from '@/chrome/keyring'
-import { AccountType } from '@/types/enum'
 import { SvgIcon } from '@/components/Icon/index'
 import HeadNav from '@/components/HeadNav'
 import { useClipboard } from '@/components/useClipboard'
-import { dispatchPreferenceAddNewAccount, dispatchPreference } from "@/dispatch/preference"
+import { dispatchRefreshPreference } from "@/dispatch/preference"
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { Mnemonic as KiwiMnemonic, Wallet, Kiwi, Wasm } from '@kasplex/kiwi-web'
@@ -95,33 +93,11 @@ const RandomMnemonic = () => {
     const createAccount = async () => {
         try {
             let mnemonic = (mnemonicLength === 12 ? mnemonic12Value : mnemonic24Value).join(" ")
-            let wallet = Wallet.fromMnemonic(mnemonic, pwdValue)
-            let privateKey = wallet.toPrivateKey().toString()
-            let _wallet: WalletModel = {
-                id: "",
-                mnemonic: mnemonic,
-                name: "",
-                priKey: privateKey.toString(),
-                pubKey: wallet.toPublicKey().toString(),
-                index: 0,
-                active: true,
-                passphrase: pwdValue,
-                type: AccountType.Mnemonic,
-                accountName: ""
-            }
             setBtnLoading(true)
-            await Keyring.addWallet(_wallet)
-            if (isNew) {
-                dispatchPreference().then(r => {
-                    setBtnLoading(false)
-                    navigate('/home')
-                })
-            } else {
-                dispatchPreferenceAddNewAccount().then(r => {
-                    setBtnLoading(false)
-                    navigate('/home')
-                })
-            }
+            let account = await Keyring.addAccountFromMnemonic(mnemonic, pwdValue)
+            dispatchRefreshPreference(account).then(r => {
+                navigate('/home')
+            })
         } catch (error) {
             setBtnLoading(false)
             noticeError(error);

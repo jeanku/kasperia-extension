@@ -1,11 +1,11 @@
-import React, { useState, useMemo, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import HeadNav from '@/components/HeadNav'
 import { ProgressBar, Button, Popup } from 'antd-mobile'
 import { CheckCircleOutline } from 'antd-mobile-icons'
 import { useNavigate, useLocation } from "react-router-dom";
 import { SvgIcon } from '@/components/Icon'
 import { Keyring } from '@/chrome/keyring'
-import { Wallet } from '@/model/wallet'
+import { WalletPrivateKey } from '@/model/wallet'
 import { formatAddress, formatHash } from '@/utils/util'
 import { KRC20, Utils, Enum, Wasm, Kiwi } from '@kasplex/kiwi-web'
 import { useSelector } from "react-redux";
@@ -40,7 +40,7 @@ const MintResult = () => {
     useEffect(() => {
         setAddress(preference!.currentAccount!.address)
         const submit = async () => {
-            let wallet: Wallet = await Keyring.getActiveWalletKeys()
+            let wallet: WalletPrivateKey = await Keyring.getActiveWalletPrivateKeyForKaspa()
             const krc20data = Utils.createKrc20Data({
                 p: "krc-20",
                 op: Enum.OP.Mint,

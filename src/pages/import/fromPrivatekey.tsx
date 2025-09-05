@@ -2,14 +2,14 @@ import React from "react"
 import { useNavigate } from "react-router-dom";
 import HeadNav from '@/components/HeadNav'
 import { Button, Input } from 'antd-mobile'
-import { Wallet as WalletModel } from '@/model/wallet'
+import { AccountDisplay } from '@/model/wallet'
 import { Keyring } from '@/chrome/keyring'
 import { Kiwi, Wallet } from '@kasplex/kiwi-web'
 import { AccountType } from '@/types/enum'
 import { SvgIcon } from '@/components/Icon/index'
 import { useNotice } from '@/components/NoticeBar/NoticeBar'
 import { useClipboard } from '@/components/useClipboard'
-import { dispatchPreferenceAddNewAccount } from "@/dispatch/preference"
+import { dispatchRefreshPreference } from "@/dispatch/preference"
 
 const FromPrivatekey = () => {
     const { noticeError } = useNotice();
@@ -40,27 +40,13 @@ const FromPrivatekey = () => {
 
     const createAccount = async () => {
         try {
-            let wallet = Wallet.fromPrivateKey(privateKey)
-            let _wallet: WalletModel = {
-                id: "",
-                mnemonic: "",
-                name: "",
-                priKey: wallet.toPrivateKey().toString(),
-                pubKey: wallet.toPublicKey().toString(),
-                index: 0,
-                active: true,
-                type: AccountType.PrivateKey,
-                accountName: ""
-            }
             setBtnLoading(true)
-            await Keyring.addWallet(_wallet)
-            dispatchPreferenceAddNewAccount().then(r => {
-                setBtnLoading(false)
+            let account = await Keyring.addAccountFromPrivateKey(privateKey)
+            dispatchRefreshPreference(account).then(r => {
                 navigate('/home')
             })
         } catch (error) {
-            let content = error instanceof Error ? error.message : 'system error.';
-            noticeError(content);
+            noticeError(error);
             setBtnLoading(false)
         }
     }

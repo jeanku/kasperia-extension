@@ -1,35 +1,42 @@
 import { AccountType } from '@/types/enum';
 
-export type Account = {
+export type SubAccount = {
     name: string,
-    index: number,
-    pubKey: string,
     priKey: string,
+    path: number,
 }
 
-export type Wallet = {
+export type Account = {
     id: string,
     name: string,
+    subName:string,
     index: number,
-    active: boolean,
-    pubKey: string,
     priKey: string,
     mnemonic: string,
     type: AccountType,
-    accountName:string,
-    passphrase?: string,
-    path?:number,
-    drive?:  Account[],
+    passphrase: string,
+    path:number,
+    drive:  SubAccount[],
 }
 
 export type AccountDisplay = {
     id: string,
     name: string,
-    pubKey: string,
-    active: boolean,
-    accountName:string,
+    subName:string,
     type: AccountType,
-
+    active: boolean,
     address: string,
+    ethAddress: string,
     balance: string,
+}
+
+
+export type WalletPrivateKey = {
+    priKey: string,
+}
+
+export type MnemonicDisplay = {
+    mnemonic: string,
+    path: string,
+    passphrase: string,
 }

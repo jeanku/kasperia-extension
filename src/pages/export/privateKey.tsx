@@ -11,9 +11,9 @@ const PrivateKey = () => {
     const { state } = useLocation();
     const { handleCopy } = useClipboard();
     const navigate = useNavigate();
-    const [id] = useState<string>(state?.id);
-    const [index] = useState<number>(state?.index);
-    const [password] = useState<string>(state?.password);
+    const [id] = useState<string>(state!.id);
+    const [path] = useState<number>(state!.path);
+    const [password] = useState<string>(state!.password);
 
     const { noticeError } = useNotice();
 
@@ -22,7 +22,7 @@ const PrivateKey = () => {
     useEffect(() => {
         try {
             if (!id) return
-            Keyring.getPrivateKey(password, id, index || 0).then((resp: string) => {
+            Keyring.getPrivateKey(password, id, path).then((resp: string) => {
                 setPrivateKey(resp)
             })
         } catch (error) {

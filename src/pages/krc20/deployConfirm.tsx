@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import HeadNav from '../../components/HeadNav'
-import { Wallet } from '@/model/wallet'
+import { WalletPrivateKey } from '@/model/wallet'
 import { Keyring } from '@/chrome/keyring'
 import { KRC20, Wasm } from '@kasplex/kiwi-web'
 import { useNavigate, useLocation } from "react-router-dom";
@@ -16,7 +16,7 @@ const DeployConfirm = () => {
 
     const signPay = async () => {
         try {
-            let wallet: Wallet = await Keyring.getActiveWalletKeys()
+            let wallet: WalletPrivateKey = await Keyring.getActiveWalletPrivateKeyForKaspa()
             let resp = await KRC20.deploy(new Wasm.PrivateKey(wallet.priKey), txData, 0n)
             navigate('/krc20/deployResult', {state: {txid: resp!}})
         } catch (error) {

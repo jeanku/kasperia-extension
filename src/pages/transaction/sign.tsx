@@ -6,7 +6,7 @@ import { useNotice } from '@/components/NoticeBar/NoticeBar'
 import { SubmitSendTx } from '@/model/transaction'
 import { formatAddress, formatBalance, stringToUint8Array } from '@/utils/util'
 import { Keyring } from '@/chrome/keyring'
-import { Wallet } from '@/model/wallet'
+import { WalletPrivateKey } from '@/model/wallet'
 import { KaspaEnum } from '@/types/enum'
 import { KRC20, Tx, Utils, Enum, Wasm, Kiwi, Rpc } from '@kasplex/kiwi-web'
 
@@ -31,9 +31,9 @@ const Sign = () => {
     const createTx = async () => {
         if (submitTx.token.name != KaspaEnum.KAS) return
         try {
-            let wallet: Wallet = await Keyring.getActiveWalletKeys()
+            let wallet: WalletPrivateKey = await Keyring.getActiveWalletPrivateKeyForKaspa()
             const outputs = Tx.Output.createOutputs(submitTx.address, BigInt(submitTx.amount))
-            const fromAddress = new Wasm.PublicKey(wallet.pubKey).toAddress(Kiwi.network).toString();
+            const fromAddress = new Wasm.PrivateKey(wallet.priKey).toAddress(Kiwi.network).toString();
             const { entries } = await Rpc.getInstance().client.getUtxosByAddresses([fromAddress])
             let data = {
                 changeAddress: fromAddress,
@@ -70,7 +70,7 @@ const Sign = () => {
                 setBtnLoading(false)
                 navigate('/tx/result', { state: { submitTx, txid: resp! }})
             } else {
-                let wallet: Wallet = await Keyring.getActiveWalletKeys()
+                let wallet: WalletPrivateKey = await Keyring.getActiveWalletPrivateKeyForKaspa()
                 let payload = submitTx.payload == "" ? undefined : stringToUint8Array(submitTx.payload)
                 let krc20data = Utils.createKrc20Data({
                     p: "krc-20",
@@ -83,7 +83,6 @@ const Sign = () => {
                 } else {
                     krc20data.tick = submitTx.token.tick
                 }
-                console.log("krc20data", krc20data)
                 let prikey = new Wasm.PrivateKey(wallet.priKey)
                 let resp = await KRC20.transfer(prikey, krc20data, 0n, payload)
                 navigate('/tx/result', { state: { submitTx, txid: resp!  }})

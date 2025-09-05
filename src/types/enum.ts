@@ -68,3 +68,9 @@ export enum AccountType {
     Mnemonic,
     PrivateKey,
 }
+
+
+export enum ChainPath {
+    KaspaPath = "m/44'/111111'/0'/0/",
+    KaspaL2Path = "m/44'/60'/0'/0/"
+}

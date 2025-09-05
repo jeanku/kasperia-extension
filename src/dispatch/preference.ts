@@ -1,4 +1,4 @@
-import { AccountDisplay, Wallet } from '@/model/wallet';
+import { AccountDisplay } from '@/model/wallet';
 import { Preference } from '@/chrome/preference';
 import { Keyring } from '@/chrome/keyring';
 import store from '@/store';
@@ -22,7 +22,7 @@ export async function dispatchPreference(refresh: boolean=false) {
 
 export async function dispatchRefreshPreference(wallet: AccountDisplay) {
     try {
-        await Preference.setCurrentAccount(wallet)
+        Preference.setCurrentAccount(wallet)
         const dispatch: Dispatch = store.dispatch;
         return dispatch(setCurrentAccount(wallet));
     } catch (error) {

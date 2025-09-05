@@ -16,7 +16,7 @@ const Index = () => {
     const [password, setPassword] = React.useState('')
     const [passwordVisible, setPasswordVisible] = useState(false);
     const [id] = useState<string>(state?.id);
-    const [index] = useState<number>(state?.index || 0);
+    const [path] = useState<number>(state?.path || 0);
     const [type] = useState<string>(state?.type);
 
     const [title] = useState(type === "mnemonic" ? "Seed Phrase" : "Privaye Key");
@@ -24,10 +24,9 @@ const Index = () => {
     const toResult = async () => {
         try {
             await Keyring.checkPassword(password)
-            navigate(`/export/${type}`, {state: {id, password, index}})
+            navigate(`/export/${type}`, {state: {id, password, path}})
         } catch (error) {
-            let content = error instanceof Error ? error.message : 'password error.';
-            noticeError(content);
+            noticeError(error);
         }
     }
 

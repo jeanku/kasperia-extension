@@ -6,50 +6,33 @@ import { SvgIcon } from '@/components/Icon/index'
 import { Keyring } from '@/chrome/keyring'
 import { AccountType } from '@/types/enum'
 import { formatAddress } from '@/utils/util'
-import { Wallet as WalletModel } from '@/model/wallet'
-import { Kiwi, Wasm } from '@kasplex/kiwi-web'
+import { AccountSubListDisplay } from '@/model/account'
 import { useNotice } from '@/components/NoticeBar/NoticeBar'
-import { dispatchPreferenceAddNewAccount } from '@/dispatch/preference'
-
+import { dispatchRefreshPreference } from '@/dispatch/preference'
 import RemoveInset from '@/assets/images/remove-img.png'
 import { Action } from 'antd-mobile/es/components/popover'
 import IconAdd from '@/assets/images/icon-add.png'
 
-const SwitchAccount = () => {
 
+const SwitchAccount = () => {
     const navigate = useNavigate();
     const { noticeSuccess, noticeError } = useNotice();
-
     const [visibleMask, setVisibleMask] = useState(false)
-    const [dealItemIndex, setDealItemIndex] = useState(0);
-    const [currentWallet, setCurrentWallet] = useState<WalletModel | null>(null)
+    const [account, setAccount] = useState<AccountSubListDisplay | null>(null)
+    const [dealSubAccount, setDealSubAccount] = useState<{ name: string, address:string, path: number} | undefined>(undefined);
     const [activeIndex, setActiveIndex] = useState<number>(0)
-    const [accountList, setAccountList] = useState<Array<{
-        name: string,
-        index: number,
-        address: string
-    }>>([])
 
     const  getAccountList = async () => {
-        let wallet: WalletModel = await Keyring.getActiveWalletWithAccounts()
-        let accounts = wallet.drive!.map(r => {
-            return {
-                name: r.name,
-                index: r.index,
-                address: new Wasm.PublicKey(r.pubKey).toAddress(Kiwi.network).toString()
-            }
-        })
-        setAccountList(accounts!)
-        setActiveIndex(wallet.path! || 0)
-        setCurrentWallet(wallet)
+        let account = await Keyring.getAccountSubAccountsDisplay()
+        setAccount(account)
+        setActiveIndex(account.path)
     }
 
-    const switchAccount = async (index: number) => {
-        if (currentWallet?.type == AccountType.PrivateKey) return
-        let selectAccount = accountList[index]
-        await Keyring.switchDriveAccount(currentWallet!.id, selectAccount.index)
-        setActiveIndex(selectAccount.index)
-        dispatchPreferenceAddNewAccount().then(_ => {
+    const switchAccount = async (path: number) => {
+        if (activeIndex == path || !account) return
+        let curAccount = await Keyring.switchSubAccount(account!.id, path)
+        setActiveIndex(path)
+        dispatchRefreshPreference(curAccount).then(_ => {
             navigate(-1)
         })
     }
@@ -58,17 +41,18 @@ const SwitchAccount = () => {
         getAccountList()
     }, []);
 
-    const popoverAction = (key: string, index: number) => {
+    const popoverAction = (key: string, path: number) => {
         switch (key) {
             case 'edit':
-                navigate('/account/switch/update', { state : { id: currentWallet?.id,  account: accountList[index] ,isActive: accountList[index].index == activeIndex }})
+                navigate('/account/switch/update', { state : { account: account, path: path }})
                 break;
             case 'privateKey':
-                navigate('/export', {state: { id: currentWallet?.id,  index: accountList[index].index, type: "privateKey"}})
+                navigate('/export', {state: { id: account?.id,  path: path, type: "privateKey"}})
                 break;
             case 'remove':
                 setVisibleMask(true)
-                setDealItemIndex(index)
+                let selected = account!.drive.find(d => d.path === path)
+                setDealSubAccount(selected)
                 break;
             default:
                 break;
@@ -81,27 +65,21 @@ const SwitchAccount = () => {
     ];
 
     const setAction = () => {
-        return currentWallet?.type === AccountType.Mnemonic ? actions : actions.filter(a => a.key !== 'remove');
+        return account?.type === AccountType.Mnemonic ? actions : actions.filter(a => a.key !== 'remove');
     };
 
     const removeConfirm = async () => {
         setVisibleMask(false)
-        if (accountList.length <= 1) {
+        if (account!.drive.length <= 1) {
             noticeError("account can't deleted")
             return
         }
-        let removeAccount = accountList[dealItemIndex]
-        await Keyring.removeAccount(currentWallet!.id, removeAccount.index)
-
-        let accounts = accountList.filter(r => {
-            return r.index !== removeAccount.index
-        })
-        setAccountList(accounts)
-        if (removeAccount.index == currentWallet!.path) {
-            let newIndex = accountList[0].index == removeAccount.index ? accountList[1].index : accountList[0].index
-            currentWallet!.path = newIndex
-            setActiveIndex(newIndex)
-            await dispatchPreferenceAddNewAccount()
+        let curAccount = await Keyring.removeSubAccount(account!.id, dealSubAccount!.path)
+        setAccount(curAccount)
+        setActiveIndex(curAccount.path)
+        if (account!.path == dealSubAccount!.path) {
+            let curAccount = await Keyring.getActiveAccountDisplay()
+            await dispatchRefreshPreference(curAccount)
         }
         noticeSuccess("wallet deleted successfully")
     }
@@ -112,13 +90,11 @@ const SwitchAccount = () => {
                 <div className="nav-left" onClick={() => navigate(-1)}>
                     <SvgIcon iconName="IconArrowLeft" offsetStyle={{position: 'relative', top: '-6px'}} color="#D8D8D8" />
                 </div>
-
-                <strong className="nav-bar-title">{currentWallet?.name}</strong>
                 <div className="nav-right">
                     {
-                        currentWallet?.type == AccountType.Mnemonic ? (
+                        account?.type == AccountType.Mnemonic ? (
                             <img className="icon-add norem" src={IconAdd} alt="Add"
-                                onClick={() => navigate("/account/switch/add", {state: {wallet: currentWallet}})}/>
+                                onClick={() => navigate("/account/switch/add", {state: {id: account.id}})}/>
                         ) : null
                     }
                 </div>
@@ -126,16 +102,16 @@ const SwitchAccount = () => {
             <article className="content-main list-box pb50">
                 <Radio.Group value={activeIndex}>
                     {
-                        accountList.map((item, index) => {
+                        account?.drive.map((item, index) => {
                             return (
-                                <div className="list-item-box" key={item.index}>
-                                    <Radio value={item.index} onClick={() => switchAccount(index)}>
+                                <div className="list-item-box" key={item.path}>
+                                    <Radio value={item.path} onClick={() => switchAccount(item.path)}>
                                         <div className="list-item-left">
                                             <strong>{item.name}</strong>
                                             <span>{formatAddress(item.address, 8)}</span>
                                             {
-                                                currentWallet?.type == AccountType.Mnemonic ? (
-                                                    <span>{`m/44'/111111'/0'/0/${item.index}`}</span>
+                                                account?.type == AccountType.Mnemonic ? (
+                                                    <span>{`m/44'/111111'/0'/0/${item.path}`}</span>
                                                 ) : null
                                             }
                                         </div>
@@ -145,7 +121,7 @@ const SwitchAccount = () => {
                                         actions={setAction()}
                                         mode='dark'
                                         trigger='click'
-                                        onAction={node => popoverAction(node.key as string, index)}
+                                        onAction={node => popoverAction(node.key as string, item.path)}
                                     >
                                         <MoreOutline fontSize={24}/>
                                     </Popover.Menu>
@@ -162,8 +138,8 @@ const SwitchAccount = () => {
                         <div className="remove-nox-content">
                             <img src={RemoveInset} alt="" />
                             <div className="remove-address">
-                                <strong>{accountList[dealItemIndex] ? accountList[dealItemIndex].name : ""}</strong>
-                                <p>{accountList[dealItemIndex] ? formatAddress(accountList[dealItemIndex].address) : ""}</p>
+                                <strong>{dealSubAccount ? dealSubAccount.name : ""}</strong>
+                                <p>{dealSubAccount ? formatAddress(dealSubAccount.address) : ""}</p>
                             </div>
                             <p className="remove-tip">Please pay attention to whether you have backed up the mnemonic/private key to prevent asset loss</p>
                             <p className="remove-tip-strong">This action is not reversible</p>

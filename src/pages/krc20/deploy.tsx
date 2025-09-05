@@ -2,11 +2,11 @@ import React, { useState, useEffect, useCallback } from "react"
 import HeadNav from '../../components/HeadNav'
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button, Popup, Tabs  } from 'antd-mobile'
-import { KasplexApi, Kiwi, Wasm, Wallet, Utils, Enum } from '@kasplex/kiwi-web'
+import { KasplexApi, Kiwi, Wallet, Utils, Enum } from '@kasplex/kiwi-web'
 import { formatAddress } from '@/utils/util'
 import { formatNumber, isValidTickString, checkAddressPrefix } from '@/utils/util'
 import { SvgIcon } from '@/components/Icon'
-import { AddressListDisplay } from '@/model/account'
+import { AccountsSubListDisplay } from '@/model/account'
 import { Address } from '@/model/contact'
 import { Keyring } from '@/chrome/keyring'
 import { Contact } from '@/chrome/contact'
@@ -30,7 +30,7 @@ const Deploy = () => {
 
     const [contactTabValue, setContactTabValue] = useState<string>("Recent")
     const [contactValue, setContactValue] = useState<Address[] | null>(null)
-    const [contactAccountValue, setContactAccountValue] = useState<AddressListDisplay[] | null>(null)
+    const [accountsValue, setAccountsValue] = useState<AccountsSubListDisplay[] | null>(null)
 
     const btnDisabled = () => {
         return !tick || !maxSupply || !limit
@@ -134,9 +134,9 @@ const Deploy = () => {
                 }
                 break
             case "Accounts":
-                if (!contactAccountValue) {
-                    let contacts: AddressListDisplay[] = await Keyring.getAccountListDisplay()
-                    setContactAccountValue(contacts);
+                if (!accountsValue) {
+                    let contacts = await Keyring.getAccountsSubListDisplay()
+                    setAccountsValue(contacts);
                 }
                 break;
             default:
@@ -149,14 +149,12 @@ const Deploy = () => {
             case "Contacts":
                 return contactValue;
             case "Accounts":
-                return contactAccountValue;
+                return accountsValue;
             default:
                 return [];
         }
     };
 
-    const contactList = getContactListByTab() || [];
-    
     return (
         <article className="page-box">
             <HeadNav title='KRC20 Deploy'></HeadNav>
@@ -281,8 +279,8 @@ const Deploy = () => {
 
                     {
                         contactTabValue == "Accounts" ? (
-                            contactAccountValue && contactAccountValue.length > 0 ? (
-                                contactAccountValue.map((item: AddressListDisplay, index) => (
+                            accountsValue && accountsValue.length > 0 ? (
+                                accountsValue.map((item, index) => (
                                     <div className="contact-list-box mb20" key={index}>
                                         <strong>{item.name}</strong>
                                         {

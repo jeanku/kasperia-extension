@@ -10,14 +10,14 @@ const EditName = () => {
     const navigate = useNavigate();
     const state = useLocation();
     const [name, setName] = useState('')
-    const [account] = useState<AccountDisplay>(state?.state.account)
+    const [account] = useState<AccountDisplay>(state!.state.account)
 
     const submitDisable = () => {
         return name.trim() === ''
     }
 
     const submitName = () => {
-        Keyring.setWalletName(account.id, name).then(_ => {
+        Keyring.setAccountName(account.id, name).then(_ => {
             if (account.active) {
                 account.name = name
                 dispatchRefreshPreference(account)

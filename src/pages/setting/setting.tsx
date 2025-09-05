@@ -33,7 +33,7 @@ const Setting = () => {
                             <div className="list-item-left">
                                 <strong>Expand view</strong>
                             </div>
-                            <SvgIcon iconName="IconExpand" />
+                            <SvgIcon iconName="IconExpand"/>
                         </div>
                     ) : null
                 }
@@ -42,22 +42,29 @@ const Setting = () => {
                         <strong>Address Book</strong>
                         <span>Add frequently used addresses</span>
                     </div>
-                    <SvgIcon iconName="arrowRight" />
+                    <SvgIcon iconName="arrowRight"/>
                 </div>
 
                 <div className="list-item-box" onClick={() => navigate('/network/index')}>
                     <div className="list-item-left">
-                        <strong>Network</strong>
+                        <strong>Kaspa Network</strong>
                         <span>{Kiwi.getNetworkID()}</span>
                     </div>
-                    <SvgIcon iconName="arrowRight" />
+                    <SvgIcon iconName="arrowRight"/>
+                </div>
+
+                <div className="list-item-box" onClick={() => navigate('/network/index')}>
+                    <div className="list-item-left">
+                        <strong>EVM Network</strong>
+                    </div>
+                    <SvgIcon iconName="arrowRight"/>
                 </div>
 
                 <div className="list-item-box" onClick={() => navigate('/setting/more')}>
                     <div className="list-item-left">
                         <strong>More options</strong>
                     </div>
-                    <SvgIcon iconName="arrowRight" />
+                    <SvgIcon iconName="arrowRight"/>
                 </div>
 
                 <div className="list-item-box">
@@ -66,7 +73,8 @@ const Setting = () => {
                 <div className="otth-icon">
                     <div className="otth-icon-box">
                         {/* <SvgIcon className="cursor-pointer" size={20} iconName="IconDiscord" /> */}
-                        <SvgIcon className="cursor-pointer" onClick={ () => openUrl('https://x.com/KasperiaWallet')} size={20} iconName="IconTwitter" />
+                        <SvgIcon className="cursor-pointer" onClick={() => openUrl('https://x.com/KasperiaWallet')}
+                                 size={20} iconName="IconTwitter"/>
                         {/* <SvgIcon className="cursor-pointer" size={20} iconName="IconGithub" /> */}
                     </div>
                     <p>version 0.0.1</p>

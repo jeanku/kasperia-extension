@@ -10,6 +10,7 @@ import { TickState } from '@/types/enum';
 import { KasplexApi, Utils, Enum, Wasm, Kiwi, Script, Rpc } from '@kasplex/kiwi-web'
 import { Slider, Space, Checkbox, Button } from 'antd-mobile'
 import { SvgIcon } from '@/components/Icon'
+import { Keyring } from '@/chrome/keyring'
 const Mint = () => {
     const navigate = useNavigate();
 
@@ -19,6 +20,7 @@ const Mint = () => {
     const rpcClient = useSelector((state: RootState) => state.rpc.client);
 
     const [tick, setTick] = useState<string>(state?.tick || '')
+    const [publicKey, setPublicKey] = useState<string>('')
     const [amount, setAmount] = useState<string>('1')
     const [p2shAddress, setP2shAddress] = useState<string>('')
     const [p2shAmount, setP2shAmount] = useState<bigint>(0n)
@@ -35,6 +37,7 @@ const Mint = () => {
         const tickLen = tick.trim().length;
         return (tickLen < 4 || tickLen > 6)  ? 'Ticker should be 4 to 6 letters.'  : '';
     }, [tick]);
+
     const submit = async () => {
         if (tickAccess == null || tick != state?.tick) {
             try {
@@ -77,8 +80,8 @@ const Mint = () => {
             op: Enum.OP.Mint,
             tick: tick
         })
-        let publicKey = new Wasm.PublicKey(currentAccount!.pubKey).toXOnlyPublicKey().toString()
-        let script = Script.krc20Script(publicKey, krc20data)
+        let pubKey = new Wasm.PublicKey(publicKey).toXOnlyPublicKey().toString()
+        let script = Script.krc20Script(pubKey, krc20data)
         let p2shAddress = Wasm.addressFromScriptPublicKey(script.createPayToScriptHashScript(), Kiwi.network)
         setP2shAddress(p2shAddress!.toString())
         Rpc.getInstance().client.getBalanceByAddress({
@@ -108,19 +111,22 @@ const Mint = () => {
     }
 
     useEffect(() => {
+        Keyring.getActivePublicKey().then(r => {
+            setPublicKey(r)
+        })
         queryToken()
     }, [])
 
     useEffect(() => {
         if (rpcClient && currentAccount) {
-            if (tick) {
+            if (tick && publicKey) {
                 const timer = debounce(() => {
                     queryP2shBalance()
                 }, 300)
                 timer()
             }
         }
-    }, [rpcClient, currentAccount, tick])
+    }, [rpcClient, currentAccount, tick, publicKey])
 
     const formatFee = () : string => {
         if (utxoCheck) {
