@@ -58,7 +58,7 @@ const Home = () => {
 
     const underlineRef = useRef(null);
 
-    const homeTabs = ['Tokens', 'Activity']
+    const homeTabs = ['Tokens', 'Activity', "EVM"]
     const activityTabs = ['KAS', 'KRC20']
     const [homeTabValue, setHomeTabValue] = useState(homeTabs[0]);
     const [activityTabValue, setActivityTabValue] = useState(activityTabs[0]);
@@ -228,6 +228,8 @@ const Home = () => {
             } else {
                 getKrc20list()
             }
+        } else  if (key === homeTabs[2]) {
+            // todo EVM
         }
     }
 
@@ -245,7 +247,6 @@ const Home = () => {
         if (!preference.currentAccount) return;
         setAddress(preference.currentAccount!.address)
         setEthAddress(preference.currentAccount!.ethAddress)
-        console.log("eth address", preference.currentAccount!.ethAddress)
         setBalance(preference.currentAccount!.balance)
 
         setKrc20TokenList({ time: 0, list: preference!.krc20TokenList || [] })
@@ -352,11 +353,17 @@ const Home = () => {
                     <div className="tab-underline" ref={underlineRef} />
                 </ul>
                 {
+
                     homeTabValue === 'Tokens' ?
                         <div className="search-box">
                             <SearchBar icon={<SvgIcon iconName="IconSearch" offsetStyle={{ marginRight: '2px' }} />}
                                 placeholder='Search tokens...' onChange={setfilteredValue} />
-                        </div> : ''
+                        </div> :
+                    homeTabValue === 'EVM' ?
+                        <div className="search-box">
+                            <SearchBar icon={<SvgIcon iconName="IconSearch" offsetStyle={{ marginRight: '2px' }} />}
+                                       placeholder='Search EVM Token...' onChange={setfilteredValue} />
+                        </div> : ""
                 }
                 <div className="page-list">
                     {
@@ -369,10 +376,10 @@ const Home = () => {
                                             width={44}
                                             height={44}
                                             lazy={true}
-                                            placeholder={<SvgIcon iconName="PngCoinDef" size={44} color="" />}
-                                            fallback={<SvgIcon iconName="PngCoinDef" size={44} color="" />}
+                                            placeholder={<SvgIcon iconName="PngCoinDef" size={44} color=""/>}
+                                            fallback={<SvgIcon iconName="PngCoinDef" size={44} color=""/>}
                                             fit='cover'
-                                            style={{ borderRadius: '50%', marginRight: '16px' }}
+                                            style={{borderRadius: '50%', marginRight: '16px'}}
                                         />
                                         <div className="list-item-content">
                                             <strong>{token.name}</strong>
@@ -384,73 +391,101 @@ const Home = () => {
                                         </div>
                                     </div>
                                 ))}
-                            </div>
-                            :
+                            </div> :
+                        homeTabValue === 'Activity' ?
                             <div className="page-activity">
-                                <div className="activity-tabs">
-                                    {
-                                        activityTabs.map((key, index) => {
-                                            return <span key={index}
-                                                className={activityTabValue === key ? 'active' : ''}
-                                                onClick={() => handleActivityTab(key)}>{key}</span>
-                                        })
-                                    }
-                                </div>
-                                <List>
-                                    {activityTabValue === activityTabs[0] ?
-                                        kaspaActList.list.map((item, index) =>
-                                        (
-                                            <div className="history-item" onClick={() => showKaspaTxinfo(index)}
-                                                key={index}>
-                                                <div className="history-top">
-                                                    <span>{formatHash(item.transaction_id)}{item.payload ? "(payload)" : null}</span>
-                                                    <strong
-                                                        className={item.is_accepted ? 'history-status' : 'history-status failed'}>{item.is_accepted ? "Success" : "Failed"}</strong>
-                                                </div>
-                                                <div className="history-bottom">
-                                                    <div className="history-left">
-                                                        <em className={item.amount < 0 ? 'history-icon sub' : 'history-icon'}>{item.amount < 0 ? "-" : "+"}</em>
-                                                        <strong
-                                                            className="history-amount">{formatBalance(`${Math.abs(item.amount)}`, 8)} Kas</strong>
+                                    <div className="activity-tabs">
+                                        {
+                                            activityTabs.map((key, index) => {
+                                                return <span key={index}
+                                                             className={activityTabValue === key ? 'active' : ''}
+                                                             onClick={() => handleActivityTab(key)}>{key}</span>
+                                            })
+                                        }
+                                    </div>
+                                    <List>
+                                        {activityTabValue === activityTabs[0] ?
+                                            kaspaActList.list.map((item, index) =>
+                                                (
+                                                    <div className="history-item" onClick={() => showKaspaTxinfo(index)}
+                                                         key={index}>
+                                                        <div className="history-top">
+                                                            <span>{formatHash(item.transaction_id)}{item.payload ? "(payload)" : null}</span>
+                                                            <strong
+                                                                className={item.is_accepted ? 'history-status' : 'history-status failed'}>{item.is_accepted ? "Success" : "Failed"}</strong>
+                                                        </div>
+                                                        <div className="history-bottom">
+                                                            <div className="history-left">
+                                                                <em className={item.amount < 0 ? 'history-icon sub' : 'history-icon'}>{item.amount < 0 ? "-" : "+"}</em>
+                                                                <strong
+                                                                    className="history-amount">{formatBalance(`${Math.abs(item.amount)}`, 8)} Kas</strong>
+                                                            </div>
+                                                            <span
+                                                                className="history-time">{formatDate(item.block_time.toString())}</span>
+                                                        </div>
                                                     </div>
-                                                    <span
-                                                        className="history-time">{formatDate(item.block_time.toString())}</span>
+                                                )) :
+                                            krc20OpList.list.map((item, index) => (
+                                                <div className="history-item" onClick={() => toOpinfo(index)}
+                                                     key={index}>
+                                                    <div className="history-top">
+                                                        <span>{item.op} {item.to ? formatAddress(item.to, 4) : ""}</span>
+                                                        <strong
+                                                            className={item.opAccept == "1" ? 'history-status' : 'history-status failed'}>{item.opAccept == "1" ? "Success" : "Failed"}</strong>
+                                                    </div>
+                                                    <div className="history-bottom">
+                                                        {
+                                                            item.op.toLowerCase() == "deploy" ? (
+                                                                <div className="history-left">
+                                                                    <em className='history-icon'>+</em>
+                                                                    <strong
+                                                                        className="history-amount">{item.opAccept == "1" && item.pre ? formatBalance(item.pre, getTickDec(item.tick, item.ca)) : "0"} {item.name}</strong>
+                                                                </div>
+                                                            ) : (
+                                                                <div className="history-left">
+                                                                    <em className={item.to !== address ? 'history-icon sub' : 'history-icon'}>{item.to !== address ? "-" : "+"}</em>
+                                                                    <strong
+                                                                        className="history-amount">{formatBalance(item.amt || "0", getTickDec(item.tick, item.ca))} {item.tick || item.name}</strong>
+                                                                </div>
+                                                            )
+                                                        }
+                                                        <span className="history-time">{formatDate(item.mtsAdd)}</span>
+                                                    </div>
                                                 </div>
+                                            ))
+                                        }
+                                    </List>
+                                </div> :
+                        homeTabValue === 'EVM' ?
+                            <div className="page-list-box">
+                                    {filteredTokenList.map((token, index) => (
+                                        <div className="page-list-item" key={index} onClick={() => toKrc20(token)}>
+                                            <Image
+                                                src={`https://krc20-assets.kas.fyi/icons/${token.name}.jpg`}
+                                                width={44}
+                                                height={44}
+                                                lazy={true}
+                                                placeholder={<SvgIcon iconName="PngCoinDef" size={44} color=""/>}
+                                                fallback={<SvgIcon iconName="PngCoinDef" size={44} color=""/>}
+                                                fit='cover'
+                                                style={{borderRadius: '50%', marginRight: '16px'}}
+                                            />
+                                            <div className="list-item-content">
+                                                <strong>{token.name}</strong>
+                                                <span> KRC20 </span>
                                             </div>
-                                        )) :
-                                        krc20OpList.list.map((item, index) => (
-                                            <div className="history-item" onClick={() => toOpinfo(index)} key={index}>
-                                                <div className="history-top">
-                                                    <span>{item.op} {item.to ? formatAddress(item.to, 4) : ""}</span>
-                                                    <strong
-                                                        className={item.opAccept == "1" ? 'history-status' : 'history-status failed'}>{item.opAccept == "1" ? "Success" : "Failed"}</strong>
-                                                </div>
-                                                <div className="history-bottom">
-                                                    {
-                                                        item.op.toLowerCase() == "deploy"  ?  (
-                                                            <div className="history-left">
-                                                                <em className='history-icon'>+</em>
-                                                                <strong className="history-amount">{item.opAccept == "1" && item.pre ? formatBalance(item.pre, getTickDec(item.tick, item.ca)) : "0"} {item.name}</strong>
-                                                            </div>
-                                                        ) : (
-                                                            <div className="history-left">
-                                                                <em className={item.to !== address ? 'history-icon sub' : 'history-icon'}>{item.to !== address ? "-" : "+"}</em>
-                                                                <strong className="history-amount">{formatBalance(item.amt || "0", getTickDec(item.tick, item.ca))} {item.tick || item.name}</strong>
-                                                            </div>
-                                                        )
-                                                    }
-                                                    <span className="history-time">{formatDate(item.mtsAdd)}</span>
-                                                </div>
+                                            <div className="list-item-content text-right">
+                                                <strong>{formatBalance(token.balance, token.dec)}</strong>
+                                                <span>{token.ca ? "CA:" + formatHash(token.ca, 6) : "-"}</span>
                                             </div>
-                                        ))
-                                    }
-                                </List>
-                            </div>
+                                        </div>
+                                    ))}
+                                </div> : ""
                     }
                     {
                         listLoadingType ? (
                             <div className="list-loading">
-                            {listLoadingType === 1 ? <>Loading<DotLoading /></> : <p>No more</p>}
+                                {listLoadingType === 1 ? <>Loading<DotLoading/></> : <p>No more</p>}
                             </div>
                         ) : ''
                     }
@@ -461,4 +496,4 @@ const Home = () => {
     )
 }
 
-export { Home };
+export {Home};
