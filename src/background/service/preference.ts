@@ -52,14 +52,6 @@ export class Preference {
         return Preference.store?.getState().currentAccount
     }
 
-    // static async setCurrentAccountBalance(balance: string) {
-    //     await Preference.load()
-    //     let account = Preference.store?.getState().currentAccount!
-    //     account!.balance = balance
-    //     Preference.store?.updateState({currentAccount: account})
-    //     return Preference.persistToStorage()
-    // }
-
     static async setKrc20TokenList(data: TokenList[]) {
         await Preference.load()
         return Preference.store?.updateState( { krc20TokenList: data })

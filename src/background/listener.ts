@@ -1,4 +1,4 @@
-import { keyringService, preferenceService, contactService, notificationService, permissionService } from './service';
+import { keyringService, preferenceService, contactService, notificationService, permissionService, evmService } from './service';
 
 const handlers: Record<string, (message: any) => Promise<any> | any> = {
     "Keyring.isBoot": () => keyringService.isBoot(),
@@ -61,12 +61,24 @@ const handlers: Record<string, (message: any) => Promise<any> | any> = {
     "Notification.getApproval": () => notificationService.getApproval(),
     "Permission.addConnectedSite": (msg) => permissionService.addConnectedSite(msg.origin, msg.name, msg.icon),
 
-
     // Contact handlers
     "Contact.add": (msg) => contactService.add(msg.address),
     "Contact.get": () => contactService.get(),
     "Contact.changeName": (msg) => contactService.changeName(msg.address, msg.name),
     "Contact.remove": (msg) => contactService.remove(msg.address),
+
+
+    // Evm handlers
+    "Evm.getNetworks": () => evmService.getNetworks(),
+    "Evm.getNetwork": (msg) => evmService.getNetwork(msg.chainId),
+    "Evm.addNetwork": (msg) => evmService.addNetwork(msg.network),
+    "Evm.updateNetwork": (msg) => evmService.updateNetwork(msg.chainId, msg.update),
+    "Evm.removeNetwork": (msg) => evmService.removeNetwork(msg.chainId),
+    "Evm.getSelectedNetwork": () => evmService.getSelectedNetwork(),
+    "Evm.setSelectedNetwork": (msg) => evmService.setSelectedNetwork(msg.network),
+    "Evm.getContracts": (msg) => evmService.getContracts(msg.chainId),
+    "Evm.addContract": (msg) => evmService.addContract(msg.chainId, msg.contract),
+    "Evm.removeContract": (msg) => evmService.removeContract(msg.chainId, msg.address),
 };
 const handleError = (error: unknown, sendResponse: (response: any) => void) => {
     const errorMessage = error instanceof Error ? error.toString() : 'Unknown error';

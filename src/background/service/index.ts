@@ -5,3 +5,4 @@ export { default as permissionService } from './permission';
 export { default as sessionService } from './session';
 export { default as notificationService } from './notification';
 export { default as accountService } from './account';
+export { default as evmService } from './evm';

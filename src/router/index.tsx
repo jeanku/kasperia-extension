@@ -124,6 +124,7 @@ const AppRouter: React.FC = () => {
             <Route path="/contact/update" element={<ContactUpdate />} />
             <Route path="/network/index" element={<NetworkIndex />} />
             <Route path="/network/update" element={<NetworkUpdate />} />
+            <Route path="/network/evm" element={<NetworkIndex />} />
             <Route path="/setting/more" element={<More />} />
             <Route path="/setting/donation" element={<Donation />} />
             <Route path="/setting/changepwd" element={<ChangePwd />} />

@@ -10,7 +10,6 @@ import { setRpcClient } from "@/store/rpcSlice";
 
 import { dispatchRefreshNetwork } from '@/dispatch/preference'
 import { dispatchRpcConnect } from '@/dispatch/rpcclient'
-import { Preference } from '@/chrome/preference'
 import { Network } from '@/model/account';
 import { Kiwi } from "@kasplex/kiwi-web";
 import store from '@/store';
@@ -45,7 +44,7 @@ const EMVNetwork: React.FC = () => {
 
     return (
         <article className="page-box">
-            <HeadNav url="/contact/add" title='Switch Network'></HeadNav>
+            <HeadNav url="/account/createWallet" title='Switch Wallet' rightType="add" onBack={() => navigate('/home')}></HeadNav>
             <div className="content-main list-box pb50">
                 <Radio.Group value={currentNetworkId} >
                     {
