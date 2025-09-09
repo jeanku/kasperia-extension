@@ -1,4 +1,5 @@
-import { keyringService, preferenceService, contactService, notificationService, permissionService, evmService } from './service';
+import { keyringService, preferenceService, contactService, notificationService, permissionService,
+    evmService, shareService } from './service';
 
 const handlers: Record<string, (message: any) => Promise<any> | any> = {
     "Keyring.isBoot": () => keyringService.isBoot(),
@@ -66,8 +67,7 @@ const handlers: Record<string, (message: any) => Promise<any> | any> = {
     "Contact.get": () => contactService.get(),
     "Contact.changeName": (msg) => contactService.changeName(msg.address, msg.name),
     "Contact.remove": (msg) => contactService.remove(msg.address),
-
-
+    
     // Evm handlers
     "Evm.getNetworks": () => evmService.getNetworks(),
     "Evm.getNetwork": (msg) => evmService.getNetwork(msg.chainId),
@@ -78,6 +78,11 @@ const handlers: Record<string, (message: any) => Promise<any> | any> = {
     "Evm.getContracts": (msg) => evmService.getContracts(msg.chainId),
     "Evm.addContract": (msg) => evmService.addContract(msg.chainId, msg.contract),
     "Evm.removeContract": (msg) => evmService.removeContract(msg.chainId, msg.address),
+
+    // Share handlers
+    "Share.getAll": () => shareService.getAll(),
+    "Share.add": (msg) => shareService.add(msg.item),
+    "Share.remove": (msg) => shareService.remove(msg.id),
 };
 const handleError = (error: unknown, sendResponse: (response: any) => void) => {
     const errorMessage = error instanceof Error ? error.toString() : 'Unknown error';

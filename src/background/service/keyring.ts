@@ -267,10 +267,7 @@ export class KeyRing {
     }
 
     async addSubAccount(id: string) {
-        console.log("addSubAccount1:", id)
         let account = this.store.getState().account.get(id)
-        console.log("addSubAccount2:", this.store.getState().account)
-        console.log("addSubAccount3:", account)
         if (!account) {
             throw Error("Wallet not find")
         }

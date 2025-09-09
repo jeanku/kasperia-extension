@@ -15,10 +15,6 @@ export class Evm {
         return Chrome.request({ action: "Evm.addNetwork", network })
     }
 
-    static async updateNetwork(chainId: string, update: Partial<NetworkConfig>): Promise<void> {
-        return Chrome.request({ action: "Evm.updateNetwork", chainId, update })
-    }
-
     static async removeNetwork(chainId: string): Promise<void> {
         return Chrome.request({ action: "Evm.removeNetwork", chainId })
     }

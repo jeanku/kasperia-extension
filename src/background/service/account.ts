@@ -12,7 +12,6 @@ export class Account {
         const wasmUrl = chrome.runtime.getURL('kaspa_bg.wasm');
         await initialize(wasmUrl);
         const network = await preferenceService.getNetwork()
-        console.log("Account init ....")
         this.isLoadWasm = true
     }
 

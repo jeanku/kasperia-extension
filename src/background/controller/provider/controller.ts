@@ -29,7 +29,7 @@ class ProviderController {
 
     getBalance = async () => {
         const balance = await accountService.getBalance();
-        return {balance: balance.balance.toString()}
+        return {total: balance.balance.toString()}
     };
 
     switchNetwork = async (request: RequestProps) => {

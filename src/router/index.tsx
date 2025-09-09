@@ -5,6 +5,7 @@ import {
   Index,
   Boost,
   Explore,
+  ShareAdd,
   Home,
   Nopage
 } from "@/pages/index/index";
@@ -85,6 +86,7 @@ const AppRouter: React.FC = () => {
             <Route path="/unlock" element={<Unlock />} />
             <Route path="/home" element={<Home />} />
             <Route path="/explore" element={<Explore />} />
+            <Route path="/share/add" element={<ShareAdd />} />
 
             <Route path="/account" element={<AccountIndex />} />
             <Route path="/account/receive" element={<Receive />} />

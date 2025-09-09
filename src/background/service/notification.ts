@@ -73,7 +73,6 @@ class NotificationService {
 
   // currently it only support one approval at the same time
   requestApproval = async (data: any, winProps?: any): Promise<any> => {
-    console.log("requestApproval .............." )
     return new Promise((resolve, reject) => {
       this.approval = {
         data,
