@@ -38,6 +38,7 @@ const EvmIndex = () => {
         }));
     };
 
+    //a
     const addNewNetwork = () => {
         resetForm()
         setPopupVisible(true)
@@ -92,23 +93,6 @@ const EvmIndex = () => {
         }
     }
 
-    const switchNetwork = async (index: number) => {
-        try {
-            let network = networkList[index]
-            if (!network) {
-                throw Error("network index invalid")
-            }
-            await Evm.setSelectedNetwork(network.chainId)
-            let networks = networkList.map(r => {
-                r.select = r.chainId == network.chainId
-                return r
-            })
-            setNetworkList(networks)
-        } catch (error) {
-            noticeError(error)
-        }
-    }
-
     const refresh = () => {
         const idx = networkList.findIndex(r => r.chainId === newNetwork.chainId);
         if (idx === -1) {
@@ -138,7 +122,7 @@ const EvmIndex = () => {
                 {
                     networkList.length > 0 && (
                         networkList.map((item, index) => (
-                            <div className="coin-item" key={item.name} onClick={() => switchNetwork(index)}>
+                            <div className="coin-item" key={item.name}>
                                 <Image src={`https://krc20-assets.kas.fyi/icons/TKAS.jpg`}
                                     placeholder={<SvgIcon iconName="PngCoinDef" size={44} />}
                                     width={44} height={44}
@@ -146,7 +130,7 @@ const EvmIndex = () => {
                                     style={{ borderRadius: '50%', marginRight: '12px' }} lazy fit='cover' />
                                 <div className="coin-item-info">
                                     <div className="coin-item-name">
-                                        <span>{item.name} {item.select ? "selected" : ""}</span>
+                                        <span>{item.name}</span>
                                     </div>
                                     <div className="coin-item-network">
                                         <em>Currency: {item.symbol}</em>

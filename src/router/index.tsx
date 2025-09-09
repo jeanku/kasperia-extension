@@ -60,6 +60,7 @@ import ContactAdd from "@/pages/setting/contact/add";
 import ContactUpdate from "@/pages/setting/contact/update";
 import NetworkIndex from "@/pages/setting/network/index";
 import NetworkUpdate from "@/pages/setting/network/update";
+import EvmIndex from "@/pages/setting/network/evm";
 import Donation from "@/pages/setting/more/donation";
 import ChangePwd from "@/pages/setting/more/changepwd";
 import AutoLock from "@/pages/setting/more/autoLock";
@@ -124,13 +125,13 @@ const AppRouter: React.FC = () => {
             <Route path="/contact/update" element={<ContactUpdate />} />
             <Route path="/network/index" element={<NetworkIndex />} />
             <Route path="/network/update" element={<NetworkUpdate />} />
-            <Route path="/network/evm" element={<NetworkIndex />} />
+            <Route path="/network/evm/index" element={<EvmIndex />} />
             <Route path="/setting/more" element={<More />} />
             <Route path="/setting/donation" element={<Donation />} />
             <Route path="/setting/changepwd" element={<ChangePwd />} />
             <Route path="/setting/autolock" element={<AutoLock />} />
           
-          </Route>{/**/}
+          </Route>
 
           <Route path="/evokeBoost" element={<EvokeBoost />} >
             <Route path="notification/unlock" element={  <NotificationUnlock /> } />

@@ -23,7 +23,7 @@ export class Evm {
         return Chrome.request({ action: "Evm.removeNetwork", chainId })
     }
 
-    static async getSelectedNetwork(): Promise<void> {
+    static async getSelectedNetwork(): Promise<NetworkConfig | undefined> {
         return Chrome.request({ action: "Evm.getSelectedNetwork" })
     }
 

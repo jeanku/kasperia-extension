@@ -167,3 +167,8 @@ export function debounce<F extends (...args: any[]) => any>(func: F, delay: numb
         }, delay);
     };
 }
+
+export function isValidUrl(url: string): boolean {
+    const urlRegex = new RegExp(/^(https?|wss?):\/\/(([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}|localhost|\d{1,3}(\.\d{1,3}){3}|\[::1\])(:\d+)?(\/.*)?$/i);
+    return urlRegex.test(url);
+}

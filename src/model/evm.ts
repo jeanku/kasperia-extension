@@ -1,9 +1,11 @@
 export type NetworkConfig = {
-    chainId: number;             // EVM chain ID
+    chainId: string;             // EVM chain ID
+    symbol: string;             // EVM chain ID
     name: string;                // network name
     rpcUrl: string;              // RPC endpoint
     explorer: string;            // optional block explorer
     contracts?: ContractConfig[]
+    select?: boolean
 }
 
 export type ContractConfig = {
@@ -12,3 +14,11 @@ export type ContractConfig = {
     address: string;  // contract address
     decimals: number; // contract decimals
 };
+
+
+export type EvmTokenList = {
+    symbol: string;
+    balance: string,
+    name: string,
+    tokenAddress?: string,
+}

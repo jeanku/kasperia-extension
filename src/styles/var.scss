@@ -160,11 +160,19 @@ $border-radius: 6px;
             font-weight: 500;
         }
     }
-    .coin-item-price {
+    .coin-item-price,
+    .coin-item-network  {
         display: flex;
         justify-content: space-between;
         align-items: center;
         color: $text-color-desc;
         font-size: 16px;
+    }
+    .coin-item-network {
+        font-size: 12px;
+        em:first-child {
+            display: inline-block;
+            margin-right: 10px;
+        }
     }
 }

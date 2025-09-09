@@ -232,6 +232,9 @@ em {
 .max120 {
     max-width: 120px;
 }
+.text-center {
+    text-align: center;
+}
 .text-right {
     text-align: right;
 }
@@ -380,14 +383,17 @@ em {
     display: flex;
     flex-direction: column;
 }
-.tip-error {
+.tip-error,
+.tip-error-popup {
     color: $error-color;
-    margin-bottom: 32px;
     font-size: 14px;
     margin: 5px 0 32px;
     &.warning {
         color: $warning-color;
     }
+}
+.tip-error-popup {
+    margin-bottom: 5px;
 }
 .tip-test-tn {
     position: absolute;
@@ -906,6 +912,14 @@ em {
         border-radius: 0 6px 6px 0;
     }
 }
+.tip-message {
+    margin-top: 20px;
+    font-size: 15px;
+    line-height: 20px;
+    color: $text-color;
+    margin-bottom: 10px;
+}
+
 .account-balance {
     text-align: center;
     margin: 20px auto;
@@ -984,6 +998,9 @@ em {
 .content-main {
     @extend %page-pd-20;
     @extend %page-top;
+}
+.padding-top20-imp {
+    padding-top: 20px!important;
 }
 .continer-box {
     display: flex;

@@ -4,10 +4,13 @@ import { useSelector } from "react-redux";
 import { SearchBar, DotLoading, List, Image } from 'antd-mobile'
 import { UserOutline } from 'antd-mobile-icons'
 import { Oplist, TokenList } from '@/model/krc20';
+import { EvmTokenList } from '@/model/evm';
 import { Transaction } from '@/model/kaspa';
+import { Provider } from '@/utils/wallet/provider';
 import CountUp from 'react-countup';
 import { SvgIcon } from '@/components/Icon/index'
 import { formatAddress, formatETHAddress, formatBalance, getDecimals, formatDate, formatHash } from "@/utils/util"
+import { Evm } from "@/chrome/evm"
 import { Preference } from "@/chrome/preference"
 import { RootState } from '@/store';
 import { KasplexApi, KaspaApi, Kiwi, Modules } from '@kasplex/kiwi-web'
@@ -20,10 +23,11 @@ import {
 import store from '@/store';
 import { useClipboard } from '@/components/useClipboard';
 import { Dispatch } from 'redux';
-
 import IconArrorRight from '@/assets/images/home-arrow-right.png'
 
+
 type LoadingType = 0 | 1 | 2
+
 const Home = () => {
 
     const { handleCopy } = useClipboard();
@@ -55,6 +59,11 @@ const Home = () => {
         time: number,
         price: number
     }>({ time: 0, price: 0 });
+
+    const [evmTokenList, setEvmTokenList] = useState<{
+        time: number,
+        list: Array<EvmTokenList>
+    }>({ time: 0, list: [] });
 
     const underlineRef = useRef(null);
 
@@ -138,6 +147,32 @@ const Home = () => {
         }).finally(() => {
             setListLoadingType(0)
         })
+    }
+
+    const fetchEvmTokenlist = async () => {
+        let curTime = new Date().getTime() / 1000
+        if (curTime - evmTokenList.time <= 5) return
+
+        let network = await Evm.getSelectedNetwork()
+        if (!network) return
+        let providor = new Provider(network.rpcUrl)
+        let ethAddress = preference.currentAccount?.ethAddress
+        if (!ethAddress) return
+        setListLoadingType(1)
+        let ethBalance = await providor.getETHBalance(ethAddress)
+
+        let baseToken = {
+            symbol: "KAS",
+            balance: ethBalance,
+            name: "kasplex testnet",
+            tokenAddress: ""
+        }
+        setEvmTokenList({
+            time: curTime,
+            list: [baseToken]
+        })
+        console.log("baseToken", baseToken)
+        setListLoadingType(0)
     }
 
     const getKaspaTxlist = async () => {
@@ -228,8 +263,8 @@ const Home = () => {
             } else {
                 getKrc20list()
             }
-        } else  if (key === homeTabs[2]) {
-            // todo EVM
+        } else if (key === homeTabs[2]) {
+            fetchEvmTokenlist()
         }
     }
 
@@ -296,6 +331,11 @@ const Home = () => {
         if (!item) return
         navigate("/tx/info", { state: { tx: item } })
     }
+
+    const setAction = () => {
+        //todo
+        return ;
+    };
 
     return (
         <div className="page-box">
@@ -458,8 +498,8 @@ const Home = () => {
                                 </div> :
                         homeTabValue === 'EVM' ?
                             <div className="page-list-box">
-                                    {filteredTokenList.map((token, index) => (
-                                        <div className="page-list-item" key={index} onClick={() => toKrc20(token)}>
+                                    {evmTokenList.list.map((token, index) => (
+                                        <div className="page-list-item" key={index} onClick={() => {}}>
                                             <Image
                                                 src={`https://krc20-assets.kas.fyi/icons/${token.name}.jpg`}
                                                 width={44}
@@ -475,8 +515,8 @@ const Home = () => {
                                                 <span> KRC20 </span>
                                             </div>
                                             <div className="list-item-content text-right">
-                                                <strong>{formatBalance(token.balance, token.dec)}</strong>
-                                                <span>{token.ca ? "CA:" + formatHash(token.ca, 6) : "-"}</span>
+                                                <strong>{token.balance}</strong>
+                                                <span> -- </span>
                                             </div>
                                         </div>
                                     ))}

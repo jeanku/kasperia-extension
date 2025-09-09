@@ -25,45 +25,37 @@ export class EVM {
         }
     }
 
-
     /** Get all network configs */
     async getNetworks(): Promise<NetworkConfig[]> {
         await this.load();
-        return Object.values(this.store!.getState().networks);
+        let networks = Object.values(this.store!.getState().networks);
+        return networks.map(({ contracts, ...rest }) => {
+            rest.select = rest.chainId == this.store!.getState().selected
+            return rest
+        });
     }
 
     /** Get a network by ID */
     async getNetwork(chainId: string): Promise<NetworkConfig | undefined> {
         await this.load();
-        return this.store!.getState().networks[chainId];
+        let network = this.store!.getState().networks[chainId];
+        if (network) {
+            network.contracts = undefined
+            network.select = network.chainId == this.store!.getState().selected
+        }
+        return network
     }
 
     /** Add a new network or replace existing */
     async addNetwork(network: NetworkConfig) {
         await this.load();
         const state = this.store!.getState();
-        if (state.networks[network.chainId]) {
-            throw new Error("chainId exist error");
+        if (!state.selected) {
+            state.selected = network.chainId
         }
         this.store!.updateState({
             ...state,
             networks: { ...state.networks, [network.chainId]: network },
-        });
-        return this.persistToStorage();
-    }
-
-    /** Update network by ID */
-    async updateNetwork(chainId: string, update: Partial<NetworkConfig>) {
-        await this.load();
-        const state = this.store!.getState();
-        const network = state.networks[chainId];
-        if (!network) throw new Error(`Network ${chainId} not found`);
-        this.store!.updateState({
-            ...state,
-            networks: {
-                ...state.networks,
-                [chainId]: { ...network, ...update },
-            },
         });
         return this.persistToStorage();
     }
@@ -74,6 +66,10 @@ export class EVM {
         const state = this.store!.getState();
         if (!state.networks[chainId]) return;
         const { [chainId]: _, ...rest } = state.networks;
+        if (state.selected == chainId) {
+            let temp = Object.values(rest)
+            state.selected = temp.length > 0 ? temp[0].chainId : ""
+        }
         this.store!.updateState({ ...state, networks: rest });
         return this.persistToStorage();
     }

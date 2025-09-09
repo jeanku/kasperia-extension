@@ -53,7 +53,7 @@ const Setting = () => {
                     <SvgIcon iconName="arrowRight"/>
                 </div>
 
-                <div className="list-item-box" onClick={() => navigate('/network/index')}>
+                <div className="list-item-box" onClick={() => navigate('/network/evm/index')}>
                     <div className="list-item-left">
                         <strong>EVM Network</strong>
                     </div>

@@ -11,6 +11,7 @@ import { KasplexApi, Utils, Enum, Wasm, Kiwi, Script, Rpc } from '@kasplex/kiwi-
 import { Slider, Space, Checkbox, Button } from 'antd-mobile'
 import { SvgIcon } from '@/components/Icon'
 import { Keyring } from '@/chrome/keyring'
+
 const Mint = () => {
     const navigate = useNavigate();
 
