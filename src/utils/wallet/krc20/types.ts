@@ -1,0 +1,139 @@
+export interface Krc20PagerRequest {
+  next?: string;
+  prev?: string;
+}
+
+export interface Krc20TokenListRequest extends Krc20PagerRequest {
+  address?: string;
+  tick?: string;
+  prev?: string;
+}
+
+export type Krc20Response<T> = {
+  message: string;
+  prev?: string;
+  next?: string;
+  result: T | null;
+};
+
+export type Krc20TokenHolder = {
+  address: string;
+  amount: string;
+};
+
+export type Krc20TokenDetailsWithHolders = {
+  ca?: string;
+  tick?: string;
+  name?: string;
+  max: string;
+  lim: string;
+  pre: string;
+  to: string;
+  dec: string;
+  minted: string;
+  burned: string;
+  opScoreAdd: string;
+  opScoreMod: string;
+  state: string;
+  hashRev: string;
+  mtsAdd: string;
+  holderTotal: string;
+  transferTotal: string;
+  mintTotal: string;
+  holder: Krc20TokenHolder[];
+};
+
+export interface OpListData {
+  p: "KRC-20";
+  op: string;
+  tick?: string;
+  ca?: string;
+  max?: string;
+  lim?: string;
+  pre?: string;
+  dec?: string;
+  mod?: string;
+  amt?: string;
+  name?: string;
+  from: string;
+  to: string;
+  opScore: string;
+  hashRev: string;
+  feeRev: string;
+  txAccept: string;
+  opAccept: string;
+  opError: string;
+  mtsAdd: string;
+  mtsMod: string;
+  checkpoint: string;
+}
+
+export type GetKrc20TokenInfoResponse = Krc20TokenDetailsWithHolders[];
+
+export type Krc20TokenBalanceInfo = {
+  tick?: string;
+  ca?: string;
+  name?: string;
+  balance: string;
+  locked: string;
+  dec: string;
+  opScoreMod: string;
+};
+
+export type GetKrc20AddressTokenListResponse = Krc20TokenBalanceInfo[];
+
+export type GetKrc20BalanceResponse = GetKrc20AddressTokenListResponse;
+
+export type GetKrc20TokenListResponse = {
+  tokens: Krc20TokenDetailsWithHolders[];
+};
+
+export type Krc20Operation = {
+  operationId: string;
+  type: string;
+  timestamp: string;
+  details: string;
+};
+
+export type GetKrc20OperationListResponse = OpListData[];
+
+export type GetKrc20OperationDetailsResponse = {
+  operationId: string;
+  type: string;
+  timestamp: string;
+  details: string;
+  status: string;
+};
+
+export type GetKrc20VspcDetailsResponse = {
+  vspcId: string;
+  details: string;
+  status: string;
+};
+
+export type GetKrc20DataByOPrangeResponse = {
+  opscore: number;
+  addressaffc: string;
+  script: string;
+  state: string;
+  tickaffc: string;
+  txid: string;
+}[];
+
+export type GetKrc20ListingListResponse = {
+  tick: string;
+  from: string;
+  amount: string;
+  uTxid: string;
+  uAddr: string;
+  uAmt: string;
+  uScript: string;
+  opScoreAdd: string;
+}[];
+
+export function makeQueryString(params: Record<string, string | number | boolean | undefined>): string {
+  return Object.keys(params)
+    .filter((key) => params[key] !== undefined)
+    .map((key) => `${key}=${encodeURIComponent(params[key]!.toString())}`)
+    .join('&');
+}
