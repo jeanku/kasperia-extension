@@ -1,12 +1,10 @@
-import React, { useState } from "react"
+import React, {useEffect, useState} from "react"
 
 import { InfiniteScroll, List, Image } from 'antd-mobile'
 import { SendOutline } from 'antd-mobile-icons'
 import { KaspaExplorerUrl } from '@/types/enum'
-
 import { TokenList } from '@/model/krc20';
 import { useNavigate, useLocation } from "react-router-dom";
-import { Kiwi, KasplexApi, Modules } from '@kasplex/kiwi-web'
 
 import HeadNav from '@/components/HeadNav'
 import { useNotice } from '@/components/NoticeBar/NoticeBar'
@@ -15,30 +13,34 @@ import { SvgIcon } from '@/components/Icon/index'
 import { formatBalance, formatDate, formatDecBalance, formatHash, formatAddress } from '@/utils/util'
 import IconMint from '@/assets/images/icon-mint.png'
 import { useClipboard } from '@/components/useClipboard'
-
-import { Deploy } from "./deploy"
-import { DeployConfirm } from "./deployConfirm"
-import { DeployResult } from "./deployResult"
-import { Mint } from "./mint"
-import { MintConfirm } from "./mintConfirm"
-import { MintResult } from "./mintResult"
-import { OpInfo } from "./opInfo"
-
 import '@/styles/account.scss'
+import {
+    GetKrc20OperationListResponse,
+    GetKrc20TokenInfoResponse,
+    Krc20Client,
+    Krc20Response,
+    Krc20TokenBalanceInfo,
+    Krc20TokenDetailsWithHolders,
+    OpListData
+} from "@/utils/wallet/krc20";
+import {useSelector} from "react-redux";
+import {RootState} from "@/store";
+import {NetworkType} from "@/utils/wallet/consensus";
 
 const Index = () => {
     const { state } = useLocation()
     const { noticeError } = useNotice()
     const { handleCopy } = useClipboard()
     const navigate = useNavigate();
+    const { preference } = useSelector((state: RootState) => state.preference);
 
-    const [token] = useState<TokenList>(state?.token)
+    const [token] = useState<Krc20TokenBalanceInfo>(state?.token)
     const [address] = useState<string>(state?.address)
 
     const [currentTabs, setCurrentTabs] = useState(0)
 
-    const [oplist, setOplist] = useState<Array<Modules.OpListData>>([])
-    const [opinfo, setOpinfo] = useState<Modules.TokenInfoData>()
+    const [oplist, setOplist] = useState<Array<OpListData>>([])
+    const [tokenInfo, setTokenInfo] = useState<Krc20TokenDetailsWithHolders>()
     const [hasMore, setHasMore] = useState(true)
     const [loading, setLoading] = useState(false)
 
@@ -47,7 +49,8 @@ const Index = () => {
     async function getOplist() {
         if (loading) return
         setLoading(true)
-        KasplexApi.getOpList({ address, tick: (token.tick || token.ca || ""), prev }).then((r: Modules.OpListResponse) => {
+        let client = new Krc20Client(preference.network.networkType)
+        client.getKrc20OperationList({ address, tick: (token.tick || token.ca || ""), prev }).then((r: Krc20Response<GetKrc20OperationListResponse>) => {
             if (r.result) {
                 setOplist(oplist.concat(r.result))
                 setHasMore(r.result.length !== 0);
@@ -59,26 +62,32 @@ const Index = () => {
     }
 
     const getTokenInfo = () => {
-        if (opinfo) return
-        KasplexApi.getToken(token.tick || token.ca || "").then((r: Modules.TokenInfoResponse) => {
-            if (r.result.length === 1) {
-                setOpinfo(r.result[0])
+        if (tokenInfo) return
+        let client = new Krc20Client(preference.network.networkType)
+        client.getKrc20TokenInfo(token.tick || token.ca || "").then((r: Krc20Response<GetKrc20TokenInfoResponse>) => {
+            if (r.result && r.result.length === 1) {
+                let data = r.result[0]
+                setTokenInfo(data)
             }
         })
     }
 
+    useEffect(() => {
+        console.log("token", token)
+    }, [])
+
     const handleTab = (val: number) => {
         if (val == currentTabs) return
+        setCurrentTabs(val)
         if (val == 1) {
             getTokenInfo()
         }
-        setCurrentTabs(val)
     }
 
-    const openKasplexTx = (tx: string) => {
-        if(!tx) return
-        const networkName = Kiwi.network === 0 ? 'Mainnet' : 'Testnet';
-        window.open(`${KaspaExplorerUrl[networkName]}${tx}`);
+    const openKasplexTx = (txid: string) => {
+        if(!txid) return
+        const networkName = preference.network.networkType === NetworkType.Mainnet ? 'Mainnet' : 'Testnet';
+        window.open(`${KaspaExplorerUrl[networkName]}${txid}`);
     }
 
     const showOpinfo = (index: number) => {
@@ -86,12 +95,13 @@ const Index = () => {
     }
 
     const sendKrc20 = () => {
-        navigate("/tx/send", { state: { token }})
+        console.log("token", token)
+        navigate("/krc20/send", { state: { token }})
     }
 
     const krc20Mint = () => {
-        if (opinfo && opinfo.state == "finished") {
-            noticeError(`${opinfo.tick} state finished`)
+        if (tokenInfo && tokenInfo.state == "finished") {
+            noticeError(`${tokenInfo.tick} state finished`)
         } else {
             navigate("/krc20/mint", { state: { tick: token.tick }})
         }
@@ -188,53 +198,53 @@ const Index = () => {
                             <>
                                 <div className="history-token-item">
                                     <span>Tick</span>
-                                    <em>{token.name}</em>
+                                    <em>{tokenInfo?.name || tokenInfo?.tick || tokenInfo?.ca }</em>
                                 </div>
                                 <div className="history-token-item">
                                     <span>Decimal</span>
-                                    <em>{token.dec}</em>
+                                    <em>{tokenInfo?.dec}</em>
                                 </div>
                                 <div className="history-token-item">
                                     <span>State</span>
-                                    <em>{opinfo?.state || ""}</em>
+                                    <em>{tokenInfo?.state || ""}</em>
                                 </div>
                                 <div className="history-token-item">
                                     <span>Max supply</span>
-                                    <em>{formatDecBalance(opinfo?.max || "", opinfo?.dec || "").toLocaleString()}</em>
+                                    <em>{formatDecBalance(tokenInfo?.max || "", tokenInfo?.dec || "").toLocaleString()}</em>
                                 </div>
                                 <div className="history-token-item">
                                     <span>Minted amount</span>
-                                    <em>{formatDecBalance(opinfo?.minted || "", opinfo?.dec || "").toLocaleString()}</em>
+                                    <em>{formatDecBalance(tokenInfo?.minted || "", tokenInfo?.dec || "").toLocaleString()}</em>
                                 </div>
 
                                 <div className="history-token-item">
                                     <span>Pre-allocation amount</span>
-                                    <em>{formatDecBalance(opinfo?.pre || "", opinfo?.dec || "").toLocaleString()}</em>
+                                    <em>{formatDecBalance(tokenInfo?.pre || "", tokenInfo?.dec || "").toLocaleString()}</em>
                                 </div>
                                 <div className="history-token-item">
                                     <span>Total holders</span>
-                                    <em>{BigInt(opinfo?.holderTotal || "").toLocaleString()}</em>
+                                    <em>{BigInt(tokenInfo?.holderTotal || "").toLocaleString()}</em>
                                 </div>
                                 <div className="history-token-item">
                                     <span>Total Transfer Times</span>
-                                    <em>{BigInt(opinfo?.transferTotal || "").toLocaleString()}</em>
+                                    <em>{BigInt(tokenInfo?.transferTotal || "").toLocaleString()}</em>
                                 </div>
                                 <div className="history-token-item">
                                     <span>Total Mint Times</span>
-                                    <em>{BigInt(opinfo?.mintTotal || "").toLocaleString()}</em>
+                                    <em>{BigInt(tokenInfo?.mintTotal || "").toLocaleString()}</em>
                                 </div>
                                 <div className="history-token-item">
                                     <span>opScoreAdd</span>
-                                    <em>{opinfo?.opScoreAdd || ""}</em>
+                                    <em>{tokenInfo?.opScoreAdd || ""}</em>
                                 </div>
                                 <div className="history-token-item">
                                     <span>opScoreMod</span>
-                                    <em>{opinfo?.opScoreMod || ""}</em>
+                                    <em>{tokenInfo?.opScoreMod || ""}</em>
                                 </div>
                                 <div className="history-token-item">
                                     <span>Reveal TX</span>
-                                    <em onClick={() => openKasplexTx(opinfo?.hashRev || "")}
-                                        className="history-href">{formatHash(opinfo?.hashRev || "", 10, 8)}
+                                    <em onClick={() => openKasplexTx(tokenInfo?.hashRev || "")}
+                                        className="history-href">{formatHash(tokenInfo?.hashRev || "", 10, 8)}
                                         <SendOutline className="ml5" /></em>
                                 </div>
                             </>
@@ -246,4 +256,15 @@ const Index = () => {
     )
 }
 
-export {Index, Deploy, DeployConfirm, DeployResult, Mint, MintConfirm, MintResult, OpInfo }
+import { Deploy } from "./deploy"
+import { DeployConfirm } from "./deployConfirm"
+import { DeployResult } from "./deployResult"
+import { Mint } from "./mint"
+import { MintConfirm } from "./mintConfirm"
+import { MintResult } from "./mintResult"
+import { OpInfo } from "./opInfo"
+import { Send } from "./send"
+import { SendSign } from "./sendSign"
+import { SendResult } from "./sendResult"
+
+export {Index, Send, SendSign, SendResult, Deploy, DeployConfirm, DeployResult, Mint, MintConfirm, MintResult, OpInfo }

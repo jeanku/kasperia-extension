@@ -1,12 +1,15 @@
 import { decrypt, encrypt } from '@metamask/browser-passworder';
-import { KeyRingAccess, KeyRingAccount, KeyRingState} from '@/model/account';
-import { Wallet, Account } from '@/model/wallet';
+import { KeyRingAccess, KeyRingAccount, KeyRingState, AccountSubListDisplay, AccountsSubListDisplay} from '@/model/account';
+import { Account, AccountDisplay } from '@/model/wallet';
 import { Storage } from '@/utils/storage';
-import { PublicKey } from '@/utils/wallet/pubkey';
-import { LockTime, AccountType } from '@/types/enum';
+import { Wallet } from '@/utils/wallet/wallet';
+import {LockTime, AccountType, ChainPath, AddressType} from '@/types/enum';
 import { hashString } from '@/utils/util';
 import { ObservableStore } from '@metamask/obs-store';
 import { preferenceService } from './index';
+import {NetworkType} from "@/utils/wallet/consensus";
+import {Keypair} from "@/utils/wallet/tx/keypair";
+import {ethers} from "ethers";
 
 
 export class KeyRing {
@@ -16,7 +19,8 @@ export class KeyRing {
 
     private store: ObservableStore<KeyRingAccount> = new ObservableStore({
         password: "",
-        account: [],
+        id: "",
+        account: new Map(),
     });
 
     async state(): Promise<KeyRingAccess> {
@@ -66,78 +70,91 @@ export class KeyRing {
                     throw new Error("password invalid")
                 }
 
-                let account = await decrypt(password, encryptedData!.vault);
-                if (account === null) {
-                    throw new Error("password invalid")
+                let decryptedVault = await decrypt(password, encryptedData.vault);
+                if (decryptedVault === null) {
+                    throw new Error("password invalid");
                 }
+
+                let decryted = decryptedVault as {id: string, account: any}
+                const accountMap = new Map<string, Account>(
+                    Object.entries(decryted.account as Record<string, Account>)
+                );
+
                 this.locked = false
                 this.expire = new Date().getTime() + locktime
-                this.store.updateState({password: password, account: account as []})
+                this.store.updateState({password: password, account: accountMap, id: decryted.id})
             }
         } catch (error) {
             throw error
         }
     }
 
-    async getWalletById(password: string, id: string) {
-        if (this.store.getState().password !== password) {
-            throw Error("password invalid")
-        }
-        return this.store.getState().account.find(account => account.id === id);
-    }
+    // async getWalletById(password: string, id: string) {
+    //     if (this.store.getState().password !== password) {
+    //         throw Error("password invalid")
+    //     }
+    //     return this.store.getState().account.get(id);
+    // }
 
-    async getActiveWalletKeys() {
-        let account = this.store.getState().account.find(account => account.active == true)!
+    // getActiveWalletPrivateKey return privateKey
+    async getActiveWalletPrivateKey() {
+        let account = this.currentAccount()
         if (!account) {
             throw Error("Account not find")
         }
-        return { priKey: account.priKey, pubKey: account.pubKey };
+        return { priKey: account.priKey };
     }
 
-    async getActiveWalletWithAccounts() {
-        let wallet = this.store.getState().account.find(account => account.active == true);
-        if (!wallet) {
+    // getActiveWalletPrivateKey return privateKey
+    async getActiveWalletPrivateKeyForEvm() {
+        let account = this.currentAccount()
+        if (!account) {
             throw Error("Account not find")
         }
-        if (wallet.type == AccountType.PrivateKey) {
-            return {
-                id: wallet.id,
-                type: wallet.type,
-                path: 0,
-                drive: [{
-                    name: wallet.accountName,
-                    index: 0,
-                    pubKey: wallet.pubKey
-                }]
-            }
-        } else {
-            return {
-                id: wallet.id,
-                type: wallet.type,
-                path: wallet.path!,
-                mnemonic: wallet.mnemonic,
-                passphrase: wallet.passphrase,
-                drive: wallet.drive?.map((item) => ({
-                    name: item.name,
-                    index: item.index,
-                    pubKey: item.pubKey
-                }))
-            }
+        if (account.type == AccountType.PrivateKey) {
+            return { priKey: account.priKey };
         }
+        let wallet = Wallet.fromMnemonic(account.mnemonic, `${ChainPath.KaspaL2Path}${account.path}`, account.passphrase)
+        return { priKey: wallet.getPrivateKey() }
+    }
+
+    async getActiveAddressForEvm() {
+        let account = this.currentAccount()
+        if (!account) {
+            throw Error("Account not find")
+        }
+        let address = account.type == AccountType.Mnemonic ?
+            Wallet.fromMnemonic(account.mnemonic, `${ChainPath.KaspaL2Path}${account.path}`, account.passphrase).toEthAddress() :
+            Wallet.fromPrivateKey(account.priKey).toEthAddress()
+        return { address }
+    }
+
+
+    // getActiveWalletPrivateKeyForKaspa return privateKey of kaspa
+    async getActiveWalletPrivateKeyForKaspa() {
+        let account = this.currentAccount()
+        if (!account) {
+            throw Error("Account not find")
+        }
+        return { priKey: account.priKey };
     }
 
     // getActiveAccountDisplay return baseic account info
-    async getActiveAccountDisplay() {
-        let account = this.store.getState().account.find(account => account.active == true)!
-        let network = await preferenceService.getNetwork()
+    async getActiveAccountDisplay(networkType: NetworkType | undefined = undefined): Promise<AccountDisplay> {
+        let account = this.currentAccount()
+        let newNetworkType = networkType || await preferenceService.getNetworkType()
+        let wallet = Wallet.fromPrivateKey(account.priKey)
+        let ethAddress = account.type == AccountType.Mnemonic ?
+            Wallet.fromMnemonic(account.mnemonic, `${ChainPath.KaspaL2Path}${account.path}`, account.passphrase).toEthAddress() :
+            wallet.toEthAddress()
         return {
             id: account.id,
             name: account.name,
-            pubKey: account.pubKey,
-            active: account.active,
             type: account.type,
-            accountName: account.accountName,
-            address: new PublicKey(account.pubKey).toAddress(network.networkId).toString(),
+            active: true,
+            subName: account.subName,
+            address: wallet.toKaspaAddress(newNetworkType).toString(),
+            ethAddress: ethAddress,
             balance: "0",
         }
     }
@@ -149,85 +166,114 @@ export class KeyRing {
         return accountDisplay
     }
 
-    async getWalletList() {
-        return this.store.getState().account.map(({id, name, pubKey, active, mnemonic, type, accountName}) => ({
-            id,
-            name,
-            pubKey,
-            active,
-            type,
-            address: "",
-            balance: "0",
-            accountName
-        }));
+    async getAccountList(): Promise<AccountDisplay[]> {
+        var resp = []
+        let networkType = await preferenceService.getNetworkType()
+        for (const [id, account] of this.store.getState().account) {
+            let wallet = Wallet.fromPrivateKey(account.priKey)
+            let ethAddress = account.type == AccountType.Mnemonic ?
+                Wallet.fromMnemonic(account.mnemonic, `${ChainPath.KaspaL2Path}${account.path}`, account.passphrase).toEthAddress() :
+                wallet.toEthAddress()
+            resp.push({
+                id: account.id,
+                name: account.name,
+                subName: account.subName,
+                active: account.id === this.store.getState().id,
+                type: account.type,
+                address: wallet.toKaspaAddress(networkType).toString(),
+                ethAddress: ethAddress,
+                balance: ""
+            })
+        }
+        return resp
     }
 
-    async addWallet(wallet: Wallet) {
-        wallet.id = await hashString((wallet.mnemonic ? wallet.mnemonic : wallet.priKey) + "2ee3957e6f11e9acc86e83")
-        let accounts = this.store.getState().account
-        let exist = accounts.find(r => {
-            return r.id === wallet.id
-        })
-        if (exist) {
-            throw Error("wallet exist.")
-        }
-        if (accounts.length > 100) {
-            throw Error("Create wallet limited")
-        }
 
-        this.store.getState().account.map(r => r.active = false)
-
-        let index = (accounts.length > 0 ? accounts[accounts.length - 1].index : 0) + 1
-        wallet.index = index
-        wallet.name = (wallet.mnemonic ? "HD" : "Single") + ' Wallet #' + index
-        wallet.accountName = "Account 1"
-        wallet.active = true
-        if (wallet.mnemonic != "") {
-            wallet.path = 0
-            wallet.drive = [{
+    // addAccountFromMnemonic add a new account by mnemonic
+    async addAccountFromMnemonic(mnemonic: string, passphrase: string) {
+        let id = await hashString(mnemonic + passphrase + "2ee3957e6f11e9acc86e83")
+        let index = this.checkAccountAndGetLastIndex(id)
+        let path = 0
+        let wallet = Wallet.fromMnemonic(mnemonic, ChainPath.KaspaPath + path, passphrase)
+        let priKey = wallet.getPrivateKey()
+        let account = {
+            id: id,
+            name: 'HD Wallet #' + index,
+            subName: "Account 1",
+            path: path,
+            index: index,
+            priKey: priKey,
+            mnemonic: mnemonic,
+            passphrase: passphrase,
+            type: AccountType.Mnemonic,
+            drive:  [{
                 name: "Account 1",
-                index: 0,
-                pubKey: wallet.pubKey,
-                priKey: wallet.priKey
+                path: path,
+                priKey: priKey
             }]
         }
-        this.store.getState().account.push(wallet)
-        return this.persistToStorage()
+        this.store.getState().account.set(id, account)
+        this.store.getState().id = id
+        this.persistToStorage()
+        return this.getActiveAccountDisplay()
     }
 
-    async removeWallet(id: string) {
+    // add a new account by private key
+    async addAccountFromPrivateKey(privateKey: string) {
+        if (privateKey.startsWith("0x")) {
+            privateKey = privateKey.slice(2)
+        }
+        let id = await hashString(privateKey + "2ee3957e6f11e9acc86e83")
+        let index = this.checkAccountAndGetLastIndex(id)
+        let account = {
+            id: id,
+            name: 'Single Wallet #' + index,
+            subName: "Account 1",
+            path: 0,
+            index: index,
+            priKey: privateKey,
+            mnemonic: "",
+            passphrase: "",
+            type: AccountType.PrivateKey,
+            drive:  [{
+                name: "Account 1",
+                path: 0,
+                priKey: privateKey
+            }]
+        }
+        this.store.getState().account.set(id, account)
+        this.store.getState().id = id
+        this.persistToStorage()
+        return this.getActiveAccountDisplay()
+    }
+
+    async removeAccount(id: string) {
         let accounts = this.store.getState().account
-        if (accounts.length <= 1) {
+        if (accounts.size <= 1) {
             throw Error("account can't be deleted")
         }
-        const index = this.store.getState().account.findIndex(r => {
-            return r.id === id
-        });
-
-        if (index === -1) return
-        let _accounts = this.store.getState().account.splice(index, 1)
-
-        if (_accounts[0].active) {
-            this.store.getState().account[0].active = true
+        accounts.delete(id)
+        let isSelf = id === this.store.getState().id
+        if (isSelf) {
+            const keys = Array.from(accounts.keys());
+            this.store.getState().id = accounts.get(keys[0])!.id
+        } else {
+            this.store.getState().id = id
         }
-        return this.persistToStorage()
+        this.persistToStorage()
+        return this.getActiveAccountDisplay()
     }
 
     async setActiveWallet(id: string) {
-        this.store.getState().account.map(account => {
-            account.active = account.id === id;
-            return account
-        });
+        this.store.getState().id = id
         return this.persistToStorage()
     }
 
-    async setWalletName(id: string, name: string) {
-        this.store.getState().account.map(account => {
-            if (account.id === id) {
-                account.name = name
-            }
-            return account
-        });
+    async setAccountName(id: string, name: string) {
+        let account = this.store.getState().account.get(id)
+        if (account) {
+            account.name = name
+        }
         return this.persistToStorage()
     }
 
@@ -243,7 +289,12 @@ export class KeyRing {
             throw Error("account locked")
         }
         const passwordEncrypt = await encrypt(password!, password!);
-        const accountEncrypt = await encrypt(password!, this.store.getState().account);
+        const accountObj = Object.fromEntries(this.store.getState().account);
+        const accountEncrypt = await encrypt(password, {
+            id: this.store.getState().id,
+            account: accountObj,
+        });
+
         await Storage.setData('keyringState', {
             booted: passwordEncrypt,
             vault: accountEncrypt,
@@ -256,150 +307,223 @@ export class KeyRing {
     }
 
     async clear(): Promise<void> {
-        this.store.updateState({password: "", account: []})
+        this.store.updateState({password: "", account: new Map()})
         preferenceService.store = undefined
         await Storage.clearData();
     }
 
-    async addDriveAccount(id: string, account: Account) {
-        let accounts = this.store.getState().account
-        let _account = accounts.find(r => {
-            return r.id === id
-        })
-        if (!_account) {
+    async addSubAccount(id: string, name: string) {
+        let account = this.store.getState().account.get(id)
+        if (!account) {
             throw Error("Wallet not find")
         }
-        if (!_account.drive || _account.drive.length == 0) {
-            _account.drive = []
+        if (account.type != AccountType.Mnemonic) {
+            throw Error("Wallet type invalid")
         }
-
-        _account.drive.push(account)
-        _account.path = account.index
-        _account.pubKey = account.pubKey
-        _account.priKey = account.priKey
-        _account.accountName = account.name
-        await this.persistToStorage()
+        let last = account.drive[account.drive.length - 1]
+        let path = last.path + 1
+        let prikey = Wallet.fromMnemonic(account.mnemonic, ChainPath.KaspaPath + path, account.passphrase).getPrivateKey()
+        account.drive.push({
+            name: name,
+            priKey: prikey,
+            path: path,
+        })
+        account.path = path
+        account.priKey = prikey
+        account.subName = name
+        this.persistToStorage()
+        return this.getActiveAccountDisplay()
     }
 
     // switch account with drive index
-    async switchDriveAccount(id: string, index: number) {
-        let accounts = this.store.getState().account
-        let wallet = accounts.find(r => {
-            return r.id === id
-        })
-
-        if (!wallet) {
+    async switchSubAccount(id: string, path: number) {
+        let account = this.store.getState().account.get(id)
+        if (!account) {
             throw Error("Wallet not find")
         }
-
-        this.store.getState().account.map(account => {
-            account.active = account.id === id;
+        let subAccount = account.drive.find(r => {
+            return r.path == path
         })
-
-        if (wallet.drive && wallet.drive.length > 0) {
-            let account = wallet.drive!.find(r => {
-                return r.index == index
-            })
-            if (!account) {
-                throw Error("Account index not find")
-            }
-            wallet.path = index
-            wallet.pubKey = account.pubKey
-            wallet.priKey = account.priKey
-            wallet.accountName = account.name
+        if (!subAccount) {
+            throw Error("Account path not find")
         }
+        account.path = subAccount.path
+        account.priKey = subAccount.priKey
+        account.subName = subAccount.name
         preferenceService.resetCurrentAccount()
         await this.persistToStorage()
+        return this.getActiveAccountDisplay()
     }
 
-    async setAccountName(id: string, index: number, name: string) {
-        let accounts = this.store.getState().account
-        let account = accounts.find(r => {
-            return r.id === id
-        })
-        if (!account) return
+    async setSubAccountName(id: string, path: number, name: string) {
+        let account = this.store.getState().account.get(id)
+        if (!account) {
+            throw Error("Wallet not find")
+        }
         if (account.type == AccountType.PrivateKey) {
-            account.accountName = name
+            account.subName = name
+            account.drive[0].name = name
             return
         }
-        account.drive?.map(r => {
-            if (r.index == index) {
+        account.drive.map(r => {
+            if (r.path == path) {
                 r.name = name
             }
         })
-        if (account.path && account.path == index) {
-            account.accountName = name
+        if (account.path == path) {
+            account.subName = name
         }
         await this.persistToStorage()
     }
 
-    async getPrivateKey(password: string, id: string, index: number) {
+    async getPrivateKey(password: string, id: string, path: number) {
         if (this.store.getState().password !== password) {
             throw Error("password invalid")
         }
-        let account = this.store.getState().account.find(account => account.id === id)
+        let account = this.store.getState().account.get(id)
         if (!account) {
             throw Error("account not find")
         }
         if (account.type == AccountType.Mnemonic) {
-            let acc= account.drive?.find(r => {
-                return r.index == index
+            let subAccount= account.drive.find(r => {
+                return r.path == path
             })
-            return acc?.priKey
+            if (!subAccount) {
+                throw Error("sub account not find")
+            }
+            let evmKey =  Wallet.fromMnemonic(account.mnemonic, `${ChainPath.KaspaL2Path}${subAccount.path}`, account.passphrase)
+            return [subAccount.priKey, evmKey.getPrivateKey()]
         } else {
-            return account.priKey
+            return [account.priKey, account.priKey]
         }
     }
 
-    async removeAccount(id: string, index: number) {
-        let wallet = this.store.getState().account.find(account => account.id === id)
-        if (!wallet) {
+    async getMnemonic(password: string, id: string) {
+        if (this.store.getState().password !== password) {
+            throw Error("password invalid")
+        }
+        let account = this.store.getState().account.get(id)
+        if (!account) {
             throw Error("account not find")
         }
-        if (wallet.type == AccountType.Mnemonic) {
-            const _index = wallet.drive?.findIndex(r => {
-                return r.index === index
-            });
-            if (_index === -1 || wallet.drive?.length == 1) return
-            wallet.drive?.splice(_index!, 1)
-            if (wallet.path == index) {
-                let account = wallet.drive![0]
-                wallet.path = account.index
-                wallet.pubKey = account.pubKey
-                wallet.priKey = account.priKey
-                wallet.accountName = account.name
-            }
+        if (account.type != AccountType.Mnemonic) {
+            throw Error("account not invalid")
         }
-        await this.persistToStorage()
+        return {
+            mnemonic: account.mnemonic,
+            path: account.path,
+            passphrase: account.passphrase,
+        }
     }
 
-    async getAccountListDisplay() {
-        let network = await preferenceService.getNetwork()
-        return this.store.getState().account.map(({id, name, pubKey, type, accountName, drive, active }) => ({
-            id, name,
-            drive: type == AccountType.Mnemonic ? drive?.map((item) => ({
-                index: item.index,
+    async removeSubAccount(id: string, path: number) {
+        let account = this.store.getState().account.get(id)
+        if (!account) {
+            throw Error("account not find")
+        }
+        if (account.drive.length == 1) {
+            throw Error("account can not delete")
+        }
+        const _index = account.drive.findIndex(r => {
+            return r.path === path
+        });
+        if (_index === -1) return
+        account.drive.splice(_index, 1)
+        if (account.path == path) {
+            let subAccount = account.drive[0]
+            account.path = subAccount.path
+            account.priKey = subAccount.priKey
+            account.subName = subAccount.name
+        }
+        await this.persistToStorage()
+        return this.getAccountSubAccountsDisplay()
+    }
+
+    async getAccountSubAccountsDisplay(): Promise<AccountSubListDisplay> {
+        let wallet = this.currentAccount()
+        if (!wallet) {
+            throw Error("Account not find")
+        }
+        let networkType = await preferenceService.getNetworkType()
+        return {
+            id: wallet.id,
+            path:wallet.path,
+            type: wallet.type,
+            drive: wallet.drive?.map((item) => ({
                 name: item.name,
-                address:  new PublicKey(item.pubKey).toAddress(network.networkId).toString(),
-                active: pubKey === item.pubKey
-            })) : [{
-                index: 0,
-                name: accountName,
-                address:  new PublicKey(pubKey).toAddress(network.networkId).toString(),
-                active: active
-            }]
-        }));
+                path: item.path,
+                address: Wallet.fromPrivateKey(item.priKey).toKaspaAddress(networkType).toString(),
+                active: wallet.path == item.path
+            }))
+        }
+    }
+
+    async getAccountsSubListDisplay(type: AddressType|undefined = undefined): Promise<AccountsSubListDisplay[]> {
+        let networkType = await preferenceService.getNetworkType()
+        let selected = this.currentAccount()
+        var resp = []
+        for (const [id, account] of this.store.getState().account) {
+            resp.push({
+                id: account.id,
+                name: account.name,
+                drive: account.drive.map((item) => ({
+                    path: item.path,
+                    name: item.name,
+                    active: account.id == selected.id && account.path == selected.path,
+                    address: type == AddressType.EvmAddress ? (
+                        account.type == AccountType.Mnemonic ?
+                            Wallet.fromMnemonic(account.mnemonic, `${ChainPath.KaspaL2Path}${item.path}`, account.passphrase).toEthAddress() :
+                            Wallet.fromPrivateKey(account.priKey).toEthAddress()
+                    ) : Keypair.fromPrivateKeyHex(item.priKey).toAddress(networkType).toString(),
+                })),
+            })
+        }
+        return resp
     }
 
     async resetExpire(ttl: number) {
         this.expire = new Date().getTime() + ttl
     }
 
-    // getActiveAddress returns selected account's address
-    async getActiveAddress() {
-        let account = this.store.getState().account.find(account => account.active == true)!
-        let network = await preferenceService.getNetwork()
-        return new PublicKey(account.pubKey).toAddress(network.networkId).toString()
+    // _getActiveAddress returns selected account's address
+    async _getActiveAddress() {
+        let account = this.currentAccount()
+        let networkId = await preferenceService.getNetworkId()
+        return Wallet.fromPrivateKey(account.priKey).toKaspaAddress(networkId.networkType).toString()
+    }
+
+    async _getActiveEvmAddress() {
+        let account = this.currentAccount()
+        return account.type == AccountType.Mnemonic ?
+            Wallet.fromMnemonic(account.mnemonic, `${ChainPath.KaspaL2Path}${account.path}`, account.passphrase).toEthAddress() :
+            Wallet.fromPrivateKey(account.priKey).toEthAddress()
+    }
+
+    // getActivePublicKey returns selected account's address
+    async getActivePublicKey() {
+        let account = this.currentAccount()
+        return Wallet.fromPrivateKey(account.priKey).getKaspaPublicKey()
+    }
+
+    currentAccount() {
+        return this.store.getState().account.get(this.store.getState().id)!
+    }
+
+    checkAccountAndGetLastIndex(id: string) {
+        let accounts = this.store.getState().account
+        let exist = accounts.get(id)
+        if (exist) {
+            throw Error("wallet exist.")
+        }
+        if (this.store.getState().account.size > 1000) {
+            throw Error("Create wallet limited")
+        }
+        const keys = Array.from(accounts.keys());
+        var index = 1
+        if (keys.length > 0) {
+            index = accounts.get(keys[keys.length - 1])!.index + 1
+        }
+        return index
     }
 }
 

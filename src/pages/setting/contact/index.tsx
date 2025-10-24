@@ -14,7 +14,7 @@ const ContactIndex = () => {
     const [address, setAddress] = useState<Address[]>([]);
 
     const getContact = async () => {
-        let address: Address[] = await Contact.get()
+        let address: Address[] = await Contact.getAll()
         if (address.length > 0) {
             setAddress(address)
         }
@@ -33,7 +33,7 @@ const ContactIndex = () => {
                         <div className="list-item-box" onClick={() => {}}>
                             <div className="list-item-left">
                                 <strong>{item.name}</strong>
-                                <span onClick={() => handleCopy(item.address)}>{formatAddress(item.address)} <SvgIcon iconName="IconCopy" color="#7F7F7F" offsetStyle={{marginRight: '-12px'}} /></span>
+                                <span onClick={() => handleCopy(item.address)}>{formatAddress(item.address, 8)} <SvgIcon iconName="IconCopy" color="#7F7F7F" offsetStyle={{marginRight: '-12px'}} /></span>
                             </div>
                             <img src={IconArrowRight} className="right-img" onClick={() => navigate("/contact/update", { state: {address: item}})} alt="right"/>
                         </div>

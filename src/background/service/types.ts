@@ -1,0 +1,5 @@
+export const KRC20_MINT_FEES: bigint = 100000000n;
+export const KRC20_MINT_RETURN_FEES: bigint = 30000000n;
+export const KRC20_TRANSFER_TOTAL_FEES: bigint = 130000000n;
+export const KRC20_DEPLOY_FEES: bigint = 100000000000n;
+export const KRC20_DEPLOY_TOTAL_FEES: bigint = KRC20_DEPLOY_FEES + KRC20_MINT_RETURN_FEES;

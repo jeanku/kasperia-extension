@@ -75,6 +75,7 @@
         text-align: center;
     }
     .tx-confirm-content {
+        padding-bottom: 26px;
         display: flex;
         flex-direction: row;
         gap: 8px;
@@ -90,7 +91,6 @@
         background-color: $bg-color-input;
         border-radius: $border-radius;
         user-select: text;
-        max-height: 384px;
         white-space: pre-wrap;
         word-break: break-word;
         font-size: 16px;

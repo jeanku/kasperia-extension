@@ -7,10 +7,6 @@ import './styles/index.scss'
 import { Provider } from "react-redux";
 import { store } from "./store";
 import { isExtensionPopup } from './utils/util'
-import { Network } from './model/account'
-import { dispatchRpcConnect } from './dispatch/rpcclient'
-import {  Kiwi, initialize } from '@kasplex/kiwi-web'
-import { Preference } from '@/chrome/preference'
 
 const RootComponent = () => {
     const rootElement = document.getElementById('root')!;
@@ -19,17 +15,6 @@ const RootComponent = () => {
         rootElement.classList.remove('extension-container');
     }
     useEffect(() => {
-        const initRpc = async () => {
-            try {
-                await initialize("./kaspa_bg.wasm");
-                let network: Network = await Preference.getNetwork()
-                Kiwi.setNetwork(network.networkId)
-                dispatchRpcConnect(network)
-            } catch (error) {
-                console.error('Error initializing Kiwi:', error);
-            }
-        }
-        initRpc()
     }, []);
 
     return (

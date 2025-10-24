@@ -1,29 +1,30 @@
 import React, { useState } from "react"
 import HeadNav from '../../components/HeadNav'
 import { KaspaExplorerUrl } from '../../types/enum'
-import { Kiwi } from '@kasplex/kiwi-web'
 import { hexToString } from '@/utils/util'
-import { useNotice } from '@/components/NoticeBar/NoticeBar'
 import { useClipboard } from '@/components/useClipboard'
-import { formatBalance, formatDate, formatAddress, formatHash } from '../../utils/util'
-import { Transaction } from '../../model/kaspa'
+import { formatBalance, formatDate, formatHash } from '../../utils/util'
+import { KaspaTransaction } from '@/utils/wallet/kaspa'
 import { SendOutline } from 'antd-mobile-icons'
 import { SvgIcon } from '@/components/Icon/index'
-
 import '../../styles/account.scss'
 import { useLocation } from 'react-router-dom'
+import {NetworkType} from "@/utils/wallet/consensus";
+import {useSelector} from "react-redux";
+import {RootState} from "@/store";
 
 const Info = () => {
 
     const { state } = useLocation()
-    const { handleCopy } = useClipboard()
-    const { noticeSuccess, noticeError } = useNotice()
-    const [tx, _] = useState<Transaction | null>(state?.tx)
+    const { preference } = useSelector((state: RootState) => state.preference);
 
-    const openKasplexTx = (tx: string) => {
-        if(!tx) return
-        const networkName = Kiwi.network === 0 ? 'Mainnet' : 'Testnet';
-        window.open(`${KaspaExplorerUrl[networkName]}${tx}`);
+    const { handleCopy } = useClipboard()
+    const [tx, _] = useState<KaspaTransaction | null>(state?.tx)
+
+    const openKasplexTx = (txid: string) => {
+        if(!txid) return
+        const networkName = preference.network.networkType === NetworkType.Mainnet ? 'Mainnet' : 'Testnet';
+        window.open(`${KaspaExplorerUrl[networkName]}${txid}`);
     }
 
     return (
@@ -32,7 +33,7 @@ const Info = () => {
             <div className="page-content assets-details">
                 <div className="history-token-item">
                     <span>Network</span>
-                    <em>{Kiwi.network === 0 ? 'Mainnet' : 'Testnet'}</em>
+                    <em>{ preference.network.networkType }</em>
                 </div>
                 <div className="history-token-item">
                     <span>TX ID</span>
@@ -74,7 +75,7 @@ const Info = () => {
                 </div>
                 <div className="history-token-item">
                     <span>Accept Time</span>
-                    <em>{formatDate(tx?.accepting_block_time?.toString() || "")}</em>
+                    <em>{formatDate(tx?.accepting_block_time?.toString() || "--")}</em>
                 </div>
                 <div className="history-token-item">
                     <span>TX Fee</span>

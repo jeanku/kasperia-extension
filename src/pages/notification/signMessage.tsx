@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from "react"
-
 import { Notification } from '@/chrome/notification'
-import { Keyring } from '@/chrome/keyring'
-import { Kiwi, Wasm, initialize } from '@kasplex/kiwi-web'
-import { Wallet } from '@/model/wallet'
-import { Network } from '@/model/account'
-import { Button } from 'antd-mobile'
+import { Account } from '@/chrome/account'
+import { formatAddress, formatSignMessage } from '@/utils/util'
+import { Button, Divider } from 'antd-mobile'
 
 interface Session {
     origin: string;
@@ -14,8 +11,8 @@ interface Session {
 }
 
 interface SignData {
-    text: string,
-    type: string,
+    message: string,
+    address: string,
 }
 
 interface RequestParam {
@@ -23,13 +20,9 @@ interface RequestParam {
     session: Session
 }
 
-const Sign = () => {
-    const [networkConfig, setNetworkConfig] = useState<Network[]>([])
-
+const SignMessage = () => {
     const [session, setSession] = useState<Session | undefined>(undefined)
     const [data, setData] = useState<SignData | undefined>(undefined)
-
-    const [currentNetworkId, setCurrentNetworkId] = useState<number>(1)
     const [btnLoading, setBtnLoading] = useState<boolean>(false)
 
     const getApproval = async () => {
@@ -43,22 +36,16 @@ const Sign = () => {
     }
 
     const sign = async () => {
-        let wallet: Wallet = await Keyring.getActiveWalletKeys()
-        let signstr = Wasm.signMessage({message: data?.text || "", privateKey: wallet.priKey})
-        Notification.resolveApproval(signstr)
+        if (!data?.message) {
+            return
+        }
+        let signature = await Account.signMessage(formatSignMessage(data?.message))
+        Notification.resolveApproval(signature)
     }
 
     useEffect(() => {
         getApproval()
     }, [])
-
-    const changeNetwork = async (index: number) => {
-        const selectedNetwork = networkConfig[index];
-        console.log('selectedNetwork', selectedNetwork)
-        console.log('currentNetworkId', currentNetworkId);
-        if (selectedNetwork.networkId === currentNetworkId) return;
-        setCurrentNetworkId(selectedNetwork.networkId)
-    };
 
     return (
         <article className="page-box">
@@ -66,29 +53,40 @@ const Sign = () => {
                 <div className='source-box'>
                     <img className="logo-img" src={session?.icon} alt="" />
                     <div className='source-txt'>
-                        <strong>{session?.name}</strong>
+                        <strong className="one-line">{session?.name}</strong>
                         <p>{session?.origin}</p>
                     </div>
                 </div>
-                <span className="tip-test-tn">TN10</span>
             </section>
-            <div className="content-main pb50">
+            <div className="assets-details pb96 pt20import">
                 <h6 className="title-tip mb20">Signature request</h6>
-                <p className="title-desc mb20">Only sign this message if you fully understand the content andtrust the requesting site.</p>
-                <h6 className="title-tip-2">You are signing:</h6>
+                <p className="title-desc">Only sign this message if you fully understand the content and trust the requesting site.</p>
+                <div className="mt15">
+                    <div className="history-token-item">
+                        <span>Address</span>
+                        <em>{formatAddress(data?.address)}</em>
+                    </div>
+                </div>
+                <Divider
+                    style={{
+                        color: '#74e6d8',
+                        borderColor: '#666',
+                        borderStyle: 'dashed',
+                    }}
+                >Sign Message</Divider>
                 <div className="sign-info">
-                    {data?.text}
+                    {data?.message}
                 </div>
             </div>
             <div className="btn-pos-two flexd-row post-bottom">
-                <Button block size="large" onClick={ reject } >
+                <Button block size="large" onClick={reject} >
                     Reject
                 </Button>
-                <Button block size="large" color="primary" 
+                <Button block size="large" color="primary"
                     loading={btnLoading}
-                    onClick={ sign }
+                    onClick={sign}
                     loadingText={'Submitting'}
-                    >
+                >
                     Sign
                 </Button>
             </div>
@@ -96,4 +94,4 @@ const Sign = () => {
     )
 }
 
-export { Sign }
+export { SignMessage }

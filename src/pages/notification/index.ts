@@ -1,7 +1,9 @@
 export { Unlock } from "./unlock"
 export { SendKaspa } from "./sendKaspa"
 export { Connect } from "./connect"
-export { EvokeBoost } from "./evokeBoost"
-export { History } from './history'
 export { SwitchNetwork } from "./switchNetwork"
-export { Sign } from './sign'
+export { SwitchChain } from "./switchChain"
+export { SignMessage } from './signMessage'
+export { SendTransaction } from "./sendTransaction"
+export { AddEthereumChain } from "./addEthereumChain"
+export { AddErc20Token } from "./addErc20Token"

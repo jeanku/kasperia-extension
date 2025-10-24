@@ -8,7 +8,7 @@ export function useClipboard() {
     const handleCopy = useCallback(
         async (content: string) => {
             try {
-                if (!content) return 
+                if (!content) return
                 await navigator.clipboard.writeText(content);
                 noticeSuccess('Copied to clipboard');
             } catch (err) {

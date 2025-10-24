@@ -1,22 +1,29 @@
 import React, { useState, useEffect } from "react"
 import { QRCodeSVG } from 'qrcode.react';
-import { SvgIcon } from '@/components/Icon/index'
 import HeadNav from '@/components/HeadNav'
 import { useSelector } from "react-redux";
 import { RootState } from '@/store';
+import {AddressType} from "@/types/enum";
 import { formatAddress } from '@/utils/util';
 import { useClipboard } from '@/components/useClipboard'
+import { SvgIcon } from '@/components/Icon/index'
+import {useLocation} from "react-router-dom";
 
 const Receive = () => {
+    const { state } = useLocation()
     const { handleCopy } = useClipboard();
     const preference = useSelector((state: RootState) => state.preference.preference);
-
+    const [type] = useState<AddressType>(state?.type || AddressType.KaspaAddress)
     const [addressName, setAddressName] = useState('');
     const [address, setAddress] = useState('');
 
     useEffect(() => {
         if (!preference) return;
-        setAddress(preference?.currentAccount?.address || "")
+        if (type == AddressType.KaspaAddress) {
+            setAddress(preference?.currentAccount?.address || "")
+        } else {
+            setAddress(preference?.currentAccount?.ethAddress || "")
+        }
         setAddressName(preference?.currentAccount?.name || "")
     }, [preference]);
 

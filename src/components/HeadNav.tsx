@@ -6,9 +6,10 @@ import { HeadNavProps } from '@/types/type'
 import { SvgIcon } from '@/components/Icon/index'
 import { useSelector } from "react-redux";
 import { RootState } from '@/store';
-import { Wasm } from "@kasplex/kiwi-web";
 
 import IconAdd from '../assets/images/icon-add.png'
+import IconHistory from '@/assets/icons/icon-history.svg'
+import {NetworkType} from "@/utils/wallet/consensus";
 
 const HeadNav: React.FC<HeadNavProps> = ({
     title = "",
@@ -17,12 +18,17 @@ const HeadNav: React.FC<HeadNavProps> = ({
     leftDom,
     rightType,
     loading,
+    showLeft = true,
+    state,
     onBack = () => window.history.back(),
+    onClickRight,
 }) => {
     const navigate = useNavigate();   
-    const goPage = () => {
-        if (url) {
-            navigate(`${url}`);
+    const handleRightClick = () => {
+        if (onClickRight && typeof onClickRight === "function") {
+            onClickRight();
+        } else if (url) {
+            navigate(url, { state });
         }
     }
     const { preference } = useSelector((state: RootState) => state.preference);
@@ -33,23 +39,25 @@ const HeadNav: React.FC<HeadNavProps> = ({
 
     useEffect(() => {
         if (preference.network) {
-            setIsTest(Wasm.NetworkType.Testnet === preference.network?.networkId);
+            setIsTest(!((preference.network.networkType || NetworkType.Mainnet) === NetworkType.Mainnet));
         }
     }, [preference.network]);
     const renderRightContent = () => {
         switch(rightType) {
             case 'add':
-                return <img className="icon-add norem" src={IconAdd} alt="Add" onClick={ () => goPage()} />
+                return <img className="icon-add norem" src={IconAdd} alt="Add" onClick={ () => handleRightClick() } />
+            case 'history':
+                return  <img className="icon-add norem" src={IconHistory} alt="History" onClick={ () => handleRightClick()} />
             case 'arrow':
                 return (
-                    <div className="nav-bar-right" onClick={ () => goPage()}>
+                    <div className="nav-bar-right" onClick={ () => handleRightClick()}>
                     <span>{title}</span>
                     <SvgIcon iconName="arrowRight" size={20} color="#D8D8D8" />
                 </div>
                 )
             case 'arrowText':
                 return (
-                    <div className="nav-bar-right" onClick={ () => goPage()}>
+                    <div className="nav-bar-right" onClick={ () => handleRightClick()}>
                         <span>{rightTit}</span>
                         <SvgIcon iconName="arrowRight" size={20} color="#D8D8D8" />
                     </div>
@@ -61,7 +69,7 @@ const HeadNav: React.FC<HeadNavProps> = ({
     return (
         <div className="nav-bar">
             <div className="nav-left" onClick={() => onBack()}>
-                { renderLeftElement() }
+                { showLeft && renderLeftElement() }
             </div>
             <strong className="nav-bar-title">{title} {loading ? <SpinLoading style={{ '--size': '16px' }} color='default' /> : '' }
             { isTest ? <em className="tip-test-tn">TN10</em> : null }
@@ -80,5 +88,8 @@ HeadNav.propTypes = {
     rightType: PropTypes.string,
     loading: PropTypes.bool,
     onBack: PropTypes.func,
+    showLeft: PropTypes.bool,
+    state: PropTypes.object,
+    onClickRight: PropTypes.func,
 };
 export default HeadNav

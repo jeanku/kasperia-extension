@@ -1,7 +1,6 @@
 import React, { useState } from "react"
 import HeadNav from '@/components/HeadNav'
 import { KaspaExplorerUrl } from '@/types/enum'
-import { Kiwi } from '@kasplex/kiwi-web'
 import { useClipboard } from '@/components/useClipboard'
 import { TokenList } from '@/model/krc20';
 import { formatBalance, formatDate, formatAddress, formatHash } from '@/utils/util'
@@ -10,18 +9,23 @@ import { SendOutline } from 'antd-mobile-icons'
 import { SvgIcon } from '@/components/Icon/index'
 import { useLocation } from 'react-router-dom'
 import '@/styles/account.scss'
+import {useSelector} from "react-redux";
+import {RootState} from "@/store";
+import {NetworkType} from "@/utils/wallet/consensus";
 
 const OpInfo = () => {
     const { state } = useLocation()
+    const { preference } = useSelector((state: RootState) => state.preference);
+
+
     const { handleCopy } = useClipboard()
     const [opinfo] = useState<OplistModel | null>(state?.opinfo)
     const [token] = useState<TokenList>(state?.token)
-    console.log('opinfo', opinfo)
 
-    const openKasplexTx = (tx: string) => {
-        if(!tx) return
-        const networkName = Kiwi.network === 0 ? 'Mainnet' : 'Testnet';
-        window.open(`${KaspaExplorerUrl[networkName]}${tx}`);
+    const openKasplexTx = (txid: string) => {
+        if(!txid) return
+        const networkName = preference.network.networkType === NetworkType.Mainnet ? 'Mainnet' : 'Testnet';
+        window.open(`${KaspaExplorerUrl[networkName]}${txid}`);
     }
 
     return (
@@ -30,7 +34,7 @@ const OpInfo = () => {
             <div className="page-content assets-details">
                 <div className="history-token-item">
                     <span>Tick</span>
-                    <em>{opinfo?.tick || opinfo?.name || token?.tick}</em>
+                    <em>{opinfo?.tick || opinfo?.name || token?.ca}</em>
                 </div>
                 <div className="history-token-item">
                     <span>OP Type</span>
@@ -90,4 +94,5 @@ const OpInfo = () => {
         </article>
     )
 }
+
 export { OpInfo }

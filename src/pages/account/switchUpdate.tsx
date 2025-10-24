@@ -1,34 +1,38 @@
-import React, { useState } from "react"
+import React, {useEffect, useState} from "react"
 import { Button, Input } from 'antd-mobile'
 import { Keyring } from '@/chrome/keyring'
-import { SvgIcon } from '@/components/Icon/index'
+import { AccountSubListDisplay } from '@/model/account'
 import HeadNav from '@/components/HeadNav'
-import { dispatchPreferenceAddNewAccount } from '@/dispatch/preference'
 import { useNavigate, useLocation } from "react-router-dom";
+import {Dispatch} from "redux";
+import store from "@/store";
+import {setCurrentAccount} from "@/store/preferenceSlice";
 
 const SwitchUpdate = () => {
-
     const navigate = useNavigate();
+    const dispatch: Dispatch = store.dispatch;
     const { state } = useLocation();
-
-    const [id] = useState<string>(state!.id)
-    const [isActive] = useState<string>(state!.isActive)
-    const [account] = useState<{ name: string, index: number, address: string }>(state!.account)
+    const [path] = useState<number>(state!.path)
+    const [account] = useState<AccountSubListDisplay>(state!.account)
+    const [title, setTitle] = useState<string>('')
     const [name, setName] = useState<string>('')
 
+    useEffect(() => {
+        let subAccount = account.drive.find(r => r.path == path)
+        setTitle(subAccount?.name || "")
+    }, []);
+
     const submit = async () => {
-        await Keyring.setAccountName(id, account.index, name)
-        if (isActive) {
-            return dispatchPreferenceAddNewAccount().then(_ => {
-                navigate(-1)
-            })
+        await Keyring.setSubAccountName(account.id, path, name)
+        if (account.path == path) {
+            dispatch(setCurrentAccount(await Keyring.getActiveAccountDisplay()));
         }
         navigate(-1)
     }
 
     return (
         <article className="page-box">
-            <HeadNav title={account.name}></HeadNav>
+            <HeadNav title={ title }></HeadNav>
             <div className="content-main page-edit-box">
                 <Input
                     className="kiwi-input"

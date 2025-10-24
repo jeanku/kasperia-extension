@@ -1,7 +1,9 @@
 import { Chrome } from '@/chrome/chrome'
 import { Network, KasPrice } from '@/model/account'
 import { TokenList, Oplist, } from '@/model/krc20'
-import { Transaction } from '@/model/kaspa'
+import { KaspaTransaction } from '@/utils/wallet/kaspa'
+import {EvmTokenList} from "@/model/evm";
+import {AccountDisplay} from "@/model/wallet";
 
 export class Preference extends Chrome {
 
@@ -13,7 +15,7 @@ export class Preference extends Chrome {
         return Chrome.request({ action: "Preference.setNetwork", network })
     }
 
-    static getCurrentAccount(): Promise<any> {
+    static getCurrentAccount(): Promise<AccountDisplay> {
         return Chrome.request({ action: "Preference.getCurrentAccount" })
     }
 
@@ -37,12 +39,16 @@ export class Preference extends Chrome {
         return Chrome.request({ action: "Preference.getKrc20OpList" })
     }
 
-    static setKaspaTxList(data: Transaction[]): Promise<any> {
+    static setKaspaTxList(data: KaspaTransaction[]): Promise<any> {
         return Chrome.request({ action: "Preference.setKaspaTxList", data: data })
     }
 
     static getKaspaTxList(): Promise<any> {
         return Chrome.request({ action: "Preference.getKaspaTxList" })
+    }
+
+    static setEvm20TokenList(chainId: string, data: EvmTokenList[]): Promise<void> {
+        return Chrome.request({ action: "Preference.setEvm20TokenList", chainId, data })
     }
 
     static getAll(): Promise<any> {
@@ -83,5 +89,9 @@ export class Preference extends Chrome {
 
     static setContractAddress(data: Record<string, string>): Promise<any> {
         return Chrome.request({ action: "Preference.setContractAddress", data })
+    }
+
+    static setIndex(index: string) {
+        return Chrome.request({ action: "Preference.setIndex", index })
     }
 }

@@ -1,14 +1,9 @@
 import {Oplist, TokenList } from '@/model/krc20'
-import { Transaction } from '@/model/kaspa'
-import { Wallet, AccountDisplay } from '@/model/wallet'
-
-// export type TokenList = {
-//     balance: string,
-//     dec: string
-//     locked: string
-//     opScoreMod: string
-//     tick: string
-// }
+import { KaspaTransaction } from '@/utils/wallet/kaspa'
+import { Account, AccountDisplay } from '@/model/wallet'
+import { AccountType } from '@/types/enum';
+import { EvmTokenList } from "@/model/evm";
+import { NetworkType } from "@/utils/wallet/consensus";
 
 export type KeyRingAccess = {
     isBooted: boolean,
@@ -17,20 +12,14 @@ export type KeyRingAccess = {
 
 export type KeyRingAccount = {
     password: string,
-    account: Wallet[],
+    id: string,
+    account: Map<string, Account>,
 }
 
 export type KeyRingState = {
     booted: string,
     vault: string
 }
-
-// export type Krc20List = {
-//     tick: string,
-//     name: string,
-//     balance: string,
-//     dec: string
-// }
 
 export type AccountBalance = {
     address: string,
@@ -39,8 +28,7 @@ export type AccountBalance = {
 }
 
 export type Network = {
-    name: string,
-    networkId: number,
+    networkType: NetworkType,
     url: string,
 }
 
@@ -53,17 +41,27 @@ export type PreferenceState = {
     network: Network,
     currentAccount?: AccountDisplay,
     krc20TokenList?: TokenList[],
+    evmTokenList: Record<string, EvmTokenList[]>,
     krc20OpList?: Oplist[],
-    kaspaTxList?: Transaction[],
-    networkConfig?: Record<number, Network>,
+    kaspaTxList?: KaspaTransaction[],
+    networkConfig?: Partial<Record<NetworkType, Network>>,
     accountsBalance?: Record<string, string>,
     contractAddress?: Record<string, string>,
     lockTime: number,
     kasPrice?: KasPrice,
+    index?: string,
 }
 
-export type AddressListDisplay = {
+export type AccountSubListDisplay = {
+    id: string,
+    type: AccountType,
+    path: number,
+    drive: Array<{name: string, address: string, active: boolean, path: number}>,
+}
+
+
+export type AccountsSubListDisplay = {
     id: string,
     name: string,
-    drive: Array<{name: string, address: string, active: boolean, index: number}>,
+    drive: Array<{name: string, address: string, active: boolean, path: number}>,
 }

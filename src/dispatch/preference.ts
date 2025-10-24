@@ -1,10 +1,9 @@
-import { AccountDisplay, Wallet } from '@/model/wallet';
+import { AccountDisplay } from '@/model/wallet';
 import { Preference } from '@/chrome/preference';
 import { Keyring } from '@/chrome/keyring';
 import store from '@/store';
 import { Dispatch } from 'redux';
 import { setPreference, setCurrentAccount, setNetwork } from "@/store/preferenceSlice";
-import { Kiwi, Wasm } from '@kasplex/kiwi-web'
 import { Network } from '@/model/account';
 
 export async function dispatchPreference(refresh: boolean=false) {
@@ -22,7 +21,7 @@ export async function dispatchPreference(refresh: boolean=false) {
 
 export async function dispatchRefreshPreference(wallet: AccountDisplay) {
     try {
-        await Preference.setCurrentAccount(wallet)
+        Preference.setCurrentAccount(wallet)
         const dispatch: Dispatch = store.dispatch;
         return dispatch(setCurrentAccount(wallet));
     } catch (error) {
@@ -40,14 +39,11 @@ export async function dispatchPreferenceAddNewAccount() {
     }
 }
 
-export async function dispatchRefreshNetwork(network: Network, currentAccount: AccountDisplay) {
+export async function dispatchRefreshNetwork(network: Network) {
     try {
+        let account = await Preference.setNetwork(network)
         const dispatch: Dispatch = store.dispatch;
-        await Preference.setNetwork(network)
-        dispatch(setNetwork(network))
-        Kiwi.setNetwork(network.networkId)
-        let account = await Keyring.getActiveAccountAndSyncPreference()
-        return dispatch(setCurrentAccount(account));
+        return dispatch(setNetwork({network, account}))
     } catch (error) {
         console.error("Error dispatching network:", error);
     }

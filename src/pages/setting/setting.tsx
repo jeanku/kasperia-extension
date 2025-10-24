@@ -3,12 +3,13 @@ import HeadNav from '@/components/HeadNav'
 import Footer from '@/components/Footer'
 import { useNavigate } from "react-router-dom";
 import { Keyring } from "@/chrome/keyring"
-import { Kiwi } from '@kasplex/kiwi-web'
 import { SvgIcon } from '@/components/Icon/index'
 import { openUrl } from '@/utils/util'
+import {useSelector} from "react-redux";
+import {RootState} from "@/store";
 const Setting = () => {
     const navigate = useNavigate();
-
+    const { preference} = useSelector((state: RootState) => state.preference);
     const [isPopUp, setIsPopUp] = useState(true);
     const lockFn = () => {
         Keyring.lock()
@@ -33,7 +34,7 @@ const Setting = () => {
                             <div className="list-item-left">
                                 <strong>Expand view</strong>
                             </div>
-                            <SvgIcon iconName="IconExpand" />
+                            <SvgIcon iconName="IconExpand"/>
                         </div>
                     ) : null
                 }
@@ -42,22 +43,36 @@ const Setting = () => {
                         <strong>Address Book</strong>
                         <span>Add frequently used addresses</span>
                     </div>
-                    <SvgIcon iconName="arrowRight" />
+                    <SvgIcon iconName="arrowRight"/>
+                </div>
+
+                <div className="list-item-box" onClick={() => navigate('/setting/connectSite')}>
+                    <div className="list-item-left">
+                        <strong>Connected Site</strong>
+                    </div>
+                    <SvgIcon iconName="arrowRight"/>
                 </div>
 
                 <div className="list-item-box" onClick={() => navigate('/network/index')}>
                     <div className="list-item-left">
-                        <strong>Network</strong>
-                        <span>{Kiwi.getNetworkID()}</span>
+                        <strong>Kaspa Network</strong>
+                        <span>{preference.network.networkType}</span>
                     </div>
-                    <SvgIcon iconName="arrowRight" />
+                    <SvgIcon iconName="arrowRight"/>
+                </div>
+
+                <div className="list-item-box" onClick={() => navigate('/evm/list')}>
+                    <div className="list-item-left">
+                        <strong>EVM Network</strong>
+                    </div>
+                    <SvgIcon iconName="arrowRight"/>
                 </div>
 
                 <div className="list-item-box" onClick={() => navigate('/setting/more')}>
                     <div className="list-item-left">
                         <strong>More options</strong>
                     </div>
-                    <SvgIcon iconName="arrowRight" />
+                    <SvgIcon iconName="arrowRight"/>
                 </div>
 
                 <div className="list-item-box">
@@ -65,11 +80,12 @@ const Setting = () => {
                 </div>
                 <div className="otth-icon">
                     <div className="otth-icon-box">
-                        {/* <SvgIcon className="cursor-pointer" size={20} iconName="IconDiscord" /> */}
-                        <SvgIcon className="cursor-pointer" onClick={ () => openUrl('https://x.com/KasperiaWallet')} size={20} iconName="IconTwitter" />
-                        {/* <SvgIcon className="cursor-pointer" size={20} iconName="IconGithub" /> */}
+                         {/*<SvgIcon className="cursor-pointer" size={20} iconName="IconDiscord" />*/}
+                        <SvgIcon className="cursor-pointer" onClick={() => openUrl('https://x.com/KasperiaWallet')}
+                                 size={20} iconName="IconTwitter"/>
+                         <SvgIcon className="cursor-pointer" size={20} iconName="IconGithub" onClick={() => openUrl('https://github.com/jeanku/kasperia-extension')} />
                     </div>
-                    <p>version 0.0.1</p>
+                    <p>version 1.10.30</p>
                 </div>
             </div>
             <Footer></Footer>

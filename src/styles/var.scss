@@ -22,6 +22,10 @@ $bg-color-f3d: #3d3d3d;
 $bg-tab-op2: rgba(255, 255, 255, 0.2);
 $border-select-color: #53CF39;
 $border-color-666: #666666;
+$bg-color-fff-4: rgba(255, 255, 255, 0.04);
+$bg-color-fff-6: rgba(255, 255, 255, 0.06);
+$bg-color-fff-8: rgba(255, 255, 255, 0.08);
+$bg-color-fff-10: rgba(255, 255, 255, 0.1);
 
 $text-color: #FFFFFF;
 $text-color-secondary: #D8D8D8;
@@ -42,7 +46,7 @@ $border-radius: 6px;
     margin: 0 auto;
 }
 %page-top {
-    padding-top: 52px;
+    padding-top: 56px;
 }
 
 %input-box {
@@ -85,12 +89,24 @@ $border-radius: 6px;
         &:hover {
             background-color: $bg-color-hover;
         }
+        .adm-image,
+        .list-link-del {
+            flex-shrink: 0;
+        }
+        .list-item-icon {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            margin-right: 15px;
+            border-radius: 6px;
+        }
         .list-item-left {
             display: flex;
             flex-flow: column;
             strong {
                 display: block;
                 font-weight: bold;
+                width: 206px;
                 font-size: 16px;
             }
             span {
@@ -125,6 +141,13 @@ $border-radius: 6px;
         }
     }
 }
+.list-link-box {
+    display: flex;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    align-items: start;
+}
 
 %coin-item {
     padding: 13px 16px;
@@ -139,6 +162,16 @@ $border-radius: 6px;
     cursor: pointer;
     &:hover {
         background-color: $bg-color-block;
+    }
+    .coin-item-icon {
+        width: 44px;
+        height: 44px;
+        line-height: 44px;
+        border-radius: 50%;
+        text-align: center;
+        background-color: $border-color-666;
+        font-size: 16px;
+        margin-right: 10px;
     }
     .coin-item-info {
         flex: 2;
@@ -160,11 +193,29 @@ $border-radius: 6px;
             font-weight: 500;
         }
     }
-    .coin-item-price {
+    .coin-item-price,
+    .coin-item-network  {
         display: flex;
         justify-content: space-between;
         align-items: center;
         color: $text-color-desc;
         font-size: 16px;
+    }
+    .coin-item-network {
+        font-size: 12px;
+        em:first-child {
+            display: inline-block;
+            margin-right: 10px;
+        }
+    }
+    &.selected { 
+        .coin-item-info,
+        .coin-item-name span:last-child,
+        .coin-item-network {
+            color: $primary-color;
+        }
+        .coin-item-icon {
+            background-color:  $primary-color;
+        }
     }
 }

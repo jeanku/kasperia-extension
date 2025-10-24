@@ -1,21 +1,23 @@
-import { createSlice } from "@reduxjs/toolkit";
-import { AccountDisplay } from '@/model/wallet';
+import {createSlice, PayloadAction} from "@reduxjs/toolkit";
+import { Preference } from "@/chrome/preference";
 
 const userSlice = createSlice({
     name: "user",
     initialState: {
-        account: null as AccountDisplay | null,
-        accountList: [] as AccountDisplay[],
+        homeSelectTab: "",
     },
     reducers: {
-        setAccount: (state, action) => {
-            state.account = action.payload;
+        setHomeSelectTabValue: (state, action: PayloadAction<string>) => {
+            if (state.homeSelectTab != action.payload) {
+                Preference.setIndex(action.payload)
+            }
+            state.homeSelectTab = action.payload;
         },
-        // setAccountList: (state, action) => {
-        //     state.accountList = action.payload;
-        // },
     },
 });
 
-export const { setAccount } = userSlice.actions;
+export const {
+    setHomeSelectTabValue,
+} = userSlice.actions;
+
 export default userSlice.reducer;

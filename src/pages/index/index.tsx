@@ -4,8 +4,10 @@ import { Button } from "antd-mobile";
 import logoImg from '@/assets/images/logo512.png';
 import { Boost } from "./boost"
 import { Explore } from "./explore"
+import { ShareAdd } from "./shareAdd"
 import { Home } from "./home"
 import { Nopage } from "./404"
+
 const Index = () => {
     const navigate = useNavigate();
 
@@ -41,4 +43,4 @@ const Index = () => {
 }
 
 
-export { Index, Boost, Explore, Home, Nopage }
+export { Index, Boost, Explore, Home, Nopage, ShareAdd }

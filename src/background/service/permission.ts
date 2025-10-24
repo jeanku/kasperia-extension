@@ -43,7 +43,7 @@ class PermissionService {
           v: item.v,
           e: 0
         }));
-        await this.lruCache.load(cache);
+        this.lruCache.load(cache);
       }
     }
   }
@@ -55,18 +55,18 @@ class PermissionService {
   }
 
   async getWithoutUpdate(key: string) {
-    this.load()
+    await this.load()
     if (!this.lruCache) return;
     return this.lruCache.peek(key);
   }
 
   async getSite(origin: string) {
-    this.load()
+    await this.load()
     return this.lruCache?.get(origin);
   }
 
   async setSite(site: ConnectedSite) {
-    this.load()
+    await this.load()
     if (!this.lruCache) return;
     this.lruCache.set(site.origin, site);
     this.sync();
@@ -88,14 +88,14 @@ class PermissionService {
   }
 
   async touchConnectedSite(origin: string) {
-    this.load()
+    await this.load()
     if (!this.lruCache) return;
     this.lruCache.get(origin);
     this.sync();
   }
 
   async updateConnectSite (origin: string, value: Partial<ConnectedSite>, partialUpdate?: boolean) {
-    this.load()
+    await this.load()
     if (!this.lruCache || !this.lruCache.has(origin)) return;
     if (partialUpdate) {
       const _value = this.lruCache.get(origin);
@@ -110,7 +110,6 @@ class PermissionService {
     await this.load()
     if (!this.lruCache) return;
     const site = this.lruCache.get(origin);
-
     return site && site.isConnected;
   }
 

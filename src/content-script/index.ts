@@ -5,7 +5,6 @@ let channelName = 'kasperiaChannel';
 
 function injectScript(): void {
     try {
-        console.log("injectScript...")
         const container = document.head || document.documentElement;
         const scriptTag = document.createElement('script');
         scriptTag.setAttribute('async', 'false');
@@ -16,7 +15,6 @@ function injectScript(): void {
         const pm = new PortMessage().connect();
         const bcm = new BroadcastChannelMessage(channelName).listen(
             (data: any) => {
-                console.log("bcm -> port request:", {...data, "port": true})
                 return pm.request({...data, "port": true})
             });
 
@@ -112,9 +110,8 @@ function shouldInjectProvider() {
     return doctypeCheck() && suffixCheck() && documentElementCheck() && !blockedDomainCheck() && !iframeCheck();
 }
 
-// if (shouldInjectProvider()) {
-//     injectScript();
-// }
+if (shouldInjectProvider()) {
+    injectScript();
+}
 
-injectScript();
 export {}

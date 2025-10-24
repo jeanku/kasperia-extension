@@ -1,22 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import { Radio, Space, Checkbox, Button, Input } from 'antd-mobile'
 import { useNotice } from '@/components/NoticeBar/NoticeBar'
-import { Wallet as WalletModel } from '@/model/wallet'
 import { Keyring } from '@/chrome/keyring'
-import { AccountType } from '@/types/enum'
 import { SvgIcon } from '@/components/Icon/index'
 import HeadNav from '@/components/HeadNav'
 import { useClipboard } from '@/components/useClipboard'
-import { dispatchPreferenceAddNewAccount, dispatchPreference } from "@/dispatch/preference"
+import { dispatchRefreshPreference, dispatchPreference } from "@/dispatch/preference"
 import { useLocation, useNavigate } from "react-router-dom";
-
-import { Mnemonic as KiwiMnemonic, Wallet, Kiwi, Wasm } from '@kasplex/kiwi-web'
+import { Wallet } from '@/utils/wallet/wallet'
+import { ChainPath } from '@/types/enum'
+import {useSelector} from "react-redux";
+import {RootState} from "@/store";
+import {NetworkType} from "@/utils/wallet/consensus";
 
 const RandomMnemonic = () => {
     const navigate = useNavigate();
     const { state } = useLocation();
     const { noticeError } = useNotice();
     const { handleCopy } = useClipboard();
+    const { preference } = useSelector((state: RootState) => state.preference);
 
     const [mnemonic12Value, setMnemonic12Value] = useState<string[]>([]);
     const [mnemonic24Value, setMnemonic24Value] = useState<string[]>([]);
@@ -26,12 +28,11 @@ const RandomMnemonic = () => {
     const [checked, setChecked] = useState(false)
 
     const [passphrase, setPassphrase] = useState(false)
+    const [isNew] = useState<boolean>(state?.isNew || false)
 
     const [pwdValue, setPwdValue] = useState('')
     const [stepValue, setStepValue] = useState(1)
     const [btnLoading, setBtnLoading] = useState(false)
-
-    const [isNew] = useState<string>(state?.new || "")
 
     const visablePassphrase = passphrase ? 'visable' : 'hidden'
 
@@ -42,7 +43,7 @@ const RandomMnemonic = () => {
     const mnemonic = mnemonicLength === 12 ? mnemonic12Value : mnemonic24Value
 
     const randomMnemonic = (length: number) => {
-        return KiwiMnemonic.random(length).split(" ")
+        return Wallet.generateMnemonic(length == 12 ? 12 : 24 ).split(" ")
     }
 
     const handleStepValue = (value: number) => {
@@ -70,19 +71,11 @@ const RandomMnemonic = () => {
     }
 
     const showAddress = () => {
-        if (mnemonicLength === 12) {
-            if (mnemonic12Value.length === 0) {
-                return ""
-            }
-            let wallet = Wallet.fromMnemonic(mnemonic12Value.join(" "), pwdValue)
-            return wallet.toAddress(Kiwi.network).toString()
-        } else {
-            if (mnemonic24Value.length === 0) {
-                return ""
-            }
-            let wallet = Wallet.fromMnemonic(mnemonic24Value.join(" "), pwdValue)
-            return wallet.toAddress(Kiwi.network).toString()
-        }
+        let mnemonic = mnemonicLength == 12 ? mnemonic12Value : mnemonic24Value
+        if (mnemonic.length == 0) return ""
+        let networkType = preference.network ? preference.network.networkType : NetworkType.Mainnet
+        let wallet = Wallet.fromMnemonic(mnemonic.join(" "), ChainPath.KaspaPath + "0", pwdValue)
+        return wallet.toKaspaAddress(networkType).toString()
     }
 
     const goBack = () => {
@@ -95,30 +88,14 @@ const RandomMnemonic = () => {
     const createAccount = async () => {
         try {
             let mnemonic = (mnemonicLength === 12 ? mnemonic12Value : mnemonic24Value).join(" ")
-            let wallet = Wallet.fromMnemonic(mnemonic, pwdValue)
-            let privateKey = wallet.toPrivateKey().toString()
-            let _wallet: WalletModel = {
-                id: "",
-                mnemonic: mnemonic,
-                name: "",
-                priKey: privateKey.toString(),
-                pubKey: wallet.toPublicKey().toString(),
-                index: 0,
-                active: true,
-                passphrase: pwdValue,
-                type: AccountType.Mnemonic,
-                accountName: ""
-            }
             setBtnLoading(true)
-            await Keyring.addWallet(_wallet)
+            let account = await Keyring.addAccountFromMnemonic(mnemonic, pwdValue)
             if (isNew) {
                 dispatchPreference().then(r => {
-                    setBtnLoading(false)
                     navigate('/home')
                 })
             } else {
-                dispatchPreferenceAddNewAccount().then(r => {
-                    setBtnLoading(false)
+                dispatchRefreshPreference(account).then(r => {
                     navigate('/home')
                 })
             }
@@ -142,7 +119,7 @@ const RandomMnemonic = () => {
     return (
         <div className="page-box">
             <HeadNav title="Create a new HD Wallet" onBack={() => goBack()}></HeadNav>
-            <article className="page-mnemonic">
+            <article className={ mnemonicLength === 12 ? "page-mnemonic page-from-seed" : "page-mnemonic page-from-seed pb60" }>
                 <div className="page-btn-tab">
                     <div className={`btn-tab-item ${stepValue === 1 ? 'active' : ''}`} onClick={() => setStepValue(1)}>Step 1</div>
                     <div className={`btn-tab-item ${stepValue === 2 ? 'active' : ''}`}>Step 2</div>
@@ -191,7 +168,7 @@ const RandomMnemonic = () => {
                             <SvgIcon iconName="refresh" offsetStyle={{marginLeft: '5px'}} />
                         </div>
                     </div>
-                    <div className="page-grid mb20">
+                    <div className="page-grid mb12">
                         {gridList}
                     </div>
                     <div className="page-check">
@@ -201,8 +178,8 @@ const RandomMnemonic = () => {
                             >I saved my seed phrase</Checkbox>
                         </Space>
                     </div>
-                    <div className="page-content mb20">
-                        <Button block size="large" color="primary" disabled={!checked} onClick={() => handleStepValue(2)}>
+                    <div className="btn-pos-two flexd-row post-bottom">
+                        <Button block size="large" color="primary" className='adm-button-primary' disabled={!checked} onClick={() => handleStepValue(2)}>
                             Continue
                         </Button>
                     </div>
@@ -247,7 +224,7 @@ const RandomMnemonic = () => {
                                 </p>
                             </div>
                         </div>
-                        <div className="mnemonic-btn-pos">
+                        <div className="btn-pos-two flexd-row post-bottom">
                             <Button block size="large" loading={btnLoading} loadingText={'Continue'} color="primary" onClick={() => createAccount()}>
                                 Continue
                             </Button>

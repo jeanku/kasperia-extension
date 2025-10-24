@@ -2,19 +2,20 @@ import React from "react"
 import { useNavigate } from "react-router-dom";
 import HeadNav from '@/components/HeadNav'
 import { Button, Input } from 'antd-mobile'
-import { Wallet as WalletModel } from '@/model/wallet'
 import { Keyring } from '@/chrome/keyring'
-import { Kiwi, Wallet } from '@kasplex/kiwi-web'
-import { AccountType } from '@/types/enum'
+import { Keypair } from '@/utils/wallet/wallet'
 import { SvgIcon } from '@/components/Icon/index'
 import { useNotice } from '@/components/NoticeBar/NoticeBar'
 import { useClipboard } from '@/components/useClipboard'
-import { dispatchPreferenceAddNewAccount } from "@/dispatch/preference"
+import { dispatchRefreshPreference } from "@/dispatch/preference"
+import {useSelector} from "react-redux";
+import {RootState} from "@/store";
 
 const FromPrivatekey = () => {
     const { noticeError } = useNotice();
     const { handleCopy } = useClipboard();
     const navigate = useNavigate();
+    const { preference } = useSelector((state: RootState) => state.preference);
 
     const [privateKey, setPrivateKey] = React.useState('')
     const [stepValue, setStepValue] = React.useState(1)
@@ -26,8 +27,8 @@ const FromPrivatekey = () => {
             if (privateKey === "") {
                 return true
             }
-            let wallet = Wallet.fromPrivateKey(privateKey)
-            let _address = wallet.toAddress(Kiwi.network).toString()
+            let keypair = Keypair.fromPrivateKeyHex(privateKey)
+            let _address = keypair.toAddress(preference.network.networkType).toString()
             if (address !== _address) {
                 setAddress(_address)
             }
@@ -40,27 +41,13 @@ const FromPrivatekey = () => {
 
     const createAccount = async () => {
         try {
-            let wallet = Wallet.fromPrivateKey(privateKey)
-            let _wallet: WalletModel = {
-                id: "",
-                mnemonic: "",
-                name: "",
-                priKey: wallet.toPrivateKey().toString(),
-                pubKey: wallet.toPublicKey().toString(),
-                index: 0,
-                active: true,
-                type: AccountType.PrivateKey,
-                accountName: ""
-            }
             setBtnLoading(true)
-            await Keyring.addWallet(_wallet)
-            dispatchPreferenceAddNewAccount().then(r => {
-                setBtnLoading(false)
+            let account = await Keyring.addAccountFromPrivateKey(privateKey)
+            dispatchRefreshPreference(account).then(r => {
                 navigate('/home')
             })
         } catch (error) {
-            let content = error instanceof Error ? error.message : 'system error.';
-            noticeError(content);
+            noticeError(error);
             setBtnLoading(false)
         }
     }
@@ -85,7 +72,7 @@ const FromPrivatekey = () => {
                             />
                         </div>
                     </article>
-                    <div className="mnemonic-btn-pos">
+                    <div className="btn-pos-two flexd-row post-bottom">
                         <Button block size="large" color="primary" disabled={submitDisabledKey()} onClick={() => setStepValue(2)}>
                             Continue
                         </Button>
@@ -104,7 +91,7 @@ const FromPrivatekey = () => {
                                 <span>{address}</span>
                             </div>
                         </div>
-                        <div className="mnemonic-btn-pos">
+                        <div className="btn-pos-two flexd-row post-bottom">
                             <Button block size="large" loading={btnLoading} loadingText={'Continue'} color="primary" onClick={() => createAccount()}>
                                 Continue
                             </Button>

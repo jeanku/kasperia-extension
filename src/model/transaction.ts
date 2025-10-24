@@ -1,16 +1,9 @@
 import { TokenList } from '@/model/krc20'
-import {Transaction} from '@/model/kaspa'
-
-// export type SendTx = {
-//     tick: string,
-//     amount: string,
-//     dec: number
-// }
 
 export type SubmitSendTx =  {
     address: string,
     amount: bigint,
-    payload: string,
+    payload: string | undefined,
     token: TokenList,
 }
 

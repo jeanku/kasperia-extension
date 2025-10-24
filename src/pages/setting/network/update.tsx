@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react"
 import HeadNav from '@/components/HeadNav'
 import { dispatchRefreshNetwork } from '@/dispatch/preference'
 import { useNotice } from '@/components/NoticeBar/NoticeBar'
-import { dispatchRpcConnect } from '@/dispatch/rpcclient'
+// import { dispatchRpcConnect } from '@/dispatch/rpcclient'
 import LoadingMask from '@/components/LoadingMask'
 import { useSelector } from "react-redux";
 import { RootState } from '@/store';
@@ -12,7 +12,7 @@ import { Network } from "@/model/account"
 import { Preference } from '@/chrome/preference'
 import { Button, Input } from "antd-mobile";
 import { useLocation } from 'react-router-dom'
-import { setRpcClient } from "@/store/rpcSlice";
+// import { setRpcClient } from "@/store/rpcSlice";
 import store from '@/store';
 import { Dispatch } from 'redux';
 
@@ -39,12 +39,12 @@ const NetworkUpdate = () => {
             let networkConfig = await Preference.setNetworkConfig(network);
             if (state.isChecked) {
                 const dispatch: Dispatch = store.dispatch;
-                dispatch(setRpcClient(null));
+                // dispatch(setRpcClient(null));
 
                 setMaskVisible(true)
                 dispatch(setNetworkConfigSlice(networkConfig))
-                dispatchRefreshNetwork(network, preference?.currentAccount!);
-                await dispatchRpcConnect(network)
+                // dispatchRefreshNetwork(network, preference?.currentAccount!);
+                // await dispatchRpcConnect(network)
             } else {
                 dispatch(setNetworkConfigSlice(networkConfig))
             }
@@ -57,7 +57,7 @@ const NetworkUpdate = () => {
     }
     return (
         <article className="page-box">
-            <HeadNav title={network.name}></HeadNav>
+            <HeadNav title={network.networkType}></HeadNav>
             <div className="content-main list-box">
                 <div className="password">
                     <Input

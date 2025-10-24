@@ -4,20 +4,22 @@ import { Button } from 'antd-mobile'
 import { SvgIcon } from '@/components/Icon/index'
 import { useLocation } from 'react-router-dom'
 import { SubmitSendTx } from '@/model/transaction'
-import { Kiwi } from '@kasplex/kiwi-web'
 import { KaspaExplorerUrl } from '@/types/enum'
-
 import IconSuccess from '@/assets/images/icon-success.png'
 import '@/styles/transaction.scss'
+import {NetworkType} from "@/utils/wallet/consensus";
+import {useSelector} from "react-redux";
+import {RootState} from "@/store";
 
 const DeployResult = () => {
     const navigate = useNavigate();
     const { state } = useLocation()
-
+    const { preference } = useSelector((state: RootState) => state.preference);
     const [txid] = useState<SubmitSendTx>(state?.txid)
 
     const openTxExplorer = () => {
-        const networkName = Kiwi.network === 0 ? 'Mainnet' : 'Testnet';
+        if(!txid) return
+        const networkName = preference.network.networkType === NetworkType.Mainnet ? 'Mainnet' : 'Testnet';
         window.open(`${KaspaExplorerUrl[networkName]}${txid}`);
     }
 
@@ -27,8 +29,6 @@ const DeployResult = () => {
                 <div className='send-result-txt'>
                     <img className='result-img' src={IconSuccess} alt="success" />
                     <h6>Sent</h6>
-                    {/*<p className='send-result-p'>{formatBalance(submitTx.amount.toString(), submitTx.dec)} {submitTx.tick} was successfully sent to</p>*/}
-                    {/*<p className='send-result-p'>{formatAddress(submitTx.address, 12)}</p>*/}
                     <p className='send-result-share' onClick={() => openTxExplorer()}><SvgIcon color="#74E6D8" offsetStyle={{marginRight: '6px'}} iconName="IconShare" />View transaction</p>
                 </div>
                 <div className="btn-pos-two">

@@ -3,24 +3,26 @@ import HeadNav from '@/components/HeadNav'
 import { AccountDisplay } from "@/model/wallet"
 import { Button, Input } from 'antd-mobile'
 import { Keyring } from '@/chrome/keyring';
-import { dispatchRefreshPreference } from "@/dispatch/preference"
 import { useNavigate, useLocation } from "react-router-dom";
+import {Dispatch} from "redux";
+import store from "@/store";
+import {setCurrentAccount} from "@/store/preferenceSlice";
 
 const EditName = () => {
     const navigate = useNavigate();
+    const dispatch: Dispatch = store.dispatch;
     const state = useLocation();
     const [name, setName] = useState('')
-    const [account] = useState<AccountDisplay>(state?.state.account)
+    const [account] = useState<AccountDisplay>(state!.state.account)
 
     const submitDisable = () => {
         return name.trim() === ''
     }
 
     const submitName = () => {
-        Keyring.setWalletName(account.id, name).then(_ => {
+        Keyring.setAccountName(account.id, name).then(_ => {
             if (account.active) {
-                account.name = name
-                dispatchRefreshPreference(account)
+                dispatch(setCurrentAccount({ ...account, name}))
             }
             navigate(-1)
         })

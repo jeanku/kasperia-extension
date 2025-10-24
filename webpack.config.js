@@ -69,18 +69,6 @@ module.exports = (env, argv) => {
                     generator: {
                         filename: 'media/[name][ext]'
                     }
-                },
-                {
-                    test: /\.wasm$/,
-                    type: 'asset/inline',
-                    use: [{
-                        loader: 'wasm-loader',
-                        options: {}
-                    }]
-                },
-                {
-                    test: /\.js$/,
-                    exclude: /node_modules\/(?!(@kasplex)\/).*/
                 }
             ],
         },
@@ -90,11 +78,18 @@ module.exports = (env, argv) => {
                 template: './index.html',
                 filename: 'index.html',
                 inject: 'body',
-                chunks: ['main']
+                chunks: ['main'],
+                minify: {
+                    collapseWhitespace: true,
+                    removeComments: true,
+                    removeRedundantAttributes: true,
+                    useShortDoctype: true,
+                }
             }),
             new MiniCssExtractPlugin({
                 filename: 'css/[name].css'
             }),
+
             new CopyWebpackPlugin({
                 patterns: [
                     {
@@ -112,11 +107,7 @@ module.exports = (env, argv) => {
                     {
                         from: 'src/assets/images/icon128.png',
                         to: 'media/icon128.png'
-                    },
-                    {
-                        from: 'node_modules/@kasplex/kiwi-web/dist/kaspa_bg.wasm',
-                        to: 'kaspa_bg.wasm'
-                    },
+                    }
                 ]
             })
         ],
@@ -125,14 +116,6 @@ module.exports = (env, argv) => {
                 {
                     directory: path.join(__dirname, 'build'),
                     publicPath: '/'
-                },
-                {
-                    directory: path.join(__dirname, 'public'),
-                    publicPath: '/'
-                },
-                {
-                    directory: path.join(__dirname, 'node_modules/@kasplex/kiwi-web/dist'),
-                    publicPath: '/node_modules/@kasplex/kiwi-web/dist'
                 }
             ],
             client: {
@@ -163,9 +146,9 @@ module.exports = (env, argv) => {
                 new TerserPlugin({
                     terserOptions: {
                         mangle: false,
-                        // compress: {
-                        //     drop_console: true
-                        // }
+                        compress: {
+                            drop_console: true
+                        }
                     },
                     extractComments: false,
                 })
@@ -174,11 +157,5 @@ module.exports = (env, argv) => {
         experiments: {
             asyncWebAssembly: true,
         },
-        ignoreWarnings: [
-            {
-                module: /@kasplex\/kiwi-web/,
-                message: /Critical dependency: the request of a dependency is an expression/
-            }
-        ],
     }
 }

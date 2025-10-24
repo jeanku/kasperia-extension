@@ -1,5 +1,5 @@
 import React, { useState, KeyboardEvent } from "react";
-import { Button, Input, Mask, Checkbox, Space } from "antd-mobile";
+import { Button, Input, Mask } from "antd-mobile";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Keyring } from '@/chrome/keyring'
 import { SvgIcon } from '@/components/Icon/index'
@@ -36,8 +36,7 @@ const Unlock = () => {
                 navigate(redirectUrl, { replace: true });
             })
         } catch (error) {
-            let content = error instanceof Error ? error.message : 'password error.';
-            noticeError(content);
+            noticeError(error);
         }
     };
 
@@ -49,7 +48,6 @@ const Unlock = () => {
     }
 
     const cancel = () => {
-        console.log("cancel:", checkClear, checkBackups,  checkReversible)
         setVisibleMask(false)
         setCheckBackups(false)
         setCheckClear(false)

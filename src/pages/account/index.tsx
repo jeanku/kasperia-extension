@@ -1,24 +1,23 @@
-import React, { useState, useEffect, useMemo } from "react"
+import React, { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom";
 import { Mask, Button, Popover } from 'antd-mobile'
 import { Action } from 'antd-mobile/es/components/popover'
 import HeadNav from '@/components/HeadNav'
 import { Keyring } from "@/chrome/keyring"
+import { Account } from "@/chrome/account"
 import { AccountType } from "@/types/enum"
-import { Preference } from "@/chrome/preference"
-import { dispatchRefreshPreference } from "@/dispatch/preference"
-import { setAccountsBalance } from "@/store/preferenceSlice";
+import {setAccountBalance as setAccountBalanceSlice, setCurrentAccount} from "@/store/preferenceSlice";
 import { formatAddress, formatBalance } from "@/utils/util"
 import { AccountDisplay } from "@/model/wallet"
-import { isEqual } from 'lodash';
 import { SvgIcon } from '@/components/Icon/index'
 import store from '@/store';
 import { Dispatch } from 'redux';
-
 import { useSelector } from "react-redux";
 import { RootState } from '@/store';
 import { useNotice } from '@/components/NoticeBar/NoticeBar'
-import { Wasm, Kiwi } from '@kasplex/kiwi-web'
+import {
+    setAccountsBalance
+} from "@/store/preferenceSlice";
 
 import RemoveInset from '@/assets/images/remove-img.png'
 
@@ -26,49 +25,40 @@ import RemoveInset from '@/assets/images/remove-img.png'
 const Index = () => {
     const navigate = useNavigate();
     const { noticeSuccess, noticeError } = useNotice();
+    const dispatch: Dispatch = store.dispatch;
+
+    const { preference} = useSelector((state: RootState) => state.preference);
 
     const [visibleMask, setVisibleMask] = useState(false)
 
     const [accountListData, setAccountListData] = useState<Array<AccountDisplay>>([])
 
-    const rpcClient = useSelector((state: RootState) => state.rpc.client);
-
     const [dealItemIndex, setDealItemIndex] = useState(0);
 
-    const { preference} = useSelector((state: RootState) => state.preference);
-
     const [accountKasBalance, setAccountKasBalance] = useState<Record<string, string>>(preference?.accountsBalance || {})
-    
-    const fetchWalletList = async () => {
-        let accounts: AccountDisplay[] = await Keyring.getWalletList();
-        accounts.map(account => {
-            account.address = new Wasm.PublicKey(account.pubKey).toAddress(Kiwi.network).toString()
-        })
-        setAccountListData(accounts)
-    };
-
-    useMemo(() => {
-        if (accountListData.length == 0 || !rpcClient?.isConnected) return
-        let addresses = accountListData.map(account => account.address)
-        rpcClient?.getBalancesByAddresses({
-            addresses: addresses
-        }).then((r: Wasm.IGetBalancesByAddressesResponse) => {
-            const balanceMap: Record<string, string> = r.entries.reduce(
-                (acc: { [x: string]: any; }, entry: Wasm.IBalancesByAddressesEntry) => {
-                    acc[entry.address.toString()] = entry.balance.toString();
-                    return acc;
-                }, {} as Record<string, string>);
-            if (!isEqual(balanceMap, preference?.accountsBalance)) {
-                Preference.setAccountsBalance(balanceMap)
-                setAccountKasBalance(balanceMap)
-
-                const dispatch: Dispatch = store.dispatch;
-                dispatch(setAccountsBalance(balanceMap))
-            }
-        })
-    }, [accountListData, rpcClient])
 
     useEffect(() => {
+        const fetchWalletList = async () => {
+            let accounts = await Keyring.getAccountList()
+            setAccountListData(accounts)
+            let addresses = accounts.map(r => r.address)
+            let { entries } = await Account.getAddressesBalance(addresses)
+
+            let hasChanged = false;
+            const newBalanceMap: Record<string, string> = {};
+            for (const { address, balance } of entries) {
+                const balanceStr = balance.toString();
+                if (!hasChanged && accountKasBalance[address] !== balanceStr) {
+                    hasChanged = true;
+                }
+                newBalanceMap[address] = balanceStr;
+            }
+
+            if (hasChanged) {
+                setAccountKasBalance(newBalanceMap)
+                dispatch(setAccountsBalance(newBalanceMap));
+            }
+        };
         fetchWalletList()
     }, []);
 
@@ -94,36 +84,31 @@ const Index = () => {
 
     const setAccountActive = async (index: number) => {
         if (accountListData[index].active) {
-            navigate(-1)
-            return
+            return navigate(-1)
         }
         let selectedAccount = accountListData[index]
-        Keyring.setActiveWallet(accountListData[index].id)
-
-        setAccountListData(accountListData.map(r => {
-            r.active = r.id == selectedAccount.id
-            return r
-        }))
+        Keyring.setActiveWallet(selectedAccount.id)
         selectedAccount.balance = accountKasBalance[selectedAccount.address] || "0"
-        dispatchRefreshPreference(selectedAccount).then(r => {
-            navigate(-1)
-        })
+        dispatch(setCurrentAccount(selectedAccount));
+        return navigate(-1)
     }
 
     const removeConfirm = async () => {
         setVisibleMask(false)
         if (accountListData.length === 1) {
-            noticeError("current wallet can't deleted")
-            return
+            return noticeError("current wallet can't deleted")
         }
         let account = accountListData[dealItemIndex]
-        await Keyring.removeWallet(account.id)
+        let selected = await Keyring.removeAccount(account.id)
         let accounts = accountListData.filter(r => {
             return r.id !== account.id
         })
         if (account.active) {
-            accounts[0].active = true
-            await dispatchRefreshPreference({...accounts[0]})
+            accounts.map(r => {
+                r.active = r.id == selected.id
+            })
+            selected.balance = accountKasBalance[selected.address] || "0"
+            dispatch(setCurrentAccount(selected));
         }
         setAccountListData(accounts)
         noticeSuccess("wallet deleted successfully")

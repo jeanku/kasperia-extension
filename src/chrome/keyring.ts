@@ -1,5 +1,7 @@
 import { Chrome } from '@/chrome/chrome'
-import { Wallet, Account } from '@/model/wallet'
+import { AccountDisplay } from '@/model/wallet'
+import { AccountSubListDisplay, AccountsSubListDisplay } from '@/model/account'
+import {AddressType} from "@/types/enum";
 
 export class Keyring {
 
@@ -27,23 +29,27 @@ export class Keyring {
         return Chrome.request({ action: "Keyring.unlock", password: password })
     }
 
-    static async addWallet(wallet: Wallet): Promise<any> {
-        return Chrome.request({ action: "Keyring.addWallet", wallet })
+    static addAccountFromPrivateKey(privateKey: string): Promise<AccountDisplay> {
+        return Chrome.request({ action: `Keyring.addAccountFromPrivateKey`, privateKey })
     }
 
-    static async removeWallet(id: string): Promise<any> {
-        return Chrome.request({ action: "Keyring.removeWallet", id })
+    static addAccountFromMnemonic(mnemonic: string, passphrase: string): Promise<AccountDisplay> {
+        return Chrome.request({ action: `Keyring.addAccountFromMnemonic`, mnemonic, passphrase })
+    }
+    
+    static async removeAccount(id: string): Promise<any> {
+        return Chrome.request({ action: "Keyring.removeAccount", id })
     }
 
     static async setActiveWallet(id: string): Promise<any> {
         return Chrome.request({ action: "Keyring.setActiveWallet", id })
     }
 
-    static async getActiveWalletKeys(): Promise<any> {
-        return Chrome.request({ action: "Keyring.getActiveWalletKeys" })
+    static async getActiveWalletPrivateKeyForKaspa(): Promise<any> {
+        return Chrome.request({ action: "Keyring.getActiveWalletPrivateKeyForKaspa" })
     }
 
-    static async getActiveAccountDisplay(): Promise<any> {
+    static async getActiveAccountDisplay(): Promise<AccountDisplay> {
         return Chrome.request({ action: "Keyring.getActiveAccountDisplay" })
     }
 
@@ -51,20 +57,20 @@ export class Keyring {
         return Chrome.request({ action: "Keyring.getActiveAccountAndSyncPreference" })
     }
 
-    static async getWalletList(): Promise<any> {
-        return Chrome.request({ action: "Keyring.getWalletList" })
+    static async getAccountList(): Promise<AccountDisplay[]> {
+        return Chrome.request({ action: "Keyring.getAccountList" })
     }
 
-    static async getWalletById(password: string, id: string): Promise<any> {
-        return Chrome.request({ action: "Keyring.getWalletById", password, id})
+    static async getActivePublicKey(): Promise<string> {
+        return Chrome.request({ action: "Keyring.getActivePublicKey" })
     }
 
     static async checkPassword(password: string): Promise<any> {
         return Chrome.request({ action: "Keyring.checkPassword", password: password })
     }
 
-    static async setWalletName(id: string, name: string): Promise<any> {
-        return Chrome.request({ action: "Keyring.setWalletName", id, name })
+    static async setAccountName(id: string, name: string): Promise<any> {
+        return Chrome.request({ action: "Keyring.setAccountName", id, name })
     }
 
     static async setNewPassword(password: string): Promise<any> {
@@ -75,25 +81,40 @@ export class Keyring {
         return Chrome.request({ action: "Keyring.clear" })
     }
 
-    static async getActiveWalletWithAccounts(): Promise<any> {
-        return Chrome.request({ action: "Keyring.getActiveWalletWithAccounts" })
+
+    static async addSubAccount(id: string, name: string): Promise<AccountDisplay> {
+        return Chrome.request({ action: "Keyring.addSubAccount", id, name })
     }
-    static async addDriveAccount(id: string, account: Account): Promise<any> {
-        return Chrome.request({ action: "Keyring.addDriveAccount", id, account })
+    static async switchSubAccount(id: string, path: number): Promise<any> {
+        return Chrome.request({ action: "Keyring.switchSubAccount", id, path })
     }
-    static async switchDriveAccount(id: string, index: number): Promise<any> {
-        return Chrome.request({ action: "Keyring.switchDriveAccount", id, index })
+
+    static async setSubAccountName(id: string, path: number, name:string): Promise<any> {
+        return Chrome.request({ action: "Keyring.setSubAccountName", id, path, name })
     }
-    static async setAccountName(id: string, index: number, name:string): Promise<any> {
-        return Chrome.request({ action: "Keyring.setAccountName", id, index, name })
+
+    static async removeSubAccount(id: string, path:number): Promise<AccountSubListDisplay> {
+        return Chrome.request({ action: "Keyring.removeSubAccount", id, path })
     }
-    static async getPrivateKey(password: string, id: string, index:number): Promise<any> {
+
+    static async getAccountSubAccountsDisplay(): Promise<AccountSubListDisplay> {
+        return Chrome.request({ action: "Keyring.getAccountSubAccountsDisplay" })
+    }
+
+    static async getAccountsSubListDisplay(type: AddressType|undefined = undefined): Promise<AccountsSubListDisplay[]> {
+        return Chrome.request({ action: "Keyring.getAccountsSubListDisplay", type })
+    }
+
+    
+    static async getMnemonic(password: string, id: string): Promise<any> {
+        return Chrome.request({ action: "Keyring.getMnemonic", password, id })
+    }
+
+    static async getPrivateKey(password: string, id: string, index:number): Promise<string[]> {
         return Chrome.request({ action: "Keyring.getPrivateKey", password, id, index })
     }
-    static async removeAccount(id: string, index:number): Promise<any> {
-        return Chrome.request({ action: "Keyring.removeAccount", id, index })
-    }
-    static async getAccountListDisplay(): Promise<any> {
-        return Chrome.request({ action: "Keyring.getAccountListDisplay" })
+
+    static async getActiveAddressForEvm(): Promise<any> {
+        return Chrome.request({ action: "Keyring.getActiveAddressForEvm" })
     }
 }

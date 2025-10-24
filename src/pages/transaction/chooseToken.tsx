@@ -4,7 +4,6 @@ import { SearchBar, Image } from 'antd-mobile'
 import { useNavigate } from "react-router-dom";
 import { RootState } from '@/store';
 import { useSelector } from "react-redux";
-import { KasplexApi } from '@kasplex/kiwi-web'
 import { formatBalance, formatHash } from '@/utils/util';
 import { TokenList } from '@/model/krc20';
 import { SvgIcon } from '@/components/Icon/index'
@@ -15,29 +14,29 @@ const ChooseToken = () => {
 
     const preference = useSelector((state: RootState) => state.preference.preference);
 
-    const rpcClient = useSelector((state: RootState) => state.rpc.client);
+    // const rpcClient = useSelector((state: RootState) => state.rpc.client);
     const [kasdata, setKasdata] = useState<Array<TokenList>>([{
         ca: '',
         locked: '',
         tick: 'KAS',
         name: 'KAS',
-        balance: preference?.currentAccount?.balance || "0",
+        balance: preference?.currentAccount?.balance.toString() || "0",
         dec: '8'
     }]);
 
     const [tokenList, setTokenList] = useState<Array<TokenList>>(preference?.krc20TokenList || []);
 
     const fetchTokenList = async () => {
-        KasplexApi.getAddressTokenList(preference?.currentAccount?.address || "").then((r: any) => {
-            let token = r.result.map((r: TokenList) => {
-                return {
-                    balance: r.balance,
-                    tick: r.tick,
-                    dec: r.dec
-                }
-            })
-            setTokenList(token)
-        });
+        // KasplexApi.getAddressTokenList(preference?.currentAccount?.address || "").then((r: any) => {
+        //     let token = r.result.map((r: TokenList) => {
+        //         return {
+        //             balance: r.balance,
+        //             tick: r.tick,
+        //             dec: r.dec
+        //         }
+        //     })
+        //     setTokenList(token)
+        // });
     };
 
     useEffect(() => {

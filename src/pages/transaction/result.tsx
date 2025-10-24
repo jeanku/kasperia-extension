@@ -5,21 +5,24 @@ import { SvgIcon } from '@/components/Icon/index'
 import { useLocation } from 'react-router-dom'
 import { SubmitSendTx } from '@/model/transaction'
 import { formatBalance, formatAddress } from '@/utils/util'
-import { Kiwi } from '@kasplex/kiwi-web'
-import { KaspaExplorerUrl } from '@/types/enum'
-
 import IconSuccess from '@/assets/images/icon-success.png'
 import '@/styles/transaction.scss'
+import {NetworkType} from "@/utils/wallet/consensus";
+import {KaspaExplorerUrl} from "@/types/enum";
+import {useSelector} from "react-redux";
+import {RootState} from "@/store";
 
 const Result = () => {
     const navigate = useNavigate();
     const { state } = useLocation()
+    const { preference } = useSelector((state: RootState) => state.preference);
+
     const [submitTx] = useState<SubmitSendTx>(state?.submitTx)
     const [txid] = useState<SubmitSendTx>(state?.txid)
 
     const openTxExplorer = () => {
         if(!txid) return
-        const networkName = Kiwi.network === 0 ? 'Mainnet' : 'Testnet';
+        const networkName = preference.network.networkType === NetworkType.Mainnet ? 'Mainnet' : 'Testnet';
         window.open(`${KaspaExplorerUrl[networkName]}${txid}`);
     }
 
@@ -29,8 +32,8 @@ const Result = () => {
                 <div className='send-result-txt'>
                     <img className='result-img' src={IconSuccess} alt="success" />
                     <h6>Sent</h6>
-                    <p className='send-result-p'>{formatBalance(submitTx.amount.toString(), submitTx.token.dec)} {submitTx.token.name} was successfully sent to</p>
-                    <p className='send-result-p'>{formatAddress(submitTx.address, 12)}</p>
+                    <p className='send-result-p'>{formatBalance(submitTx.amount.toString(), 8)} KAS was successfully sent to</p>
+                    <p className='send-result-p'>{formatAddress(submitTx.address, 8)}</p>
                     <p className='send-result-share' onClick={() => openTxExplorer()}><SvgIcon color="#74E6D8" offsetStyle={{marginRight: '6px'}} iconName="IconShare" />View transaction</p>
                 </div>
                 <div className="btn-pos-two">

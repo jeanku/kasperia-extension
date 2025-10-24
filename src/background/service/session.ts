@@ -8,9 +8,7 @@ interface SessionData {
 
 export class Session {
   origin = '';
-
   icon = '';
-
   name = '';
 
   constructor(data: SessionData | null) {

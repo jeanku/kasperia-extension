@@ -44,4 +44,4 @@ class ReadyPromise {
   };
 }
 
-export default ReadyPromise;
+export { ReadyPromise } ;

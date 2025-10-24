@@ -20,11 +20,10 @@ const CreatePwd: React.FC  = () => {
     
     const handleSubmit = async () => {
         if (password.length < 6) {
-            noticeError("Your password must contain at least 6 characters.")
-            return
+            return noticeError("Your password must contain at least 6 characters.")
         }
         Keyring.boot(password)
-        navigate(`${sourcePath}`, {state: {new: "1"}});
+        navigate(`${sourcePath}`, {state: {isNew: true}});
     }
 
     return (

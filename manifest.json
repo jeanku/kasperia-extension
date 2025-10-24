@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "kasperia",
-  "version": "1.0",
+  "version": "1.10.30",
   "description": "Lightweight Kaspa wallet for Web3 interaction.",
   "action": {
     "default_popup": "index.html",
@@ -15,7 +15,7 @@
   "background": {
     "service_worker": "background.js"
   },
-  "permissions": ["storage", "scriptTag", "scripting"],
+  "permissions": ["storage", "scripting"],
   "host_permissions": ["<all_urls>"],
   "content_scripts": [
     {
@@ -26,11 +26,11 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["injected.js", "kaspa_bg.wasm"],
+      "resources": ["injected.js", "media/icon16.png"],
       "matches": ["<all_urls>"]
     }
   ],
   "content_security_policy": {
-    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';"
+    "extension_pages": "script-src 'self'; object-src 'self';"
   }
 }

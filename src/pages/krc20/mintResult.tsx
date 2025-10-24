@@ -1,20 +1,19 @@
-import React, { useState, useMemo, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import HeadNav from '@/components/HeadNav'
 import { ProgressBar, Button, Popup } from 'antd-mobile'
 import { CheckCircleOutline } from 'antd-mobile-icons'
 import { useNavigate, useLocation } from "react-router-dom";
 import { SvgIcon } from '@/components/Icon'
-import { Keyring } from '@/chrome/keyring'
-import { Wallet } from '@/model/wallet'
 import { formatAddress, formatHash } from '@/utils/util'
-import { KRC20, Utils, Enum, Wasm, Kiwi } from '@kasplex/kiwi-web'
 import { useSelector } from "react-redux";
 import { RootState } from '@/store';
-import { KaspaExplorerUrl } from '@/types/enum'
+import { Account } from '@/chrome/account';
 import { SendOutline } from 'antd-mobile-icons'
 import { useNotice } from '@/components/NoticeBar/NoticeBar'
 
 import "@/styles/mint.scss"
+import {NetworkType} from "@/utils/wallet/consensus";
+import {KaspaExplorerUrl} from "@/types/enum";
 
 const MintResult = () => {
     const navigate = useNavigate();
@@ -22,41 +21,32 @@ const MintResult = () => {
     const { state } = useLocation()
 
     const [tick] = useState<string>(state?.tick)
-    const [times] = useState<string>(state?.times)
+    const [times] = useState<Number>(state?.times)
     const [useUtxo] = useState<boolean>(state?.useUtxo)
 
-    const [address, setAddress] = useState<string>('')
-    const [popupVisible, setPopupVisible] = useState(false)
     const { preference} = useSelector((state: RootState) => state.preference);
+    const [address, setAddress] = useState<string>(preference!.currentAccount!.address || "")
+    const [popupVisible, setPopupVisible] = useState(false)
     const [ submitTx, setSubmitTx ] = useState<string[]>([]);
     const [tipMsg, setTipMsg] = useState<string>('')
 
-    const openKasplexTx = (tx: string) => {
-        if(!tx) return
-        const networkName = Kiwi.network === 0 ? 'Mainnet' : 'Testnet';
-        window.open(`${KaspaExplorerUrl[networkName]}${tx}`);
+    const openKasplexTx = (txid: string) => {
+        if(!txid) return
+        const networkName = preference.network.networkType === NetworkType.Mainnet ? 'Mainnet' : 'Testnet';
+        window.open(`${KaspaExplorerUrl[networkName]}${txid}`);
     }
 
     useEffect(() => {
-        setAddress(preference!.currentAccount!.address)
         const submit = async () => {
-            let wallet: Wallet = await Keyring.getActiveWalletKeys()
-            const krc20data = Utils.createKrc20Data({
-                p: "krc-20",
-                op: Enum.OP.Mint,
-                tick: tick
-            })
             try {
-                if (useUtxo) {
-                    await KRC20.multiMintWithReuseUtxo(new Wasm.PrivateKey(wallet.priKey), krc20data, 0n, Number(times), (index, txid) => {
-                        submitTx.push(txid)
-                        setSubmitTx([...submitTx])
-                    })
-                } else {
-                    await KRC20.multiMint(new Wasm.PrivateKey(wallet.priKey), krc20data, 0n, Number(times), (index, txid) => {
-                        submitTx.push(txid)
-                        setSubmitTx([...submitTx])
-                    })
+                let txid = ""
+                let balance = ""
+                for (let i = 0; i < times; i++) {
+                    let resp = await Account.mintKrc20(txid, balance, tick, Number(times), useUtxo)
+                    txid = resp.txid
+                    balance = resp.balance
+                    submitTx.push(txid)
+                    setSubmitTx([...submitTx])
                 }
             } catch (error) {
                 noticeError(error as Error | string);
@@ -64,7 +54,7 @@ const MintResult = () => {
         }
         submit()
     }, [preference])
-    
+
     return (
         <article className="page-box">
             <HeadNav title="Mint ware" ></HeadNav>
@@ -79,17 +69,16 @@ const MintResult = () => {
                     <em>{tick}</em>
                 </div>
                 <div className="mb12">
-                    <ProgressBar 
+                    <ProgressBar
                         percent={Math.floor((submitTx.length / Number(times)) * 100)}
                         text
-                        style={{ '--fill-color': '#53CF39' }} 
+                        style={{ '--fill-color': '#53CF39' }}
                     />
                 </div>
                 <h6 className="sub-tit">Reveal tx: submitting...</h6>
                 <div className="input-text-show mb12">
                     <span>Finished/target</span>
-                    
-                    <em><strong>{submitTx.length}</strong>/{times}</em>
+                    <em><strong>{submitTx.length}</strong>/{times.toString()}</em>
                 </div>
 
                 <div className="input-text-show mb12">
@@ -97,11 +86,11 @@ const MintResult = () => {
                     <em>{formatAddress(address)}</em>
                 </div>
                 {
-                    tipMsg ? 
-                    <div className="tip-error">
-                        <p>{tipMsg}</p>
-                    </div> 
-                    : null
+                    tipMsg ?
+                        <div className="tip-error">
+                            <p>{tipMsg}</p>
+                        </div>
+                        : null
                 }
                 <div className="btn-pos-two flexd-row">
                     <Button block size="large" color="primary" onClick={() => navigate(-2)}>

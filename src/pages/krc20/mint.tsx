@@ -1,126 +1,107 @@
-import React, { useState, useCallback, useEffect, useMemo } from "react"
+import React, {useCallback, useEffect, useState} from "react"
 import HeadNav from '@/components/HeadNav'
-import { useNavigate, useLocation } from "react-router-dom";
-import { useNotice } from '@/components/NoticeBar/NoticeBar'
+import {useLocation, useNavigate} from "react-router-dom";
+import {useNotice} from '@/components/NoticeBar/NoticeBar'
 import NumberInput from '@/components/NumberInput';
-import { useSelector } from "react-redux";
-import { RootState } from '@/store';
-import { formatAddress, formatBalance, debounce } from '@/utils/util';
-import { TickState } from '@/types/enum';
-import { KasplexApi, Utils, Enum, Wasm, Kiwi, Script, Rpc } from '@kasplex/kiwi-web'
-import { Slider, Space, Checkbox, Button } from 'antd-mobile'
-import { SvgIcon } from '@/components/Icon'
+import {useSelector} from "react-redux";
+import {RootState} from '@/store';
+import {formatAddress, formatBalance} from '@/utils/util';
+import {Address} from '@/utils/wallet/address';
+import {Button, Checkbox, Slider, Space} from 'antd-mobile'
+import {SvgIcon} from '@/components/Icon'
+import {Account} from '@/chrome/account'
+import {Krc20Client, Krc20MintScript} from "@/utils/wallet/krc20";
+import {NetworkId} from "@/utils/wallet/consensus";
+
 const Mint = () => {
     const navigate = useNavigate();
 
     const { state } = useLocation()
     const { noticeError } = useNotice()
-    const currentAccount = useSelector((state: RootState) => state.preference.preference.currentAccount);
-    const rpcClient = useSelector((state: RootState) => state.rpc.client);
+    const { preference } = useSelector((state: RootState) => state.preference);
 
     const [tick, setTick] = useState<string>(state?.tick || '')
     const [amount, setAmount] = useState<string>('1')
     const [p2shAddress, setP2shAddress] = useState<string>('')
     const [p2shAmount, setP2shAmount] = useState<bigint>(0n)
-
-    const [tickAccess, setTickAccess] = useState<Promise<TickState> | null>(null)
-
     const [utxoCheck, setUtxoCheck] = useState(false)
 
     const submitDisabled = useCallback(() => {
         return !tick || isNaN(Number(amount)) || Number(amount) <= 0 || Number(amount) > 1000
     }, [tick, amount]);
 
-    const getTickError = useCallback(() => {
+    const checkTick = () => {
         const tickLen = tick.trim().length;
-        return (tickLen < 4 || tickLen > 6)  ? 'Ticker should be 4 to 6 letters.'  : '';
-    }, [tick]);
-    const submit = async () => {
-        if (tickAccess == null || tick != state?.tick) {
-            try {
-                const tickError = getTickError()
-                if(tickError) {
-                    noticeError(tickError)
-                    return
-                }
-                let resp: any = await KasplexApi.getToken(tick)
-                if (resp.result && resp.result[0]) {
-                    if (resp.result[0].state == "finished") {
-                        noticeError("tick finished")
-                        return
-                    }
-                    if (resp.result[0].state == "unused") {
-                        noticeError("tick not find")
-                        return
-                    }
-                }
-            } catch (error) {
-                noticeError(error)
-                return
-            }
-        } else {
-            if (await tickAccess == TickState.NotFind) {
-                noticeError("tick not find")
-                return
-            }
+        if (tickLen < 4 || tickLen > 6) {
+            throw Error("Ticker should be 4 to 6 letters.")
         }
-        navigate('/krc20/mintConfirm', {state : { tick: tick.trim(), times: amount.trim(), useUtxo: utxoCheck && (p2shAmount == null || p2shAmount > 0n) }})
+    }
+
+    const submit = async () => {
+        try {
+            checkTick()
+            await queryToken()
+        } catch (error) {
+            return noticeError(error)
+        }
+        navigate('/krc20/mintConfirm', {state : { tick: tick.trim(), times: Number(amount.trim()), useUtxo: utxoCheck }})
     }
 
     const toastValue = (value: number | [number, number]) => {
         setAmount(value.toString())
     }
 
-    const queryP2shBalance = async () => {
-        const krc20data = Utils.createKrc20Data({
-            p: "krc-20",
-            op: Enum.OP.Mint,
-            tick: tick
-        })
-        let publicKey = new Wasm.PublicKey(currentAccount!.pubKey).toXOnlyPublicKey().toString()
-        let script = Script.krc20Script(publicKey, krc20data)
-        let p2shAddress = Wasm.addressFromScriptPublicKey(script.createPayToScriptHashScript(), Kiwi.network)
-        setP2shAddress(p2shAddress!.toString())
-        Rpc.getInstance().client.getBalanceByAddress({
-            address: p2shAddress!.toString()
-        }).then((r: { balance: bigint }) => {
-            setP2shAmount(r.balance)
-        })
+    const queryP2shBalance = async (address: string) => {
+        let balance = await Account.getBalance(address)
+        if (balance.balance) {
+            setP2shAmount(BigInt(balance.balance))
+        }
     }
 
     const queryToken = async () => {
         if (tick) {
-            let token = KasplexApi.getToken(tick).then((resp: any) => {
-                if (resp.result && resp.result[0]) {
-                    if (resp.result[0].state == "finished") {
-                        return TickState.Finished
-                    }
-                    if (resp.result[0].state == "unused") {
-                        return TickState.NotFind
-                    }
-                    return TickState.Deployed
-                } else {
-                    return TickState.NotFind
+            let client = new Krc20Client(preference.network.networkType)
+            let resp = await client.getKrc20TokenInfo(tick)
+            if (resp.result && resp.result[0]) {
+                if (resp.result[0].state == "finished") {
+                    throw Error("tick finished")
                 }
-            })
-            setTickAccess(token)
+                if (resp.result[0].state == "unused") {
+                    throw Error("tick not find")
+                }
+            } else {
+                throw Error("tick not find")
+            }
         }
     }
 
     useEffect(() => {
-        queryToken()
-    }, [])
+        try {
+            queryToken()
+        } catch (error) {
+            noticeError(error)
+        }
+    }, []);
 
     useEffect(() => {
-        if (rpcClient && currentAccount) {
-            if (tick) {
-                const timer = debounce(() => {
-                    queryP2shBalance()
-                }, 300)
-                timer()
+        let length = tick.trim().length
+        if ((length < 4 || length > 6)) {
+            if (utxoCheck) {
+                setP2shAddress("")
             }
+            return
         }
-    }, [rpcClient, currentAccount, tick])
+        try {
+            let senderAddress = Address.fromString(preference.currentAccount?.address!)
+            let networkId = NetworkId.from(preference.network.networkType)
+            const script = new Krc20MintScript(senderAddress, networkId, {tick});
+            let p2shAddress = script.p2shAddress.toString()
+            setP2shAddress(p2shAddress)
+            queryP2shBalance(p2shAddress)
+        } catch (error) {
+            noticeError(error)
+        }
+    }, [tick])
 
     const formatFee = () : string => {
         if (utxoCheck) {
@@ -176,7 +157,7 @@ const Mint = () => {
                     </Space>
                 </div>
                 {
-                    utxoCheck && p2shAddress ? <div className="content-text no-border mt15 mb20">
+                    utxoCheck ? <div className="content-text no-border mt15 mb20">
                         <p>{formatAddress(p2shAddress)}</p>
                         <p>{formatBalance(p2shAmount.toString(), 8)} Kas</p>
                     </div> : null

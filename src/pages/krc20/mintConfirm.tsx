@@ -15,7 +15,7 @@ const MintConfirm = () => {
     const { state } = useLocation()
 
     const [tick] = useState<string>(state?.tick)
-    const [times] = useState<string>(state?.times)
+    const [times] = useState<Number>(state?.times)
     const [useUtxo] = useState<boolean>(state?.useUtxo)
 
     const txData = { "p": "krc-20", "op": "mint", "tick": tick }
@@ -40,7 +40,7 @@ const MintConfirm = () => {
                 </div>
                 <div className="history-token-item mt30">
                     <span>Mint Times</span>
-                    <em>{times}</em>
+                    <em>{times.toString()}</em>
                 </div>
                 <div className="history-token-item">
                     <span>Mint Address</span>

@@ -1,6 +1,12 @@
 import { MINUTE } from '@/types/constant'
 
+export enum AddressType {
+    KaspaAddress = 1,
+    EvmAddress = 2,
+}
+
 export enum NetworkType {
+    Default = -1,
     Mainnet = 0,
     Testnet = 1,
 }
@@ -67,4 +73,10 @@ export enum TickState {
 export enum AccountType {
     Mnemonic,
     PrivateKey,
+}
+
+
+export enum ChainPath {
+    KaspaPath = "m/44'/111111'/0'/0/",
+    KaspaL2Path = "m/44'/60'/0'/0/"
 }

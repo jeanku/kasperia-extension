@@ -128,10 +128,5 @@ setInterval(() => {
 
 addServiceListener()
 
-import { initialize } from '@kasplex/kiwi-web'
-const wasmUrl = chrome.runtime.getURL('kaspa_bg.wasm');
-await initialize(wasmUrl);
 
-console.log("load wasm success ...")
-
-// accountService.init()
+console.log("background end....")

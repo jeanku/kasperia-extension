@@ -1,6 +1,8 @@
 import { Address } from '@/model/contact';
+import { preferenceService } from './index';
 import { Storage } from '@/utils/storage';
 import { ObservableStore } from '@metamask/obs-store';
+import {AddressType, NetworkType} from "@/types/enum";
 
 /**
  * Contact manager that handles address book entries using ObservableStore
@@ -34,10 +36,34 @@ export class Contact {
     /**
      * Retrieve all saved addresses as a list.
      */
-    static async get() {
+    static async getAll() {
         await Contact.load()
         const state = Contact.store?.getState()
         return Object.values(state)
+    }
+
+    /**
+     * Retrieve all saved addresses as a list.
+     */
+    static async get(type: AddressType = AddressType.KaspaAddress) {
+        await Contact.load()
+        let resp: Address[] = []
+        const state = Contact.store?.getState()
+        let network = await preferenceService.getNetwork()
+        console.log("network:", network)
+        for (const key in state) {
+            if (type == AddressType.KaspaAddress) {
+                // console.log("state[key].network:", state[key].network, network.networkId, state[key].network == network.networkId)
+                // if (state[key].type == type && state[key].network == network.networkId) {
+                //     resp.push(state[key])
+                // }
+            } else {
+                if (state[key].type == type) {
+                    resp.push(state[key])
+                }
+            }
+        }
+        return resp
     }
 
     /**

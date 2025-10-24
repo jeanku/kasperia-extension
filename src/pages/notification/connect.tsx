@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react"
 import HeadNav from '@/components/HeadNav'
 import { Button, Radio } from 'antd-mobile'
-import { AddressListDisplay } from '@/model/account'
+import { AccountsSubListDisplay } from '@/model/account'
 import { Notification } from '@/chrome/notification';
 import { Keyring } from '@/chrome/keyring';
 import { formatAddress } from "@/utils/util"
@@ -21,29 +21,29 @@ interface Props {
 
 const Connect =  () => {
     const [session, setSession] = useState<Session | undefined>(undefined)
-    const [accounts, setAccounts] = useState<AddressListDisplay[]>([])
+    const [accounts, setAccounts] = useState<AccountsSubListDisplay[]>([])
     const [defaultAddress, setDefaultAddress] = useState<string>('')
     const [accountId, setAccountId] = useState<string>('')
-    const [accountIndex, setAccountIndex] = useState<number>(0)
+    const [accountPath, setAccountPath] = useState<number>(0)
 
     const getApproval = async () => {
         let approval: Props = await Notification.getApproval()
         setSession(approval.params.session)
     }
 
-    const changeAddress = (id: string, index: number, address: string) => {
+    const changeAddress = (id: string, path: number, address: string) => {
         setDefaultAddress(address);
-        setAccountIndex(index);
+        setAccountPath(path);
         setAccountId(id);
     }
 
     const getAccountList = async () => {
-        let addresses: AddressListDisplay[] = await Keyring.getAccountListDisplay()
+        let addresses: AccountsSubListDisplay[] = await Keyring.getAccountsSubListDisplay()
         addresses.map((item) => {
             item.drive!.map(r => {
                 if(r.active) {
                     setDefaultAddress(r.address)
-                    setAccountIndex(r.index);
+                    setAccountPath(r.path);
                     setAccountId(item.id);
                 }
             })
@@ -57,7 +57,7 @@ const Connect =  () => {
 
     const connect = async () => {
         Permission.addConnectedSite(session!.origin, session!.name, session!.icon)
-        await Keyring.switchDriveAccount(accountId, accountIndex)
+        await Keyring.switchSubAccount(accountId, accountPath)
         Notification.resolveApproval()
     }
 
@@ -68,7 +68,7 @@ const Connect =  () => {
 
     return (
         <article className="page-box">
-            <HeadNav title='Kasperia Wallet'></HeadNav>
+            <HeadNav title='Kasperia Wallet' showLeft={false}></HeadNav>
             <section className="content-main connect-box pb96">
                 <div className='source-box'>
                     <img className="logo-img" src={session?.icon} alt="" />
@@ -86,13 +86,13 @@ const Connect =  () => {
                     <Radio.Group value={defaultAddress}>
                         {
                             accounts.length > 0 && (
-                                accounts.map((item: AddressListDisplay, index) => (
+                                accounts.map((item: AccountsSubListDisplay, index) => (
                                     <div className="contact-list-box mb20" key={index}>
                                         <strong className="list-tit-1">{item.name}</strong>
                                         {
                                             item.drive!.map((dr, childIndex) => (
                                                 <div className="list-item-box" key={childIndex}>
-                                                    <Radio value={dr.address} onChange={() => changeAddress(item.id, dr.index, dr.address)} >
+                                                    <Radio value={dr.address} onChange={() => changeAddress(item.id, dr.path, dr.address)} >
                                                         <div className="list-item-left">
                                                             <strong>{dr.name}</strong>
                                                             <span>{formatAddress(dr.address)}</span>

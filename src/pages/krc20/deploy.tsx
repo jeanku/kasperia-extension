@@ -1,23 +1,30 @@
 import React, { useState, useEffect, useCallback } from "react"
-import HeadNav from '../../components/HeadNav'
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button, Popup, Tabs  } from 'antd-mobile'
-import { KasplexApi, Kiwi, Wasm, Wallet, Utils, Enum } from '@kasplex/kiwi-web'
 import { formatAddress } from '@/utils/util'
-import { formatNumber, isValidTickString, checkAddressPrefix } from '@/utils/util'
+import { formatNumber, isValidTickString } from '@/utils/util'
 import { SvgIcon } from '@/components/Icon'
-import { AddressListDisplay } from '@/model/account'
+import { AccountsSubListDisplay } from '@/model/account'
 import { Address } from '@/model/contact'
 import { Keyring } from '@/chrome/keyring'
 import { Contact } from '@/chrome/contact'
+
 import { useNotice } from '@/components/NoticeBar/NoticeBar'
+import HeadNav from '@/components/HeadNav'
 import NoDataDom from "@/components/NoDataDom";
 import NumberInput from '@/components/NumberInput';
+import { Address as AddressHelper } from '@/utils/wallet/address';
+import {NetworkTypeHelper} from "@/utils/wallet/consensus";
+import {useSelector} from "react-redux";
+import {RootState} from "@/store";
+import {Buffer} from 'buffer'
+globalThis.Buffer = Buffer;
 
 const Deploy = () => {
     const { state } = useLocation()
     const { noticeError } = useNotice()
     const navigate = useNavigate();
+    const { preference } = useSelector((state: RootState) => state.preference);
 
     const [address, setAddress] = useState("")
     const [tick, setTick] = useState<string>(state?.tick || '')
@@ -27,10 +34,9 @@ const Deploy = () => {
     const [preAddress, setPreAddress] = useState("")
     const [popupVisible, setPopupVisible] = useState(false)
     const [decimal, setDecimal] = useState<string>(state?.decimal || '')
-
     const [contactTabValue, setContactTabValue] = useState<string>("Recent")
     const [contactValue, setContactValue] = useState<Address[] | null>(null)
-    const [contactAccountValue, setContactAccountValue] = useState<AddressListDisplay[] | null>(null)
+    const [accountsValue, setAccountsValue] = useState<AccountsSubListDisplay[] | null>(null)
 
     const btnDisabled = () => {
         return !tick || !maxSupply || !limit
@@ -45,8 +51,7 @@ const Deploy = () => {
         try {
             const tickError = getTickError()
             if(tickError) {
-                noticeError(tickError)
-                return
+                throw Error(tickError)
             }
             if (!isValidTickString(tick)) {
                 throw Error("The ticker consists of 4 to 6 letters.")
@@ -71,12 +76,14 @@ const Deploy = () => {
                 throw Error("PreAmount cannot be greater than max.")
             }
 
-            if (preAddress.trim() != "" && !Wallet.validate(preAddress.trim())) {
-                throw Error("Address invalid")
-            }
-
-            if (preAddress.trim() != "" && !checkAddressPrefix(preAddress.trim(), Kiwi.network)) {
-                throw Error("address does not match supplied network type")
+            if (preAddress.trim() != "") {
+                if (!AddressHelper.validate(preAddress.trim())) {
+                    throw Error("Address invalid")
+                }
+                let addr = AddressHelper.fromString(preAddress.trim())
+                if (NetworkTypeHelper.toAddressPrefix(preference.network.networkType) !== addr.prefix) {
+                    throw Error("address does not match supplied network type")
+                }
             }
 
             if (decimal.trim() != "" && isNaN(Number(decimal.trim()))) {
@@ -87,36 +94,18 @@ const Deploy = () => {
             max = max * (10n ** _decimal)
             lim = lim * (10n ** _decimal)
             let pre = preAmount.trim() == "" ? "" : (BigInt(preAmount.trim()) * (10n ** _decimal)).toString()
-            const krc20data = Utils.createKrc20Data({
-                p: "krc-20",
-                op: Enum.OP.Deploy,
+            const krc20data = {
                 tick: tick.trim(),
                 max: max.toString(),
                 lim: lim.toString(),
                 to: preAddress.trim(),
-                dec: _decimal.toString(),
+                dec: Number(_decimal),
                 pre: pre.trim(),
-            })
-
-            try {
-                let resp: any = await KasplexApi.getToken(tick)
-                if (resp.result && resp.result[0]) {
-                    if (resp.result[0].state != "unused") {
-                        noticeError("tick name exist")
-                        return
-                    }
-                }
-            } catch (error) {
-                noticeError(error)
-                return
             }
-
-            navigate('/krc20/deployConfirm', {state: {op: krc20data}})
+            navigate('/krc20/deployConfirm', {state: {data: krc20data}})
         } catch (error) {
             noticeError(`${(error as Error).message}`)
         }
-
-        console.log('submit')
     }
 
     useEffect(() => {
@@ -134,9 +123,9 @@ const Deploy = () => {
                 }
                 break
             case "Accounts":
-                if (!contactAccountValue) {
-                    let contacts: AddressListDisplay[] = await Keyring.getAccountListDisplay()
-                    setContactAccountValue(contacts);
+                if (!accountsValue) {
+                    let contacts = await Keyring.getAccountsSubListDisplay()
+                    setAccountsValue(contacts);
                 }
                 break;
             default:
@@ -149,14 +138,12 @@ const Deploy = () => {
             case "Contacts":
                 return contactValue;
             case "Accounts":
-                return contactAccountValue;
+                return accountsValue;
             default:
                 return [];
         }
     };
 
-    const contactList = getContactListByTab() || [];
-    
     return (
         <article className="page-box">
             <HeadNav title='KRC20 Deploy'></HeadNav>
@@ -281,8 +268,8 @@ const Deploy = () => {
 
                     {
                         contactTabValue == "Accounts" ? (
-                            contactAccountValue && contactAccountValue.length > 0 ? (
-                                contactAccountValue.map((item: AddressListDisplay, index) => (
+                            accountsValue && accountsValue.length > 0 ? (
+                                accountsValue.map((item, index) => (
                                     <div className="contact-list-box mb20" key={index}>
                                         <strong>{item.name}</strong>
                                         {

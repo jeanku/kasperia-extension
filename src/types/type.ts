@@ -5,7 +5,10 @@ export interface HeadNavProps {
     leftDom?: React.ReactNode;
     rightType?: string;
     loading?: boolean;
+    showLeft?: boolean;
+    state?: Object;
     onBack?: () => void;
+    onClickRight?: () => void;
 }
 export type MessageType = 'info' | 'success' | 'warning' | 'error';
 export interface MessageConfig {

@@ -1,12 +1,12 @@
 import { configureStore } from "@reduxjs/toolkit";
 import userReducer from "./userSlice";
-import rpcReducer from "./rpcSlice";
+// import rpcReducer from "./rpcSlice";
 import preferenceReducer from "./preferenceSlice";
 
 export const store = configureStore({
     reducer: {
         user: userReducer,
-        rpc: rpcReducer,
+        // rpc: rpcReducer,
         preference: preferenceReducer,
     },
 });

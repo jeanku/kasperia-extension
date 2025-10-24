@@ -1,5 +1,7 @@
-import { Big } from 'big.js';
-import { Wasm } from '@kasplex/kiwi-web'
+import { NetworkType } from "@/types/enum";
+import { Address } from "@/utils/wallet/address";
+import {ethers} from "ethers";
+import {applyMiddleware} from "@reduxjs/toolkit";
 
 export const isExtensionPopup = () => {
     return window.innerWidth <= 500;
@@ -14,41 +16,61 @@ export const formatHash = (hash: string, startLength: number = 6, endLength: num
     return `${start}…${end}`;
 }
 
-export const formatAddress = (address: string, skip: number = 6): string => {
-    if (address.length < 30) {
-        return ""
+export const formatAddress = (address: string | undefined, skip: number = 6): string => {
+    if (address == undefined) return ""
+    if (!address || address.length < 30) {
+        return address || ""
     }
     let resp = address.split(":")
+    if (resp.length == 1) {
+        return `${address.slice(0, skip)}...${address.slice(-skip)}`
+    }
     if (resp.length !== 2 && resp[1].length <= 12) return address
     return `${resp[0]}:${resp[1].slice(0, skip)}...${resp[1].slice(-skip)}`
 }
 
-export const formatBalance = (amount: string, dec: any): string => {
+export const formatBalance = (amount: string, dec: number | string): string => {
     if (!amount || !dec) {
-        return "";
+        return ""
     }
-    
-    const bigBalance = new Big(amount);
-    if (bigBalance.eq(0)) {
-        return "0";
-    }
-
-    const result = bigBalance.div(10 ** Number(dec));
-
-    const thresholds = [
-        { limit: new Big("10000000"), decimals: 0 },
-        { limit: new Big("10000"), decimals: 2 },
-        { limit: new Big("10"), decimals: 4 }
-    ];
-
-    for (const { limit, decimals } of thresholds) {
-        if (result.gte(limit)) {
-            return result.round(decimals, Big.roundDown).toFixed(decimals).replace(/\.?0+$/, "");
-        }
-    }
-
-    return result.round(8, Big.roundDown).toFixed(8).replace(/\.?0+$/, "");
+    let valueStr = ethers.formatUnits(amount, Number(dec))
+    const value = parseFloat(valueStr)
+    let fixed = formatFixed(Math.floor(value))
+    let result = value.toFixed(fixed).replace(/(\.\d*?[1-9])0+$/g, "$1")
+    return result.replace(/\.0+$/, "")
 };
+
+export const formatBalanceFixed = (valueStr: string, round?: number): string => {
+    if (!valueStr) {
+        return valueStr
+    }
+    const value = parseFloat(valueStr)
+    if (!round) {
+        round = formatFixed(Math.floor(value))
+    }
+    let result = value.toFixed(round).replace(/(\.\d*?[1-9])0+$/g, "$1")
+    return result.replace(/\.0+$/, "")
+};
+
+
+export const formatFixed = (value: number): number => {
+    if (value == 0) return 2
+    if (value <= 1) return 8
+    if (value <= 100) return 6
+    if (value <= 10000) return 4
+    if (value <= 1000000) return 2
+    if (value <= 100000000) return 2
+    return 8
+}
+
+export const formatDecimal = (amount: string, dec: number | string): number => {
+    if (!amount || !dec) {
+        return 8;
+    }
+    let resp = ethers.formatUnits(amount, Number(dec))
+    let value = Number(resp)
+    return formatFixed(value)
+}
 
 
 export const formatDecBalance = (amount: string, dec: string): BigInt => {
@@ -99,9 +121,16 @@ export const stringToUint8Array = (str: string): Uint8Array => {
     return new TextEncoder().encode(str)
 }
 
-export const checkAddressPrefix = (addr: string, network: number): boolean => {
-    let address = new Wasm.Address(addr)
-    return address.prefix.toString().toLowerCase() == (network == 0 ? "kaspa" : "kaspatest")
+export const toAddressType = (addr: string): NetworkType => {
+    let address = Address.fromString(addr)
+    switch (address.prefix.toString().toLowerCase()) {
+        case "kaspa":
+            return NetworkType.Mainnet
+        case "kaspatest":
+            return NetworkType.Testnet
+        default:
+            throw Error("address invalid")
+    }
 }
 
 export const formatNumber = (str: string): string => {
@@ -113,9 +142,9 @@ export const formatNumber = (str: string): string => {
     const suffix = num < 0 ? '-' : '';
     const units = [
         { threshold: 1e12, suffix: 'T' },
-        { threshold: 1e9,  suffix: 'B' },
-        { threshold: 1e6,  suffix: 'M' },
-        { threshold: 1e3,  suffix: 'K' }
+        { threshold: 1e9, suffix: 'B' },
+        { threshold: 1e6, suffix: 'M' },
+        { threshold: 1e3, suffix: 'K' }
     ];
     const matchedUnit = units.find(unit => absNum >= unit.threshold);
     if (matchedUnit) {
@@ -140,8 +169,7 @@ export const hashString = async (str: string) => {
 }
 
 export const openUrl = (url: string) => {
-    if(!url.trim()) return
-    window.open(url, '_blank')
+    chrome.tabs.create({ url })
 }
 
 export const isEmptyObject = (obj: any) => {
@@ -159,4 +187,48 @@ export function debounce<F extends (...args: any[]) => any>(func: F, delay: numb
             func.apply(this, args);
         }, delay);
     };
+}
+
+export function isValidUrl(url: string): boolean {
+    try {
+        const u = new URL(url);
+        return ["https:", "http:"].includes(u.protocol);
+    } catch {
+        return false;
+    }
+}
+
+export function getUrlIcon(url: string): string {
+    const validateUrl = new URL(url)
+    const domain = validateUrl.hostname;
+    const protocol = validateUrl.protocol;
+    return `${protocol}//${domain}/favicon.ico`
+}
+
+export function formatUTCToLocal(utcStr: string): string {
+    const date = new Date(utcStr);
+    const pad = (n: number) => n.toString().padStart(2, "0");
+    const year = date.getFullYear();
+    const month = pad(date.getMonth() + 1); // 月份从0开始
+    const day = pad(date.getDate());
+    const hour = pad(date.getHours());
+    const minute = pad(date.getMinutes());
+    const second = pad(date.getSeconds());
+    return `${year}-${month}-${day} ${hour}:${minute}:${second}`;
+}
+
+export function capitalizeFirstLetter(str: string): string {
+    if (!str) return "";
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+export function formatSignMessage(message: string): string {
+    if (message.startsWith('0x')) {
+        try {
+            return ethers.toUtf8String(message);
+        } catch {
+            return message;
+        }
+    }
+    return message;
 }

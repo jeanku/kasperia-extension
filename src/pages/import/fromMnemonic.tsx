@@ -1,23 +1,26 @@
 import React, { useState } from 'react';
 import { Radio, Checkbox, Button, Input } from 'antd-mobile'
 import HeadNav from '@/components/HeadNav'
-import { Wallet as WalletModel } from '@/model/wallet'
-import { AccountType } from '@/types/enum'
 import { produce } from "immer";
 import { useNotice } from '@/components/NoticeBar/NoticeBar'
 import { useClipboard } from '@/components/useClipboard'
 import { Keyring } from '@/chrome/keyring'
-import { dispatchPreferenceAddNewAccount, dispatchPreference } from "@/dispatch/preference"
+import {dispatchPreference, dispatchRefreshPreference} from "@/dispatch/preference"
 import { useLocation, useNavigate } from "react-router-dom";
-
-import { Mnemonic, Wallet, Kiwi } from '@kasplex/kiwi-web'
+import { ChainPath } from '@/types/enum'
 import { SvgIcon } from '@/components/Icon/index'
+import { Wallet } from '@/utils/wallet/wallet'
+import {useSelector} from "react-redux";
+import {RootState} from "@/store";
+import {NetworkType} from "@/utils/wallet/consensus";
 
 const FromMnemonic = () => {
     const navigate = useNavigate();
     const { state } = useLocation();
-    const { noticeSuccess, noticeError } = useNotice();
+    const { noticeError } = useNotice();
     const { handleCopy } = useClipboard();
+
+    const { preference } = useSelector((state: RootState) => state.preference);
 
     const [mnemonicValue, setMnemonicValue] = React.useState<string[]>(new Array(12).fill(""));
 
@@ -27,19 +30,19 @@ const FromMnemonic = () => {
 
     const [mnemonicValid, setMnemonicValid] = React.useState(false)
     const [btnLoading, setBtnLoading] = useState(false)
+    const [isNew] = useState<boolean>(state?.isNew || false)
 
     const [pwdValue, setPwdValue] = React.useState('')
     const [stepValue, setStepValue] = React.useState(1)
 
     const visablePassphrase = passphrase ? 'visable' : 'hidden'
-    const [isNew] = useState<string>(state?.new || "")
 
     const updateMnemonicAtIndex = (index: number, newValue: string) => {
         setMnemonicValue(prev => {
             const newState = produce(prev, draft => {
                 draft[index] = newValue;
             });
-            setMnemonicValid(Mnemonic.validate(newState.join(" ")))
+            setMnemonicValid(Wallet.validateMnemonic(newState.join(" ")))
             return newState;
         });
     };
@@ -56,8 +59,9 @@ const FromMnemonic = () => {
         if (!mnemonicValid) {
             return ""
         }
-        let wallet = Wallet.fromMnemonic(mnemonicValue.join(" "), pwdValue)
-        return wallet.toAddress(Kiwi.network).toString()
+        let wallet = Wallet.fromMnemonic(mnemonicValue.join(" "), ChainPath.KaspaPath + "0", pwdValue)
+        let networkType = preference.network ? preference.network.networkType : NetworkType.Mainnet
+        return wallet.toKaspaAddress(networkType).toString()
     }
 
     const goBack = () => {
@@ -69,31 +73,15 @@ const FromMnemonic = () => {
 
     const createAccount = async () => {
         try {
-            let mnemonic = mnemonicValue.join(" ")
-            let wallet = Wallet.fromMnemonic(mnemonic, pwdValue)
-            let privateKey = wallet.toPrivateKey().toString()
-            let _wallet: WalletModel = {
-                id: "",
-                mnemonic: mnemonic,
-                name: "",
-                priKey: privateKey.toString(),
-                pubKey: wallet.toPublicKey().toString(),
-                index: 0,
-                active: true,
-                type: AccountType.Mnemonic,
-                passphrase: pwdValue,
-                accountName: ""
-            }
             setBtnLoading(true)
-            await Keyring.addWallet(_wallet)
+            let mnemonic = mnemonicValue.join(" ")
+            let account = await Keyring.addAccountFromMnemonic(mnemonic, pwdValue)
             if (isNew) {
                 dispatchPreference().then(r => {
-                    setBtnLoading(false)
                     navigate('/home')
                 })
             } else {
-                dispatchPreferenceAddNewAccount().then(r => {
-                    setBtnLoading(false)
+                dispatchRefreshPreference(account).then(r => {
                     navigate('/home')
                 })
             }
@@ -136,14 +124,7 @@ const FromMnemonic = () => {
     return (
         <div className="page-box">
             <HeadNav title="Create a new HD Wallet" onBack={() => goBack()}></HeadNav>
-            {/* <div className="nav-bar">
-                <div className="nav-left" onClick={() => goBack()}>
-                    <img className="arrow-left" src={arrowLeftImg} alt="" onClick={() => setStepValue(1)} />
-                </div>
-                <strong className="nav-bar-title">Create a new HD Wallet</strong>
-                <div></div>
-            </div> */}
-            <article className="page-mnemonic page-from-seed">
+            <article className={ mnemonicLength === 12 ? "page-mnemonic page-from-seed" : "page-mnemonic page-from-seed pb60" }>
                 <div className="page-btn-tab">
                     <div className={`btn-tab-item ${stepValue === 1 ? 'active' : ''}`} onClick={() => setStepValue(1)}>Step 1</div>
                     <div className={`btn-tab-item ${stepValue === 2 ? 'active' : ''}`}>Step 2</div>
@@ -186,8 +167,8 @@ const FromMnemonic = () => {
                     <div className="page-grid mb40">
                         {gridList}
                     </div>
-                    <div className="page-content  mb20">
-                        <Button block size="large" color="primary" disabled={mnemonicValid === false} onClick={() => setStepValue(2)}>
+                    <div className="btn-pos-two flexd-row post-bottom">
+                        <Button block size="large" color="primary" className='adm-button-primary' disabled={mnemonicValid === false} onClick={() => setStepValue(2)}>
                             Continue
                         </Button>
                     </div>
@@ -232,7 +213,7 @@ const FromMnemonic = () => {
                                 </p>
                             </div>
                         </div>
-                        <div className="mnemonic-btn-pos mb20">
+                        <div className="btn-pos-two flexd-row post-bottom">
                             <Button block size="large" loading={btnLoading} loadingText={'Continue'} color="primary" onClick={() => createAccount()}>
                                 Continue
                             </Button>

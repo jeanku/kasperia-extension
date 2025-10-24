@@ -37,6 +37,7 @@ import IconTwitter from '@/assets/icons/twitter.svg'
 import IconGithub from '@/assets/icons/github.svg'
 import IconHistory from '@/assets/icons/icon-history.svg'
 import IconRightArrow from '@/assets/icons/icon-right-arrow.svg'
+import IconMoreVertical from '@/assets/icons/more-vertical.svg'
 import PngCoinDef from '@/assets/images/icon-coin-def.png'
 
 const svgRegistry = {
@@ -78,6 +79,7 @@ const svgRegistry = {
     IconGithub,
     IconHistory,
     IconRightArrow,
+    IconMoreVertical,
 };
 
 type IconName = keyof typeof svgRegistry;

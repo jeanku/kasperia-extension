@@ -1,6 +1,8 @@
 import { EventEmitter } from 'events';
 import BroadcastChannelMessage from './message/boardcastMessage';
-import ReadyPromise from './provider/readyPromise';
+import { ReadyPromise } from './message/readyPromise';
+import {NetworkType} from "@/utils/wallet/consensus";
+import {AddEthereumChainParameter} from "@/model/evm";
 
 interface StateProvider {
     accounts: string[] | null;
@@ -10,12 +12,36 @@ interface StateProvider {
     isPermanentlyDisconnected: boolean;
 }
 
+interface RequestArguments {
+    method: string;
+    params?: any;
+}
+
+const handler: ProxyHandler<KasperiaProvider> = {
+    get(target, prop, receiver) {
+        const value = Reflect.get(target, prop, receiver);
+        if (typeof value === 'function') return (value as Function).bind(target);
+        return value;
+    },
+    set() { return false; },              // 禁止写入
+    deleteProperty() { return false; },   // 禁止删除
+    defineProperty() { return false; },   // 禁止 defineProperty
+    ownKeys(target) { return Reflect.ownKeys(target); },
+    getOwnPropertyDescriptor(target, prop) {
+        const desc = Reflect.getOwnPropertyDescriptor(target, prop);
+        if (!desc) return undefined;
+        return { ...desc, configurable: false };
+    }
+};
+
 const script = document.currentScript;
 const channelName = script?.getAttribute('channel') || 'kasperiaChannel';
+
 
 export class KasperiaProvider extends EventEmitter {
     _selectedAddress: string | null = null;
     _network: string | null = null;
+    _chainId: string | null = null;
     _isConnected = false;
     _initialized = false;
     _isUnlocked = false;
@@ -28,7 +54,6 @@ export class KasperiaProvider extends EventEmitter {
         isPermanentlyDisconnected: false
     };
 
-    // private _pushEventHandlers: PushEventHandlers;
     private _requestPromise = new ReadyPromise(0);
 
     private _bcm = new BroadcastChannelMessage(channelName);
@@ -42,66 +67,9 @@ export class KasperiaProvider extends EventEmitter {
 
     initialize = async () => {
         document.addEventListener('visibilitychange', this._requestPromiseCheckVisibility);
-
         console.log("bcm connect to content script ...")
         this._bcm.connect()
-            // .on('message', this._handleBackgroundMessage);
-        // domReadyCall(() => {
-        //     const origin = window.top?.location.origin;
-        //     const icon =
-        //         ($('head > link[rel~="icon"]') as HTMLLinkElement)?.href ||
-        //         ($('head > meta[itemprop="image"]') as HTMLMetaElement)?.content;
-        //
-        //     const name = document.title || ($('head > meta[name="title"]') as HTMLMetaElement)?.content || origin;
-        //
-        //     this._bcm.request({
-        //         method: 'tabCheckin',
-        //         params: { icon, name, origin }
-        //     });
-        //
-        //     // Do not force to tabCheckin
-        //     // this._requestPromise.check(2);
-        // });
-
-        try {
-            // const { network, accounts, isUnlocked }: any = await this._request({
-            //     method: 'getProviderState'
-            // });
-            // if (isUnlocked) {
-            //     this._isUnlocked = true;
-            //     this._state.isUnlocked = true;
-            // }
-            // this.emit('connect', {});
-            // this._pushEventHandlers.networkChanged({
-            //     network
-            // });
-
-            // this._pushEventHandlers.accountsChanged(accounts);
-        } catch {
-            //
-        } finally {
-            this._initialized = true;
-            this._state.initialized = true;
-            this.emit('_initialized');
-        }
-
-        // this.keepAlive();
     };
-
-    // /**
-    //  * Sending a message to the extension to receive will keep the service worker alive.
-    //  */
-    // private keepAlive = () => {
-    //     this._request({
-    //         method: 'keepAlive',
-    //         params: {}
-    //     }).then((v) => {
-    //         setTimeout(() => {
-    //             this.keepAlive();
-    //         }, 15000);
-    //     });
-    // };
-
 
     private _requestPromiseCheckVisibility = () => {
         if (document.visibilityState === 'visible') {
@@ -113,18 +81,13 @@ export class KasperiaProvider extends EventEmitter {
 
     private _handleBackgroundMessage = (data: any) => {
         console.log('[push event]', data);
-        // if (this._pushEventHandlers[event]) {
-        //     return this._pushEventHandlers[event](data);
-        // }
-
-        // this.emit(event, data);
     };
 
     _request = async (data: any) => {
         if (!data) {
             throw Error("data not find");
         }
-        this._requestPromiseCheckVisibility();
+        // this._requestPromiseCheckVisibility();
         return this._requestPromise.call(() => {
             return this._bcm.request(data).then((res) => res).catch((err) => {
                 throw err;
@@ -138,15 +101,14 @@ export class KasperiaProvider extends EventEmitter {
         });
     };
 
-    switchNetwork = async (networkId: number) => {
-        console.log("networkId", networkId !== 0 && networkId !== 1)
-        if (networkId !== 0 && networkId !== 1) {
-            throw Error("networkId invalid, networkId must be 0 or 1");
+    switchNetwork = async (networkType: NetworkType) => {
+        if (networkType !== NetworkType.Mainnet && networkType !== NetworkType.Testnet) {
+            throw Error("networkId invalid, networkId must be mainnet or testnet");
         }
         return this._request({
             method: 'switchNetwork',
             params: {
-                networkId
+                networkType
             }
         });
     };
@@ -169,23 +131,13 @@ export class KasperiaProvider extends EventEmitter {
         });
     };
 
-    signMessage = async (text: string, type: string) => {
-        return this._request({
-            method: 'signMessage',
-            params: {
-                text,
-                type
-            }
-        });
-    };
-
     sendKaspa = async (toAddress: string, amount: string, options: any) => {
         if (toAddress == undefined || toAddress.trim()  == '') {
             throw Error("toAddress must be a valid kaspa address")
         }
         const num = Number(amount);
         if (amount == undefined || !( Number.isInteger(num) && num > 0)) {
-            throw Error("amount must be a valid kaspa address")
+            throw Error("amount invalid")
         }
         return this._request({
             method: 'sendKaspa',
@@ -207,36 +159,233 @@ export class KasperiaProvider extends EventEmitter {
     };
 
     getVersion = async () => {
-        return this._request({
-            method: 'getVersion',
-            params: {}
-        });
+        return "1.10.30";
     };
+
+    async request({ method, params }: RequestArguments): Promise<any> {
+        console.log("【injected call:】method: is calling ....", method, JSON.stringify(params))
+        switch (method) {
+            case 'eth_requestAccounts':
+                return await this._request({ method: 'eth_requestAccounts' });
+            case 'eth_accounts':
+                return await this._request({ method: 'eth_accounts' });
+            case 'eth_chainId': {
+                let chainHex = await this._request({ method: 'eth_chainId' });
+                return '0x' + Number(chainHex).toString(16)
+            }
+            case 'net_version': {
+                return await this._request({ method: 'eth_chainId' });
+            }
+            case 'personal_sign': {
+                const [message, address] = params || [];
+                if (!message) throw new Error('message parameter missing');
+                return this._request({
+                    method: 'signMessage',
+                    params: {
+                        message,
+                        address
+                    }
+                });
+            }
+
+            case 'eth_getBalance': {
+                const [address, tag] = params || [];
+                let balance: any = await this._request({
+                    method: 'eth_getBalance',
+                    params: {
+                        address,
+                        tag
+                    }
+                })
+                if (balance) {
+                    const value = BigInt(balance);
+                    return '0x' + value.toString(16);
+                }
+                return '0x0'
+            }
+            case 'eth_blockNumber': {
+                let block = await this._request({method: 'eth_blockNumber', params: {}})
+                return '0x' + Number(block).toString(16)
+            }
+            case 'eth_getBlockByNumber': {
+                const [block_number, flag] = params || [];
+                return await this._request({
+                    method: 'eth_getBlockByNumber',
+                    params: {
+                        block_number,
+                        flag: flag || false
+                    }
+                })
+            }
+            case 'wallet_switchEthereumChain': {
+                const chainHex = params?.[0].chainId;
+                if (!chainHex) throw new Error('chainId missing');
+                const chainId = parseInt(chainHex, 16);
+                const result = await this._request({
+                    method: 'walletSwitchEthereumChain',
+                    params: {
+                        chainId: chainId.toString(),
+                    },
+                })
+                this.emit('chainChanged', chainHex);
+                return result
+            }
+            case 'eth_sendTransaction': {
+                const tx = params?.[0];
+                if (!tx) throw new Error('tx parameter missing');
+                let resp = await this._request({
+                    method: 'sendTransaction',
+                    params: {
+                        tx
+                    },
+                });
+                return resp
+            }
+            case 'eth_getTransactionReceipt': {
+                const hash = params?.[0];
+                if (!hash) throw new Error('hash missing');
+                return await this._request({
+                    method: 'eth_getTransactionReceipt',
+                    params: {
+                        hash
+                    },
+                });
+            }
+            case 'eth_call': {
+                const tx = params?.[0];
+                if (!tx) throw new Error('tx parameter missing');
+                return await this._request({
+                    method: 'eth_call',
+                    params: {
+                        tx
+                    },
+                });
+            }
+            case 'wallet_watchAsset': {
+                if (params.type != "ERC20") throw new Error("invalid ERC20 config")
+                let resp = await this._request({
+                    method: 'walletWatchAsset',
+                    params: {
+                        options: params.options
+                    },
+                });
+                return resp
+            }
+
+            case 'wallet_addEthereumChain': {
+                const chainParams = params?.[0] as AddEthereumChainParameter;
+                if (!chainParams) throw new Error('chainParams missing');
+                return this._request({
+                    method: 'addEthereumChain',
+                    params: {
+                        chainParams: {
+                            chainId: parseInt(chainParams.chainId).toString(),
+                            symbol: chainParams.nativeCurrency.symbol,
+                            name: chainParams.chainName,
+                            rpcUrl: chainParams.rpcUrls,
+                            explorer: chainParams.blockExplorerUrls?.[0] || "",
+                            decimals: chainParams.nativeCurrency.decimals
+                        }
+                    },
+                });
+            }
+            case 'wallet_revokePermissions': {
+                const eth_accounts = params?.[0];
+                return this._request({
+                    method: 'wallet_revokePermissions',
+                    params: {
+                        eth_accounts
+                    },
+                });
+            }
+            case "wallet_requestPermissions": {
+                await this._request({
+                    method: 'walletRequestPermissions',
+                    params: {},
+                });
+                return [{ parentCapability: "eth_accounts" }];
+            }
+            default:
+                throw new Error(`Unsupported method: ${method}`);
+        }
+    }
 }
-
-
-
-// 实例化
-const kasperia = new KasperiaProvider();
 
 declare global {
     interface Window {
         kasperia?: KasperiaProvider;
-        mywallet?: any;
+        ethereum?: KasperiaProvider;
     }
 }
 
-// 防止被覆盖
-if (!window.mywallet) {
-    Object.defineProperty(window, 'kasperia', {
-        value: new Proxy(kasperia, {
-            deleteProperty: () => true,
-        }),
-        writable: false,
-    });
+const existing = window.kasperia as KasperiaProvider | undefined;
+const baseProvider: KasperiaProvider = existing ?? new KasperiaProvider();
+(baseProvider as any).isKasperia = true;
+const proxied = new Proxy(baseProvider, handler);
+
+const kasperiaProviderInfo = {
+    walletId: 'kasperia',
+    name: 'Kasperia Wallet',
+    icon: 'chrome-extension://ffalcabgggegkejjlknofllbaledgcob/media/icon16.png',
+    rdns: 'io.kasperia.wallet',
+};
+
+function safeDefineGlobal(name: string, value: any, enumerable = true) {
+    try {
+        Object.defineProperty(window, name, {
+            value,
+            writable: false,
+            configurable: true,
+            enumerable,
+        });
+        return true;
+    } catch (e) {
+        try {
+            (window as any)[name] = value;
+            return true;
+        } catch (err) {
+            return false;
+        }
+    }
 }
 
-// 通知外部页面插件已注入
-window.dispatchEvent(new Event('kasperia#initialized'));
+function enhancedAnnounceProvider() {
+    window.dispatchEvent(
+        new CustomEvent('eip6963:announceProvider', {
+            detail: Object.freeze({
+                info: Object.freeze({...kasperiaProviderInfo}),
+                provider: proxied,
+            }),
+        })
+    );
+}
 
-export { kasperia };
+if (!existing) {
+    safeDefineGlobal('kasperia', proxied, true);
+    enhancedAnnounceProvider();
+    window.addEventListener('eip6963:requestProvider', enhancedAnnounceProvider);
+
+    const currentEth = (window as any).ethereum;
+    if (!currentEth) {
+        safeDefineGlobal('ethereum', proxied, true);
+    } else if (currentEth === window.kasperia) {
+        safeDefineGlobal('ethereum', proxied, true);
+    }
+
+    const payload = { injectedAt: Date.now(), reused: false };
+    try {
+        window.dispatchEvent(new CustomEvent('kasperia#initialized', { detail: payload }));
+        window.dispatchEvent(new Event('ethereum#initialized'));
+    } catch {
+        window.dispatchEvent(new Event('kasperia#initialized'));
+        window.dispatchEvent(new Event('ethereum#initialized'));
+    }
+} else {
+    try {
+        window.dispatchEvent(
+            new CustomEvent('kasperia#initialized', { detail: { injectedAt: Date.now(), reused: true } })
+        );
+    } catch {
+        window.dispatchEvent(new Event('kasperia#initialized'));
+    }
+}

@@ -31,7 +31,6 @@ class NotificationService {
 
   constructor() {
     chrome.windows.onFocusChanged.addListener((winId) => {
-      console.log("onFocusChanged: ", this.notifiWindowId, winId, IS_CHROME && winId === chrome.windows.WINDOW_ID_NONE && IS_LINUX)
       if (this.notifiWindowId && winId !== this.notifiWindowId) {
         return;
         // if (IS_CHROME && winId === chrome.windows.WINDOW_ID_NONE) {
@@ -73,7 +72,6 @@ class NotificationService {
 
   // currently it only support one approval at the same time
   requestApproval = async (data: any, winProps?: any): Promise<any> => {
-    console.log("requestApproval .............." )
     return new Promise((resolve, reject) => {
       this.approval = {
         data,

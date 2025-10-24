@@ -2,7 +2,6 @@ import { keyringService, notificationService, permissionService } from '@/backgr
 import { PromiseFlow, underline2Camelcase } from '@/background/utils';
 import providerController from './controller';
 
-
 const flow = new PromiseFlow();
 
 const flowContext = flow
@@ -37,7 +36,6 @@ const flowContext = flow
         const {
             data: { method, params }
         } = ctx.request;
-        const r = ctx.request
         ctx.mapMethod = underline2Camelcase(method);
         if ((providerController as any)[ctx.mapMethod]) {
             return await (providerController as any)[ctx.mapMethod](ctx.request)
@@ -45,7 +43,25 @@ const flowContext = flow
     })
   .callback();
 
-export default (request: any) => {
-  const ctx: any = { request: { ...request, requestedApproval: false } };
-  return flowContext(ctx);
+export default async (request: any) => {
+    const ctx: any = { request: { ...request, requestedApproval: false } };
+    const {
+        data: { method },
+        session: { origin }
+    } = ctx.request;
+
+    if (method === 'eth_accounts') {
+        let isLocked = await keyringService.isLocked()
+        if (isLocked || !await permissionService.hasPermission(origin) ) {
+            return []
+        }
+        return (providerController as any)[method](ctx.request)
+    }
+
+    if (method == "eth_chainId" || method == "net_version" || method == "eth_blockNumber" || method == "eth_getTransactionReceipt"
+        || method == "eth_getBlockByNumber" || method == "eth_getBalance" || method == "wallet_revokePermissions" || method == "eth_call") {
+        return (providerController as any)[method](ctx.request)
+    }
+
+    return flowContext(ctx);
 };

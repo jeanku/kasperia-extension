@@ -51,4 +51,5 @@ const ContactUpdate = () => {
         </article>
     )
 }
+
 export default ContactUpdate
