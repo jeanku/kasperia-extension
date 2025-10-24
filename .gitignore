@@ -10,4 +10,4 @@ dist/
 *.sln
 *.sw?
 *.tgz
-src/utils/wallet/
+src/utils/wallet
