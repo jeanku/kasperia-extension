@@ -5,14 +5,14 @@ It allows users to easily manage Kaspa assets, sign transactions, and interact w
 
 ---
 
-## 🚀 Overview
+## Overview
 
 Kasperia provides a seamless interface between users and the Kaspa blockchain.  
 Built for both end users and developers, it ensures secure key management, intuitive design, and compatibility with DApp integrations.
 
 ---
 
-## 🌟 Key Features
+## Key Features
 
 -  **Secure Key Management** — Private keys and mnemonics are stored locally and never leave the user’s device.
 -  **Send & Receive Kaspa** — Effortlessly manage your KAS balance and transactions.
@@ -23,7 +23,8 @@ Built for both end users and developers, it ensures secure key management, intui
 -  **Modern Architecture** — Built with a focus on speed, reliability, and performance.
 -  **Multi-Account Support** — Manage multiple Kaspa addresses within one wallet.
 
-## 🌍 Connect with Us
+## Connect with Us
 
 - **Twitter:** [@kasperia_wallet](https://x.com/KasperiaWallet)
-- **Email:** kasperia.workspace@gmail.com 
+- **Email:** kasperia.workspace@gmail.com
+

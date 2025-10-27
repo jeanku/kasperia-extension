@@ -127,6 +127,3 @@ setInterval(() => {
 
 
 addServiceListener()
-
-
-console.log("background end....")

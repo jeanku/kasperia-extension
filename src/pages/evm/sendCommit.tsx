@@ -2,7 +2,7 @@ import {useEffect, useState} from "react"
 import HeadNav from '@/components/HeadNav'
 import { SvgIcon } from '@/components/Icon/index'
 import NumberInput from '@/components/NumberInput';
-import {Button, Mask, Popover} from 'antd-mobile'
+import {Button, Mask, Popover, SpinLoading} from 'antd-mobile'
 import { useNavigate, useLocation } from "react-router-dom";
 import {formatAddress, formatBalanceFixed} from '@/utils/util'
 
@@ -26,12 +26,13 @@ const SendCommit = () => {
     const [network] = useState<EvmNetwork>(state?.network)
     const [tx, setTx] = useState<TransactionRequest | undefined>(undefined)
     const [fee, setFee] = useState<string>("")
+    const [maxFee, setMaxFee] = useState<string>("")
     const [isERC20, setIsErc20] = useState<boolean>(false)
     const [sendTo] = useState<{
         address: string,
         amount: string,
     }>(state?.sendTo)
-    const [btnLoading, setBtnLoading] = useState(false)
+    const [loading, setLoading] = useState(true)
 
     const [sendData, setSendData] = useState<{
         address: string,
@@ -65,10 +66,15 @@ const SendCommit = () => {
             unsignedTx = await Token.createErc20Transaction(currentAccount?.ethAddress!, token.address, sendTo.address, sendTo.amount, token.decimals)
         }
         setTx(unsignedTx)
-        let base = BigInt(unsignedTx?.maxFeePerGas || "0") / 2n + BigInt(unsignedTx?.maxPriorityFeePerGas || "0")
-        let feeStr = ethers.formatEther(base * BigInt(unsignedTx?.gasLimit || "0"))
+        let maxGasPrice = BigInt(unsignedTx?.maxFeePerGas || "0")
+        let gasPrice = BigInt(unsignedTx?.gasPrice || "0")
+        if (maxGasPrice < gasPrice) {
+            maxGasPrice = gasPrice
+        }
+        let feeStr = ethers.formatEther(gasPrice * BigInt(unsignedTx?.gasLimit || "0"))
+        let feeMaxStr = ethers.formatEther(maxGasPrice * BigInt(unsignedTx?.gasLimit || "0"))
         setFee(formatBalanceFixed(feeStr, 6))
-
+        setMaxFee(formatBalanceFixed(feeMaxStr, 6))
         const abi = ["function transfer(address to, uint256 amount)"];
         const iface = new ethers.Interface(abi);
         if (unsignedTx.data) {
@@ -79,16 +85,19 @@ const SendCommit = () => {
                 amount: amount,
             })
         }
+        setLoading(false)
     }
 
     useEffect(() => {
-        setBtnLoading(true)
         createTransaction()
-        setBtnLoading(false)
     }, [])
 
     return (
         <article className="page-box">
+            <Mask visible={loading}>
+                <SpinLoading className='loading-fixed' style={{ '--size': '32px' }} color='primary'  />
+            </Mask>
+
             <HeadNav title='Sign Transaction'></HeadNav>
             <div className="content-main sign-transactuon assets-details pb96">
                 <div className="text-align mt15">
@@ -137,7 +146,7 @@ const SendCommit = () => {
                         </div>
                         <div className="flex-row cb ac">
                             <span>maxPriorityFeePerGas</span>
-                            <em>{fee} {network.symbol}</em>
+                            <em>{maxFee} {network.symbol}</em>
                         </div>
                     </div>
                     <div className="history-token-item">
@@ -195,7 +204,6 @@ const SendCommit = () => {
                     </Button>
                     <Button block size="large" color="primary"
                             loadingText={'Submitting'}
-                            loading={btnLoading}
                             disabled={tx == undefined}
                                 onClick={() => submitTransaction()}>
                         Sign & Pay

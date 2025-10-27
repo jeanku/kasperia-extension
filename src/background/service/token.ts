@@ -8,34 +8,21 @@ import {TransactionRequest} from "ethers/src.ts/providers/provider";
  */
 export class Token {
 
-    private client: Provider | undefined = undefined;
+    private clients: Map<number, Provider> = new Map();
 
-    /** Get all network configs */
-    async getClient() {
-        if (!this.client) {
-            let network = await evmService.getSelectedNetwork()
-            if (!network) {
-                throw Error("network not find")
-            }
-            this.client = new Provider(network.rpcUrl[0], Number(network.chainId))
+    async getClient(): Promise<Provider> {
+        const network = await evmService.getSelectedNetwork();
+        if (!network || network.rpcUrl.length == 0) {
+            throw Error("network not found");
         }
-        return this.client
+        const chainId = Number(network.chainId);
+        if (this.clients.has(chainId) && this.clients.get(chainId)!.rpcUrl == network.rpcUrl[0]) {
+            return this.clients.get(chainId)!;
+        }
+        const client = new Provider(network.rpcUrl[0], chainId);
+        this.clients.set(chainId, client);
+        return client;
     }
-
-    // async sendEth(to: string, amount: string): Promise<string> {
-    //     let privateKey = await keyringService.getActiveWalletPrivateKeyForEvm()
-    //     return this.getClient().then(client => {
-    //         // return client.sendEth(privateKey.priKey, to, amount)
-    //         return ""
-    //     })
-    // }
-    //
-    // async sendToken(to: string, tokenAddress: string,  amount: string): Promise<string> {
-    //     let privateKey = await keyringService.getActiveWalletPrivateKeyForEvm()
-    //     return this.getClient().then(client => {
-    //         return client.sendToken(privateKey.priKey, tokenAddress, to, amount)
-    //     })
-    // }
 
     async createTransaction(from: string, to: string,  amount: string): Promise<string> {
         return this.getClient().then(client => {
@@ -55,9 +42,6 @@ export class Token {
             return client.sendTransaction(privateKey.priKey, tx)
         })
     }
-
-
-
 }
 
 const token = new Token();
