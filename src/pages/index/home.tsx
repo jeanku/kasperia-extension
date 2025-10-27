@@ -539,7 +539,7 @@ const Home = () => {
                                     {evmTokenList.list.map((token, index) => (
                                         <div className="page-list-item" key={index} onClick={() => toTokenInfo(index)}>
                                             <Image
-                                                src={`https://krc20-assets.kas.fyi/icons/${token.name}.jpg`}
+                                                src={`.//${token.name}.jpg`}
                                                 width={44}
                                                 height={44}
                                                 lazy={true}
