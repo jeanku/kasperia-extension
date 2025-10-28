@@ -3,10 +3,10 @@ import { Evm } from '@/chrome/evm'
 import { EvmNetwork } from '@/model/evm'
 import HeadNav from '@/components/HeadNav'
 import { useNotice } from '@/components/NoticeBar/NoticeBar'
+import TokenImg from "@/components/TokenImg";
 import { Button, Input, Popup, Modal } from "antd-mobile";
 import { SvgIcon } from '@/components/Icon/index'
 import { isValidUrl } from '@/utils/util'
-import provider from "@/background/controller/provider";
 
 const EvmList = () => {
     const { noticeSuccess, noticeError } = useNotice();
@@ -143,7 +143,7 @@ const EvmList = () => {
                     networkList.length > 0 && (
                         networkList.map((item, index) => (
                             <div className={ item.select ? "selected coin-item" : "coin-item" } key={item.name} onClick={() => switchNetwork(index)}>
-                                <div className="coin-item-icon">{ item.name.slice(0,1).toLocaleUpperCase() }</div>
+                                <TokenImg url={item.chainId} name={ item.name } urlPath="chains" showDefault={ false } />
                                 <div className="coin-item-info">
                                     <div className="coin-item-name">
                                         <span>{item.name}</span>

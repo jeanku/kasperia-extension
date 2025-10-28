@@ -31,6 +31,7 @@ import { Dispatch } from 'redux';
 import IconArrorRight from '@/assets/images/home-arrow-right.png'
 import {GetKrc20AddressTokenListResponse, Krc20Response} from "@/utils/wallet/krc20/types";
 import {ethers} from "ethers";
+import TokenImg from "@/components/TokenImg";
 
 
 export type TimedList<T> = {
@@ -538,16 +539,7 @@ const Home = () => {
                                     </div>
                                     {evmTokenList.list.map((token, index) => (
                                         <div className="page-list-item" key={index} onClick={() => toTokenInfo(index)}>
-                                            <Image
-                                                src={`.//${token.name}.jpg`}
-                                                width={44}
-                                                height={44}
-                                                lazy={true}
-                                                placeholder={<SvgIcon iconName="PngCoinDef" size={44} color=""/>}
-                                                fallback={<SvgIcon iconName="PngCoinDef" size={44} color=""/>}
-                                                fit='cover'
-                                                style={{borderRadius: '50%', marginRight: '16px'}}
-                                            />
+                                            <TokenImg url={ token.symbol } name={token.name} />
                                             <div className="list-item-content">
                                                 <strong>{token.symbol}</strong>
                                                 <span className="one-line"> {formatAddress(token.address || token.name)} </span>
