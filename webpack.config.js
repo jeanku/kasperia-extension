@@ -157,5 +157,8 @@ module.exports = (env, argv) => {
         experiments: {
             asyncWebAssembly: true,
         },
+        performance: {
+            hints: false
+        }
     }
 }
