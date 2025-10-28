@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { Evm } from '@/chrome/evm'
 import { EvmNetwork } from '@/model/evm'
 import HeadNav from '@/components/HeadNav'
+import TokenImg from "@/components/TokenImg";
 import { useNotice } from '@/components/NoticeBar/NoticeBar'
 import {useNavigate} from "react-router-dom";
 
@@ -42,7 +43,7 @@ const SelectNetwork = () => {
                     networkList.length > 0 && (
                         networkList.map((item, index) => (
                             <div className={item.select ? "selected coin-item" : "coin-item"} onClick={() => switchNetwork(index)}>
-                                <div className="coin-item-icon">{item.name && item.name[0]}</div>
+                                <TokenImg url={item.chainId} name={ item.name } urlPath="chains" showDefault={ false } />
                                 <div className="coin-item-info">
                                     <div className="coin-item-name">
                                         <span>{item.name}</span>
