@@ -2450,6 +2450,16 @@ em {
     }
     background-color: $bg-color-hover;
 }
+.token-icon-img {
+    width: 44px;
+    height: 44px;
+    line-height: 44px;
+    border-radius: 50%;
+    text-align: center;
+    background-color: $border-color-666;
+    font-size: 16px;
+    margin-right: 10px;
+}
 
 @keyframes ellipsis {
     0% {
