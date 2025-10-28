@@ -7,4 +7,3 @@ export { default as notificationService } from './notification';
 export { default as accountService } from './account';
 export { default as evmService } from './evm';
 export { default as shareService } from './share';
-export { default as tokenService } from './token';

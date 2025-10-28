@@ -28,7 +28,23 @@ import {BlockTag, TransactionRequest} from "ethers/src.ts/providers/provider";
 
 export class Account {
     private client:  RpcClient | undefined = undefined
-    private provider:  Provider | undefined = undefined
+
+    private clients: Map<number, Provider> = new Map();
+
+    async get_provider(): Promise<Provider> {
+        const network = await evmService.getSelectedNetwork();
+        if (!network || network.rpcUrl.length == 0) {
+            throw Error("network not found");
+        }
+        const chainId = Number(network.chainId);
+        if (this.clients.has(chainId) && this.clients.get(chainId)!.rpcUrl == network.rpcUrl[0]) {
+            return this.clients.get(chainId)!;
+        }
+        const client = new Provider(network.rpcUrl[0], chainId);
+        this.clients.set(chainId, client);
+        return client;
+    }
+
 
     async getBalance(addr: string| undefined = undefined) {
         if (!this.client) {
@@ -306,17 +322,6 @@ export class Account {
         return signedTx.transaction.id.toString()
     }
 
-    async get_provider() {
-        if (!this.provider) {
-            let chain = await evmService.getSelectedNetwork()
-            if (!chain) {
-                throw new Error("chain not find error")
-            }
-            this.provider = new Provider(chain.rpcUrl[0], Number(chain.chainId))
-        }
-        return this.provider
-    }
-
     async eth_blockNumber() {
         return (await this.get_provider()).blockNumber()
     }
@@ -335,6 +340,25 @@ export class Account {
 
     async eth_getTransactionReceipt(hash: string) {
         return await (await this.get_provider()).getTransactionReceipt(hash)
+    }
+
+    async createTransaction(from: string, to: string,  amount: string): Promise<string> {
+        return this.get_provider().then(provider => {
+            return provider.createTransaction(from, to, amount)
+        })
+    }
+
+    async createERC20TransferTx(from: string, tokenAddress: string, toAddress: string, amount: string, tokenDecimals: number): Promise<string> {
+        return this.get_provider().then(provider => {
+            return provider.createERC20TransferTx(from, tokenAddress, toAddress, amount, tokenDecimals)
+        })
+    }
+
+    async sendTransaction(tx: TransactionRequest): Promise<string> {
+        let privateKey = await keyringService.getActiveWalletPrivateKeyForEvm()
+        return this.get_provider().then(provider => {
+            return provider.sendTransaction(privateKey.priKey, tx)
+        })
     }
 }
 

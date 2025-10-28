@@ -1,6 +1,7 @@
 import { Chrome } from '@/chrome/chrome'
 import {GetBalancesByAddressesResponseMessage} from "@/utils/wallet/rpc/types";
 import {Krc20DeployOptions} from "@/utils/wallet/krc20";
+import {TransactionRequest} from "ethers/src.ts/providers/provider";
 
 export class Account extends Chrome {
 
@@ -37,5 +38,16 @@ export class Account extends Chrome {
 
     static estimateFee(to: string, amount: string, payload: string): Promise<string | undefined> {
         return Chrome.request({ action: "Account.estimateFee", to, amount, payload})
+    }
+    static async createTransaction(from: string, to: string, amount: string): Promise<TransactionRequest> {
+        return Chrome.request({ action: "Account.createTransaction", from, to, amount })
+    }
+
+    static async createErc20Transaction(from: string, tokenAddress: string, toAddress: string, amount: string, tokenDecimals: number): Promise<TransactionRequest> {
+        return Chrome.request({ action: "Account.createERC20TransferTx", from, tokenAddress, toAddress, amount, tokenDecimals })
+    }
+
+    static async sendTransaction(tx: TransactionRequest): Promise<string> {
+        return Chrome.request({ action: "Account.sendTransaction", tx })
     }
 }

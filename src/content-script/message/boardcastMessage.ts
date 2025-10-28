@@ -15,7 +15,7 @@ export default class BroadcastChannelMessage extends Message {
     connect = () => {
         this._channel.onmessage = ({ data: { type, data } }) => {
             if (type === 'message') {
-                // this.emit('message', data);
+                this.emit('message', data);
             } else if (type === 'response') {
                 this.onResponse(data);
             }

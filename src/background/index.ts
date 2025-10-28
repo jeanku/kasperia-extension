@@ -6,13 +6,13 @@ import {Buffer} from 'buffer'
 
 globalThis.Buffer = Buffer;
 
-console.log("bg init ...")
+console.log("bg init 12344...")
 
 
 // for page provider
 chrome.runtime.onConnect.addListener((port) => {
 
-    console.log("onConnect start provider", port)
+    console.log("onConnect start provider", port.name)
     // if (port.name === 'popup' || port.name === 'notification' || port.name === 'tab') {
     //     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     //     const pm = new PortMessage(port as any);
@@ -72,15 +72,19 @@ chrome.runtime.onConnect.addListener((port) => {
         const tabId = port.sender?.tab?.id;
         if (!tabId) return;
 
-        const session = sessionService.getOrCreateSession(tabId);
+        const origin = new URL(port.sender?.tab?.url || "").origin;
+        const session = sessionService.getOrCreateSession(tabId, {
+            origin,
+            icon: port.sender?.tab?.favIconUrl || "",
+            name: port.sender?.tab?.title || "",
+        });
 
-        //
-        console.log("session hahah: ", session)
         const req = { data, session };
-        // for background push to respective page
-        // req.session.pushMessage = (event, data) => {
-        //     pm.send('message', { event, data });
-        // };
+        req.session.pushMessage = (event: any, data: any) => {
+            console.log("init pushMessage function", event, data)
+            pm.send('message', { event, data });
+        };
+
         // try {
         //     let s = await providerController(req);
         //     console.log("providerController(msg) then", s);

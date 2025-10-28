@@ -1,6 +1,7 @@
 import { Storage } from '@/utils/storage';
 import { EvmNetwork, Erc20Options } from '@/model/evm';
 import { ObservableStore } from '@metamask/obs-store';
+import { sessionService } from './index';
 
 /**
  * EVM Service
@@ -92,6 +93,7 @@ export class EVM {
         if (state.selected == chainId) {
             let temp = Object.values(rest)
             state.selected = temp.length > 0 ? temp[0].chainId : ""
+            sessionService.broadcastEvent('chainChanged', '0x' + Number(state.selected).toString(16));
         }
         this.store!.updateState({ ...state, networks: rest });
         return this.persistToStorage();
@@ -115,7 +117,6 @@ export class EVM {
     async getSelectedNetwork(): Promise<EvmNetwork | undefined> {
         await this.load();
         const state = this.store!.getState();
-        console.log("getSelectedNetwork: 2222", state.selected, state.networks[state.selected])
         return state.networks[state.selected];
     }
 
@@ -130,6 +131,7 @@ export class EVM {
             ...state,
             selected: chainId,
         });
+        sessionService.broadcastEvent('chainChanged', '0x' + Number(chainId).toString(16));
         return this.persistToStorage();
     }
 

@@ -31,23 +31,15 @@ const getSession = (id: number) => {
   return sessionMap.get(id);
 };
 
-const getOrCreateSession = (id: number) => {
+const getOrCreateSession = (id: number, data: SessionData | null) => {
   if (sessionMap.has(id)) {
     return getSession(id);
   }
-  return createSession(id, null);
+  return createSession(id, data);
 };
 
 const createSession = (id: number, data: SessionData | null) => {
   const session = new Session(data);
-  chrome.tabs.get(id, (tab) => {
-    const origin = new URL(tab.url || "").origin;
-    session.setProp({
-      origin,
-      icon: tab.favIconUrl || '',
-      name: tab.title || '',
-    });
-  });
   sessionMap.set(id, session);
   return session;
 };
@@ -57,30 +49,18 @@ const deleteSession = (id: string) => {
 };
 
 const broadcastEvent = async (ev: any, data?: any, origin?: string) => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let sessions: any[] = [];
-  sessionMap.forEach((session, key) => {
+  sessionMap.forEach((session) => {
     permissionService.hasPermission(session.origin).then(r => {
-      sessions.push({
-        key,
-        ...session
-      });
-    })
-  });
-
-  // same origin
-  if (origin) {
-    sessions = sessions.filter((session) => session.origin === origin);
-  }
-
-  sessions.forEach((session) => {
-    try {
-      session.pushMessage?.(ev, data);
-    } catch (e) {
-      if (sessionMap.has(session.key)) {
-        deleteSession(session.key);
+      if (r) {
+        try {
+          session.pushMessage?.(ev, data);
+        } catch (e) {
+          if (sessionMap.has(session.key)) {
+            deleteSession(session.key);
+          }
+        }
       }
-    }
+    })
   });
 };
 

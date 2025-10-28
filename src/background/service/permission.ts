@@ -3,6 +3,7 @@ import { max } from 'lodash';
 import LRU from 'lru-cache';
 
 import {Storage} from '@/utils/storage';
+import { sessionService, evmService } from './index';
 
 export enum CHAINS_ENUM {
   KAS = 'KAS'
@@ -84,6 +85,8 @@ class PermissionService {
       isTop: false,
       isConnected: true
     });
+    let chainId = await evmService.getSelectedChainId()
+    sessionService.broadcastEvent('connect', '0x' + Number(chainId).toString(16));
     this.sync();
   }
 
@@ -185,6 +188,10 @@ class PermissionService {
     if (!site) {
       return;
     }
+    sessionService.broadcastEvent('disconnect', {
+      code: 4900,
+      message: 'User manually disconnected',
+    });
     await this.setSite({
       ...site!,
       isConnected: false

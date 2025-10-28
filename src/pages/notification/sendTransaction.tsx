@@ -8,10 +8,9 @@ import '@/styles/transaction.scss'
 import { EvmNetwork } from "@/model/evm";
 import {Notification} from "@/chrome/notification";
 import {useNotice} from "@/components/NoticeBar/NoticeBar";
-import {Token} from "@/chrome/token";
+import {Account} from "@/chrome/account";
 import { Keyring } from "@/chrome/keyring";
 import {TransactionRequest} from "ethers/src.ts/providers/provider";
-import {Account} from "@/chrome/account";
 
 interface SendParams {
     tx: TransactionRequest;
@@ -57,7 +56,7 @@ const SendTransaction = () => {
     const submitTransaction = async () => {
         try {
             setBtnLoading(true)
-            let hash = await Token.sendTransaction(params)
+            let hash = await Account.sendTransaction(params)
             Notification.resolveApproval(hash)
         } catch (error) {
             noticeError(error);

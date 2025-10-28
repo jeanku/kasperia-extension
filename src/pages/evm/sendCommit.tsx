@@ -11,7 +11,7 @@ import { useSelector } from "react-redux";
 
 import '@/styles/transaction.scss'
 import { EvmTokenList, EvmNetwork } from "@/model/evm";
-import {Token} from "@/chrome/token";
+import {Account} from "@/chrome/account";
 import {TransactionRequest} from "ethers/src.ts/providers/provider";
 import {ethers} from "ethers";
 import {useClipboard} from "@/components/useClipboard";
@@ -60,10 +60,10 @@ const SendCommit = () => {
     const createTransaction = async () => {
         let unsignedTx = undefined
         if (!ethers.isAddress(token.address)) {
-            unsignedTx = await Token.createTransaction(currentAccount?.ethAddress!, sendTo.address, sendTo.amount)
+            unsignedTx = await Account.createTransaction(currentAccount?.ethAddress!, sendTo.address, sendTo.amount)
         } else {
             setIsErc20(true)
-            unsignedTx = await Token.createErc20Transaction(currentAccount?.ethAddress!, token.address, sendTo.address, sendTo.amount, token.decimals)
+            unsignedTx = await Account.createErc20Transaction(currentAccount?.ethAddress!, token.address, sendTo.address, sendTo.amount, token.decimals)
         }
         setTx(unsignedTx)
         let maxGasPrice = BigInt(unsignedTx?.maxFeePerGas || "0")

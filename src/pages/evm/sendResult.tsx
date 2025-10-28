@@ -8,7 +8,7 @@ import { formatAddress } from '@/utils/util'
 import IconSuccess from '@/assets/images/icon-success.png'
 import '@/styles/transaction.scss'
 import {EvmNetwork, EvmTokenList} from "@/model/evm";
-import {Token} from "@/chrome/token";
+import {Account} from "@/chrome/account";
 import {useNotice} from "@/components/NoticeBar/NoticeBar";
 import {TransactionRequest} from "ethers/src.ts/providers/provider";
 
@@ -34,7 +34,7 @@ const SendResult = () => {
 
     const sendTx = async () => {
         try {
-            let hash = await Token.sendTransaction(tx)
+            let hash = await Account.sendTransaction(tx)
             setHash(hash)
         } catch (error) {
             noticeError(error)

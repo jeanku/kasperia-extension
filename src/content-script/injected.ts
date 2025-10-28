@@ -34,9 +34,8 @@ const handler: ProxyHandler<KasperiaProvider> = {
     }
 };
 
-const script = document.currentScript;
-const channelName = script?.getAttribute('channel') || 'kasperiaChannel';
-
+// const script = document.currentScript;
+const channelName = 'kasperiaChannel';
 
 export class KasperiaProvider extends EventEmitter {
     _selectedAddress: string | null = null;
@@ -62,13 +61,11 @@ export class KasperiaProvider extends EventEmitter {
         super();
         this.setMaxListeners(maxListeners);
         this.initialize();
-        // this._pushEventHandlers = new PushEventHandlers(this);
     }
 
     initialize = async () => {
         document.addEventListener('visibilitychange', this._requestPromiseCheckVisibility);
-        console.log("bcm connect to content script ...")
-        this._bcm.connect()
+        this._bcm.connect().on('message', this._handleBackgroundMessage);
     };
 
     private _requestPromiseCheckVisibility = () => {
@@ -79,15 +76,15 @@ export class KasperiaProvider extends EventEmitter {
         }
     };
 
-    private _handleBackgroundMessage = (data: any) => {
-        console.log('[push event]', data);
+    private _handleBackgroundMessage = ({ event, data }: {event: string, data: any}) => {
+        this.emit(event, data);
     };
 
     _request = async (data: any) => {
         if (!data) {
             throw Error("data not find");
         }
-        // this._requestPromiseCheckVisibility();
+        this._requestPromiseCheckVisibility();
         return this._requestPromise.call(() => {
             return this._bcm.request(data).then((res) => res).catch((err) => {
                 throw err;
@@ -159,7 +156,7 @@ export class KasperiaProvider extends EventEmitter {
     };
 
     getVersion = async () => {
-        return "1.10.32";
+        return "1.10.34";
     };
 
     async request({ method, params }: RequestArguments): Promise<any> {
@@ -389,3 +386,6 @@ if (!existing) {
         window.dispatchEvent(new Event('kasperia#initialized'));
     }
 }
+
+
+console.log("init 123123")

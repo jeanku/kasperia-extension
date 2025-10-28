@@ -18,26 +18,21 @@ class PortMessage extends Message {
   connect = (name?: string) => {
     this.port = browserRuntimeConnect(undefined, name ? { name } : undefined);
     this.port.onMessage.addListener((r: any) => {
-      // if (r._type_ === `${this._EVENT_PRE}message`) {
-      //   this.emit('message', r);
-      //   return;
-      // }
-      //
+      if (r._type_ === `${this._EVENT_PRE}message`) {
+        this.emit('message', r);
+        return;
+      }
       if (r._type_ === `${this._EVENT_PRE}response`) {
         this.onResponse(r.data);
       }
     });
-
     return this;
   };
 
-  //
   listen = (listenCallback: any) => {
     if (!this.port) return;
     this.listenCallback = listenCallback;
-    this.port.onMessage.addListener((message: any) => {
-      const { _type_, data } = message || {};
-      console.log("port.onMessage")
+    this.port.onMessage.addListener(({ _type_, data }: {_type_: string, data: any}) => {
       if (_type_ === `${this._EVENT_PRE}request`) {
         this.onRequest(data);
       }

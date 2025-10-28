@@ -1,6 +1,6 @@
 import {
     keyringService, preferenceService, contactService, notificationService, permissionService,
-    evmService, shareService, tokenService, accountService
+    evmService, shareService, accountService
 } from './service';
 
 const handlers: Record<string, (message: any) => Promise<any> | any> = {
@@ -92,11 +92,9 @@ const handlers: Record<string, (message: any) => Promise<any> | any> = {
     "Share.add": (msg) => shareService.add(msg.item),
     "Share.remove": (msg) => shareService.remove(msg.id),
 
-    // "Token.sendEth": (msg) => tokenService.sendEth(msg.to, msg.amount),
-    "Token.createTransaction": (msg) => tokenService.createTransaction(msg.from, msg.to, msg.amount),
-    "Token.createERC20TransferTx": (msg) => tokenService.createERC20TransferTx(msg.from, msg.tokenAddress, msg.toAddress, msg.amount, msg.tokenDecimals),
-    "Token.sendTransaction": (msg) => tokenService.sendTransaction(msg.tx),
-
+    "Account.createTransaction": (msg) => accountService.createTransaction(msg.from, msg.to, msg.amount),
+    "Account.createERC20TransferTx": (msg) => accountService.createERC20TransferTx(msg.from, msg.tokenAddress, msg.toAddress, msg.amount, msg.tokenDecimals),
+    "Account.sendTransaction": (msg) => accountService.sendTransaction(msg.tx),
     "Account.signMessage": (msg) => accountService.signMessage(msg.message),
     "Account.getBalance": (msg) => accountService.getBalance(msg.address),
     "Account.getAddressesBalance": (msg) => accountService.getAddressesBalance(msg.addresses),
@@ -123,6 +121,16 @@ const addServiceListener = () => chrome.runtime.onMessage.addListener( (message,
         }
         handler(message).then((result: any) => {
             console.log("【bg event end】", result);
+
+            // ✅ 主动通知 DApp（通过 port -> content -> BroadcastChannel）
+            if (sender && sender.tab && sender.tab.id) {
+                chrome.tabs.sendMessage(sender.tab.id, {
+                    type: "notify_dapp",
+                    action,
+                    data: result,
+                });
+            }
+
             sendResponse(result);
         }).catch((error: { toString: () => any; }) => {
             handleError(error, sendResponse);

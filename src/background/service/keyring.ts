@@ -9,7 +9,7 @@ import { ObservableStore } from '@metamask/obs-store';
 import { preferenceService } from './index';
 import {NetworkType} from "@/utils/wallet/consensus";
 import {Keypair} from "@/utils/wallet/tx/keypair";
-import {ethers} from "ethers";
+import { sessionService } from "./index";
 
 
 export class KeyRing {
@@ -188,7 +188,6 @@ export class KeyRing {
         return resp
     }
 
-
     // addAccountFromMnemonic add a new account by mnemonic
     async addAccountFromMnemonic(mnemonic: string, passphrase: string) {
         let id = await hashString(mnemonic + passphrase + "2ee3957e6f11e9acc86e83")
@@ -215,7 +214,9 @@ export class KeyRing {
         this.store.getState().account.set(id, account)
         this.store.getState().id = id
         this.persistToStorage()
-        return this.getActiveAccountDisplay()
+        let resp = await this.getActiveAccountDisplay()
+        sessionService.broadcastEvent('accountsChanged', [resp.ethAddress])
+        return resp
     }
 
     // add a new account by private key
@@ -244,7 +245,9 @@ export class KeyRing {
         this.store.getState().account.set(id, account)
         this.store.getState().id = id
         this.persistToStorage()
-        return this.getActiveAccountDisplay()
+        let resp = await this.getActiveAccountDisplay()
+        sessionService.broadcastEvent('accountsChanged', [resp.ethAddress])
+        return resp
     }
 
     async removeAccount(id: string) {
@@ -261,11 +264,23 @@ export class KeyRing {
             this.store.getState().id = id
         }
         this.persistToStorage()
-        return this.getActiveAccountDisplay()
+        let resp = await this.getActiveAccountDisplay()
+        if (isSelf) {
+            sessionService.broadcastEvent('accountsChanged', [resp.ethAddress])
+        }
+        return resp
     }
 
     async setActiveWallet(id: string) {
+        if (this.store.getState().id == id) return
         this.store.getState().id = id
+        let account = this.store.getState().account.get(id)
+        if (account) {
+            let ethAddress = account.type == AccountType.Mnemonic ?
+                Wallet.fromMnemonic(account.mnemonic, `${ChainPath.KaspaL2Path}${account.path}`, account.passphrase).toEthAddress() :
+                Wallet.fromPrivateKey(account.priKey).toEthAddress()
+            sessionService.broadcastEvent('accountsChanged', [ethAddress])
+        }
         return this.persistToStorage()
     }
 
@@ -332,7 +347,9 @@ export class KeyRing {
         account.priKey = prikey
         account.subName = name
         this.persistToStorage()
-        return this.getActiveAccountDisplay()
+        let resp = await this.getActiveAccountDisplay()
+        sessionService.broadcastEvent('accountsChanged', [resp.ethAddress])
+        return resp
     }
 
     // switch account with drive index
@@ -351,8 +368,11 @@ export class KeyRing {
         account.priKey = subAccount.priKey
         account.subName = subAccount.name
         preferenceService.resetCurrentAccount()
+
         await this.persistToStorage()
-        return this.getActiveAccountDisplay()
+        let resp = await this.getActiveAccountDisplay()
+        sessionService.broadcastEvent('accountsChanged', [resp.ethAddress]);
+        return resp
     }
 
     async setSubAccountName(id: string, path: number, name: string) {
@@ -434,6 +454,11 @@ export class KeyRing {
             account.path = subAccount.path
             account.priKey = subAccount.priKey
             account.subName = subAccount.name
+
+            let ethAddress = account.type == AccountType.Mnemonic ?
+                Wallet.fromMnemonic(account.mnemonic, `${ChainPath.KaspaL2Path}${account.path}`, account.passphrase).toEthAddress() :
+                Wallet.fromPrivateKey(account.priKey).toEthAddress()
+            sessionService.broadcastEvent('accountsChanged', [ethAddress])
         }
         await this.persistToStorage()
         return this.getAccountSubAccountsDisplay()

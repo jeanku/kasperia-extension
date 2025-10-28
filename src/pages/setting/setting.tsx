@@ -85,7 +85,7 @@ const Setting = () => {
                                  size={20} iconName="IconTwitter"/>
                          <SvgIcon className="cursor-pointer" size={20} iconName="IconGithub" onClick={() => openUrl('https://github.com/jeanku/kasperia-extension')} />
                     </div>
-                    <p>version 1.10.32</p>
+                    <p>version 1.10.34</p>
                 </div>
             </div>
             <Footer></Footer>

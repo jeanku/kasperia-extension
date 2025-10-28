@@ -18,6 +18,13 @@ function injectScript(): void {
                 return pm.request({...data, "port": true})
             });
 
+        pm.on('message', ({ _type_, data }: {_type_: string, data: any}) => {
+            console.log("pm message", _type_, data)
+            if (_type_ === 'KASPERIA_WALLET_message') {
+                bcm.send('message', data);;
+            }
+        });
+
         document.addEventListener('beforeunload', () => {
             bcm.dispose();
             pm.dispose();
