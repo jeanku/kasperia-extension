@@ -315,13 +315,24 @@ declare global {
     }
 }
 
+function extensionIdToUUID(extensionId: string) {
+    return [
+        extensionId.slice(0, 8),
+        extensionId.slice(8, 12),
+        extensionId.slice(12, 16),
+        extensionId.slice(16, 20),
+        extensionId.slice(20, 32),
+    ].join("-");
+}
+
+
 const existing = window.kasperia as KasperiaProvider | undefined;
 const baseProvider: KasperiaProvider = existing ?? new KasperiaProvider();
 (baseProvider as any).isKasperia = true;
 const proxied = new Proxy(baseProvider, handler);
 
 const kasperiaProviderInfo = {
-    walletId: 'kasperia',
+    uuid: extensionIdToUUID("ffalcabgggegkejjlknofllbaledgcob"),
     name: 'Kasperia Wallet',
     icon: 'chrome-extension://ffalcabgggegkejjlknofllbaledgcob/media/icon16.png',
     rdns: 'io.kasperia.wallet',
