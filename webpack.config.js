@@ -58,7 +58,12 @@ module.exports = (env, argv) => {
                 },
                 {
                     test: /\.(png|svg|jpg|jpeg|gif)$/i,
-                    type: 'asset/resource',
+                    type: 'asset',
+                    parser: {
+                        dataUrlCondition: {
+                            maxSize: 10 * 1024,
+                        },
+                    },
                     generator: {
                         filename: 'media/[name][ext]'
                     }

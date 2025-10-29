@@ -3,6 +3,7 @@ import BroadcastChannelMessage from './message/boardcastMessage';
 import { ReadyPromise } from './message/readyPromise';
 import {NetworkType} from "@/utils/wallet/consensus";
 import {AddEthereumChainParameter} from "@/model/evm";
+import KasperiaIcon from '@/assets/images/icon48.png'
 
 interface StateProvider {
     accounts: string[] | null;
@@ -334,7 +335,7 @@ const proxied = new Proxy(baseProvider, handler);
 const kasperiaProviderInfo = {
     uuid: extensionIdToUUID("ffalcabgggegkejjlknofllbaledgcob"),
     name: 'Kasperia Wallet',
-    icon: 'chrome-extension://ffalcabgggegkejjlknofllbaledgcob/media/icon16.png',
+    icon: KasperiaIcon,
     rdns: 'io.kasperia.wallet',
 };
 
