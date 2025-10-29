@@ -71,8 +71,7 @@ const Connect =  () => {
             <HeadNav title='Kasperia Wallet' showLeft={false}></HeadNav>
             <section className="content-main connect-box pb96">
                 <div className='source-box'>
-                    <img className="logo-img" src={session?.icon} alt="" />
-                    <div className='source-txt'>
+                    <div className='text-center wd100' >
                         <strong>{session?.name}</strong>
                         <p>{session?.origin}</p>
                     </div>
