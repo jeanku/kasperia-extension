@@ -1,14 +1,13 @@
-import React, {useEffect, useState} from 'react'
-import { useNavigate } from "react-router-dom";
+import {useState} from 'react'
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from 'antd-mobile'
+import {useSelector} from "react-redux";
 import { SvgIcon } from '@/components/Icon/index'
-import { useLocation } from 'react-router-dom'
 import { SubmitSendTx } from '@/model/transaction'
 import { formatBalance, formatAddress } from '@/utils/util'
 import { KaspaExplorerUrl } from '@/types/enum'
 import IconSuccess from '@/assets/images/icon-success.png'
 import '@/styles/transaction.scss'
-import {useSelector} from "react-redux";
 import {RootState} from "@/store";
 import {NetworkType} from "@/utils/wallet/consensus";
 

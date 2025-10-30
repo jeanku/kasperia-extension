@@ -1,7 +1,8 @@
-import React, { useState } from "react"
-import HeadNav from '../../components/HeadNav'
+import { useState } from "react"
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from 'antd-mobile'
+
+import HeadNav from '@/components/HeadNav'
 import { useNotice } from '@/components/NoticeBar/NoticeBar'
 import {Account} from "@/chrome/account";
 import {Krc20DeployOptions} from "@/utils/wallet/krc20";

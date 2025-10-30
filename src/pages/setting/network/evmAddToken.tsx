@@ -79,6 +79,7 @@ const EvmAddToken = () => {
                     <Input
                         value={token.address}
                         maxLength={70}
+                        placeholder="address"
                         onChange={val => {
                             setTokenInfo("address", val)
                         }}

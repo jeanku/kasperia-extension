@@ -154,7 +154,7 @@ const EvmList = () => {
                                     </div>
                                 </div>
                                 <div className="coin-item-right">
-                                    <SvgIcon size={24} iconName="IconEdit" onClick={() => editNetwork(index)} />
+                                    <SvgIcon size={24} iconName="IconEdit" color="#9CA3AF" onClick={() => editNetwork(index)} />
                                     <SvgIcon size={24} iconName="IconDel" onClick={() =>
                                         Modal.alert({
                                             title: 'Message',
@@ -166,7 +166,7 @@ const EvmList = () => {
                                                 delNetwork(index)
                                             },
                                         })
-                                    } color="#E64E4E" />
+                                    } color="#F87171" />
                                 </div>
                             </div>
                         ))

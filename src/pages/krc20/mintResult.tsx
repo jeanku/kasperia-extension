@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from "react"
-import HeadNav from '@/components/HeadNav'
+import { useState, useEffect } from "react"
 import { ProgressBar, Button, Popup } from 'antd-mobile'
-import { CheckCircleOutline } from 'antd-mobile-icons'
+import { CheckCircleOutline, SendOutline } from 'antd-mobile-icons'
 import { useNavigate, useLocation } from "react-router-dom";
+
+import HeadNav from '@/components/HeadNav'
 import { SvgIcon } from '@/components/Icon'
+import { useNotice } from '@/components/NoticeBar/NoticeBar'
 import { formatAddress, formatHash } from '@/utils/util'
 import { useSelector } from "react-redux";
 import { RootState } from '@/store';
 import { Account } from '@/chrome/account';
-import { SendOutline } from 'antd-mobile-icons'
-import { useNotice } from '@/components/NoticeBar/NoticeBar'
 
 import "@/styles/mint.scss"
 import {NetworkType} from "@/utils/wallet/consensus";
@@ -21,7 +21,7 @@ const MintResult = () => {
     const { state } = useLocation()
 
     const [tick] = useState<string>(state?.tick)
-    const [times] = useState<Number>(state?.times)
+    const [times] = useState<number>(state?.times)
     const [useUtxo] = useState<boolean>(state?.useUtxo)
 
     const { preference} = useSelector((state: RootState) => state.preference);
@@ -62,7 +62,7 @@ const MintResult = () => {
                 <span>Pending transaction</span>
                 <SvgIcon color="#74E6D8" iconName="IconArrowRightTheme" />
             </article>
-            <div className="content-main mint-result">
+            <div className="content-main mint-result pb96">
                 <p className="tit-p">*Do not switch network or close the window. Or minting will be stopped.</p>
                 <div className="input-text-show mb12">
                     <span>Tick</span>
@@ -92,12 +92,12 @@ const MintResult = () => {
                         </div>
                         : null
                 }
-                <div className="btn-pos-two flexd-row">
-                    <Button block size="large" color="primary" onClick={() => navigate(-2)}>
-                        Mint Again
-                    </Button>
+                <div className="btn-pos-two flexd-row post-bottom">
                     <Button block size="large" onClick={() => navigate('/home')}>
                         Done
+                    </Button>
+                    <Button block size="large" color="primary" onClick={() => navigate(-2)}>
+                        Mint Again
                     </Button>
                 </div>
             </div>

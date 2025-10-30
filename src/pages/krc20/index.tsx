@@ -3,7 +3,6 @@ import React, {useEffect, useState} from "react"
 import { InfiniteScroll, List, Image } from 'antd-mobile'
 import { SendOutline } from 'antd-mobile-icons'
 import { KaspaExplorerUrl } from '@/types/enum'
-import { TokenList } from '@/model/krc20';
 import { useNavigate, useLocation } from "react-router-dom";
 
 import HeadNav from '@/components/HeadNav'

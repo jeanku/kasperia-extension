@@ -1,13 +1,14 @@
-import React, {useCallback, useEffect, useState} from "react"
-import HeadNav from '@/components/HeadNav'
+import {useCallback, useEffect, useState} from "react"
+import {Button, Checkbox, Slider, Space} from 'antd-mobile'
 import {useLocation, useNavigate} from "react-router-dom";
+
+import HeadNav from '@/components/HeadNav'
 import {useNotice} from '@/components/NoticeBar/NoticeBar'
 import NumberInput from '@/components/NumberInput';
 import {useSelector} from "react-redux";
 import {RootState} from '@/store';
 import {formatAddress, formatBalance} from '@/utils/util';
 import {Address} from '@/utils/wallet/address';
-import {Button, Checkbox, Slider, Space} from 'antd-mobile'
 import {SvgIcon} from '@/components/Icon'
 import {Account} from '@/chrome/account'
 import {Krc20Client, Krc20MintScript} from "@/utils/wallet/krc20";
@@ -117,7 +118,7 @@ const Mint = () => {
     return (
         <article className="page-box">
             <HeadNav title='KRC20 Mint'></HeadNav>
-            <div className="content-main mint-box">
+            <div className="content-main mint-box pb96">
                 <div className="input-box-fix mb30">
                     <h6 className="sub-tit">Ticker</h6>
                     <div className="input-box">
@@ -167,11 +168,11 @@ const Mint = () => {
                         <p>Upper limit transaction fee: { formatFee() } KAS</p>
                         <p>Each mint will pay 1 KAS as required by the protocol and 0.3 KAS as a transaction fee. Any unused fee will be refunded to your account.</p>
                     </div>
-                    <div className="btn-pos-two">
-                        <Button block size="large" color="primary" disabled={submitDisabled()} onClick={() => submit()}>
-                            Next
-                        </Button>
-                    </div>
+                </div>
+                <div className="btn-pos-two flexd-row post-bottom">
+                    <Button block size="large" color="primary" disabled={submitDisabled()} onClick={() => submit()}>
+                        Next
+                    </Button>
                 </div>
             </div>
         </article>

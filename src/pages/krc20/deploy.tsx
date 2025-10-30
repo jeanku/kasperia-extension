@@ -1,18 +1,18 @@
-import React, { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button, Popup, Tabs  } from 'antd-mobile'
-import { formatAddress } from '@/utils/util'
-import { formatNumber, isValidTickString } from '@/utils/util'
 import { SvgIcon } from '@/components/Icon'
+import { useNotice } from '@/components/NoticeBar/NoticeBar'
+import HeadNav from '@/components/HeadNav'
+import NoDataDom from "@/components/NoDataDom";
+import NumberInput from '@/components/NumberInput';
+
 import { AccountsSubListDisplay } from '@/model/account'
 import { Address } from '@/model/contact'
 import { Keyring } from '@/chrome/keyring'
 import { Contact } from '@/chrome/contact'
 
-import { useNotice } from '@/components/NoticeBar/NoticeBar'
-import HeadNav from '@/components/HeadNav'
-import NoDataDom from "@/components/NoDataDom";
-import NumberInput from '@/components/NumberInput';
+import { formatAddress, formatNumber, isValidTickString } from '@/utils/util'
 import { Address as AddressHelper } from '@/utils/wallet/address';
 import {NetworkTypeHelper} from "@/utils/wallet/consensus";
 import {useSelector} from "react-redux";
@@ -133,21 +133,10 @@ const Deploy = () => {
         }
     }
 
-    const getContactListByTab = () => {
-        switch (contactTabValue) {
-            case "Contacts":
-                return contactValue;
-            case "Accounts":
-                return accountsValue;
-            default:
-                return [];
-        }
-    };
-
     return (
         <article className="page-box">
             <HeadNav title='KRC20 Deploy'></HeadNav>
-            <div className="content-main mint-box">
+            <div className="content-main mint-box pb96">
                 <div className="input-box-fix mb12">
                     <h6 className="sub-tit">Ticker</h6>
                     <div className="input-box">
@@ -219,7 +208,7 @@ const Deploy = () => {
                     <p>1000 KAS will be paid according to the protocol and 0.3 KAS as a transaction fee. Any unused fee
                         will be refunded to your account.</p>
                 </div>
-                <div className="btn-pos-two">
+                <div className="btn-pos-two flexd-row post-bottom">
                     <Button block size="large" disabled={btnDisabled()} color="primary" onClick={() => submit()}>
                         Next
                     </Button>

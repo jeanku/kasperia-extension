@@ -1,19 +1,24 @@
-import React, { useState, useEffect, useMemo, useRef } from "react"
+import { useState, useEffect, useMemo, useRef } from "react"
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+import CountUp from 'react-countup';
+import {ethers} from "ethers";
+
 import { SearchBar, DotLoading, List, Image, Popover } from 'antd-mobile'
 import { UserOutline, DownOutline, AddOutline, UndoOutline } from 'antd-mobile-icons'
 import { Action } from 'antd-mobile/es/components/popover'
+import Footer from '@/components/Footer'
+import { SvgIcon } from '@/components/Icon/index'
+import { useClipboard } from '@/components/useClipboard';
+import TokenImg from "@/components/TokenImg";
+
 import { Oplist, TokenList } from '@/model/krc20';
 import {EvmTokenList, EvmNetwork} from '@/model/evm';
 import { Provider } from '@/utils/wallet/provider';
-import CountUp from 'react-countup';
-import { SvgIcon } from '@/components/Icon/index'
 import {formatAddress, formatBalance, formatDate, formatHash, formatDecimal, formatBalanceFixed} from "@/utils/util"
 import { Evm } from "@/chrome/evm"
 import { Account } from "@/chrome/account"
-import { RootState } from '@/store';
-import Footer from '@/components/Footer'
+import store, { RootState } from '@/store';
 import {
     setKrc20TokenList as setKrc20TokenListSlice,
     setKrc20OpList as setKrc20OpListSlice,
@@ -25,13 +30,9 @@ import {
 import {setHomeSelectTabValue } from "@/store/userSlice";
 import {GetKrc20OperationListResponse, Krc20Client, Krc20TokenBalanceInfo} from "@/utils/wallet/krc20";
 import { KaspaClient, KaspaTransaction } from "@/utils/wallet/kaspa";
-import store from '@/store';
-import { useClipboard } from '@/components/useClipboard';
 import { Dispatch } from 'redux';
 import IconArrorRight from '@/assets/images/home-arrow-right.png'
 import {GetKrc20AddressTokenListResponse, Krc20Response} from "@/utils/wallet/krc20/types";
-import {ethers} from "ethers";
-import TokenImg from "@/components/TokenImg";
 
 
 export type TimedList<T> = {

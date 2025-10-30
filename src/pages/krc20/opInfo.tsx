@@ -1,15 +1,17 @@
-import React, { useState } from "react"
-import HeadNav from '@/components/HeadNav'
-import { KaspaExplorerUrl } from '@/types/enum'
-import { useClipboard } from '@/components/useClipboard'
-import { TokenList } from '@/model/krc20';
-import { formatBalance, formatDate, formatAddress, formatHash } from '@/utils/util'
-import { Oplist as OplistModel} from '@/model/krc20'
+import { useState } from "react"
 import { SendOutline } from 'antd-mobile-icons'
-import { SvgIcon } from '@/components/Icon/index'
 import { useLocation } from 'react-router-dom'
-import '@/styles/account.scss'
 import {useSelector} from "react-redux";
+
+import HeadNav from '@/components/HeadNav'
+import { useClipboard } from '@/components/useClipboard'
+import { SvgIcon } from '@/components/Icon/index'
+
+import { KaspaExplorerUrl } from '@/types/enum'
+import { TokenList, Oplist as OplistModel } from '@/model/krc20';
+import { formatBalance, formatDate, formatAddress, formatHash } from '@/utils/util'
+
+import '@/styles/account.scss'
 import {RootState} from "@/store";
 import {NetworkType} from "@/utils/wallet/consensus";
 
