@@ -1,15 +1,20 @@
-import { decrypt, encrypt } from '@metamask/browser-passworder';
-import { KeyRingAccess, KeyRingAccount, KeyRingState, AccountSubListDisplay, AccountsSubListDisplay} from '@/model/account';
-import { Account, AccountDisplay } from '@/model/wallet';
-import { Storage } from '@/utils/storage';
-import { Wallet } from '@/utils/wallet/wallet';
-import {LockTime, AccountType, ChainPath, AddressType} from '@/types/enum';
-import { hashString } from '@/utils/util';
-import { ObservableStore } from '@metamask/obs-store';
-import { preferenceService } from './index';
+import {decrypt, encrypt} from '@metamask/browser-passworder';
+import {
+    AccountsSubListDisplay,
+    AccountSubListDisplay,
+    KeyRingAccess,
+    KeyRingAccount,
+    KeyRingState
+} from '@/model/account';
+import {Account, AccountDisplay} from '@/model/wallet';
+import {Storage} from '@/utils/storage';
+import {Wallet} from '@/utils/wallet/wallet';
+import {AccountType, AddressType, ChainPath, LockTime} from '@/types/enum';
+import {hashString} from '@/utils/util';
+import {ObservableStore} from '@metamask/obs-store';
+import {preferenceService, sessionService} from './index';
 import {NetworkType} from "@/utils/wallet/consensus";
 import {Keypair} from "@/utils/wallet/tx/keypair";
-import { sessionService } from "./index";
 
 
 export class KeyRing {
@@ -75,7 +80,7 @@ export class KeyRing {
                     throw new Error("password invalid");
                 }
 
-                let decryted = decryptedVault as {id: string, account: any}
+                let decryted = decryptedVault as { id: string, account: any }
                 const accountMap = new Map<string, Account>(
                     Object.entries(decryted.account as Record<string, Account>)
                 );
@@ -102,7 +107,7 @@ export class KeyRing {
         if (!account) {
             throw Error("Account not find")
         }
-        return { priKey: account.priKey };
+        return {priKey: account.priKey};
     }
 
     // getActiveWalletPrivateKey return privateKey
@@ -112,10 +117,10 @@ export class KeyRing {
             throw Error("Account not find")
         }
         if (account.type == AccountType.PrivateKey) {
-            return { priKey: account.priKey };
+            return {priKey: account.priKey};
         }
         let wallet = Wallet.fromMnemonic(account.mnemonic, `${ChainPath.KaspaL2Path}${account.path}`, account.passphrase)
-        return { priKey: wallet.getPrivateKey() }
+        return {priKey: wallet.getPrivateKey()}
     }
 
     async getActiveAddressForEvm() {
@@ -126,7 +131,7 @@ export class KeyRing {
         let address = account.type == AccountType.Mnemonic ?
             Wallet.fromMnemonic(account.mnemonic, `${ChainPath.KaspaL2Path}${account.path}`, account.passphrase).toEthAddress() :
             Wallet.fromPrivateKey(account.priKey).toEthAddress()
-        return { address }
+        return {address}
     }
 
 
@@ -136,7 +141,7 @@ export class KeyRing {
         if (!account) {
             throw Error("Account not find")
         }
-        return { priKey: account.priKey };
+        return {priKey: account.priKey};
     }
 
     // getActiveAccountDisplay return baseic account info
@@ -205,7 +210,7 @@ export class KeyRing {
             mnemonic: mnemonic,
             passphrase: passphrase,
             type: AccountType.Mnemonic,
-            drive:  [{
+            drive: [{
                 name: "Account 1",
                 path: path,
                 priKey: priKey
@@ -236,7 +241,7 @@ export class KeyRing {
             mnemonic: "",
             passphrase: "",
             type: AccountType.PrivateKey,
-            drive:  [{
+            drive: [{
                 name: "Account 1",
                 path: 0,
                 priKey: privateKey
@@ -300,7 +305,7 @@ export class KeyRing {
 
     async persistToStorage(): Promise<void> {
         let password = this.store.getState().password
-        if(!password) {
+        if (!password) {
             throw Error("account locked")
         }
         const passwordEncrypt = await encrypt(password!, password!);
@@ -317,7 +322,7 @@ export class KeyRing {
     }
 
     async setNewPassword(password: string): Promise<void> {
-        this.store.updateState({ password: password })
+        this.store.updateState({password: password})
         await this.persistToStorage()
     }
 
@@ -405,13 +410,13 @@ export class KeyRing {
             throw Error("account not find")
         }
         if (account.type == AccountType.Mnemonic) {
-            let subAccount= account.drive.find(r => {
+            let subAccount = account.drive.find(r => {
                 return r.path == path
             })
             if (!subAccount) {
                 throw Error("sub account not find")
             }
-            let evmKey =  Wallet.fromMnemonic(account.mnemonic, `${ChainPath.KaspaL2Path}${subAccount.path}`, account.passphrase)
+            let evmKey = Wallet.fromMnemonic(account.mnemonic, `${ChainPath.KaspaL2Path}${subAccount.path}`, account.passphrase)
             return [subAccount.priKey, evmKey.getPrivateKey()]
         } else {
             return [account.priKey, account.priKey]
@@ -472,7 +477,7 @@ export class KeyRing {
         let networkType = await preferenceService.getNetworkType()
         return {
             id: wallet.id,
-            path:wallet.path,
+            path: wallet.path,
             type: wallet.type,
             drive: wallet.drive?.map((item) => ({
                 name: item.name,
@@ -483,7 +488,7 @@ export class KeyRing {
         }
     }
 
-    async getAccountsSubListDisplay(type: AddressType|undefined = undefined): Promise<AccountsSubListDisplay[]> {
+    async getAccountsSubListDisplay(type: AddressType | undefined = undefined): Promise<AccountsSubListDisplay[]> {
         let networkType = await preferenceService.getNetworkType()
         let selected = this.currentAccount()
         var resp = []

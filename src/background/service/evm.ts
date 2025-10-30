@@ -1,7 +1,7 @@
-import { Storage } from '@/utils/storage';
-import { EvmNetwork, Erc20Options } from '@/model/evm';
-import { ObservableStore } from '@metamask/obs-store';
-import { sessionService } from './index';
+import {Storage} from '@/utils/storage';
+import {Erc20Options, EvmNetwork} from '@/model/evm';
+import {ObservableStore} from '@metamask/obs-store';
+import {sessionService} from './index';
 
 /**
  * EVM Service
@@ -22,8 +22,9 @@ export class EVM {
                 networks: Record<string, EvmNetwork>
             }>('evmRpcConfig');
             this.store = new ObservableStore(
-                data || { selected: '202555', networks: {
-                        "202555" : {
+                data || {
+                    selected: '202555', networks: {
+                        "202555": {
                             chainId: "202555",
                             symbol: "KAS",
                             name: "Kasplex-L2-Mainnet",
@@ -32,7 +33,7 @@ export class EVM {
                             decimals: 18,
                             select: true,
                         },
-                        "167012" : {
+                        "167012": {
                             chainId: "167012",
                             symbol: "TKAS",
                             name: "Kasplex-L2-Testnet",
@@ -41,7 +42,8 @@ export class EVM {
                             decimals: 18,
                             select: false,
                         }
-                    } }
+                    }
+                }
             );
         }
     }
@@ -50,7 +52,7 @@ export class EVM {
     async getNetworks(): Promise<EvmNetwork[]> {
         await this.load();
         let networks = Object.values(this.store!.getState().networks);
-        return networks.map(({ contracts, ...rest }) => {
+        return networks.map(({contracts, ...rest}) => {
             rest.select = rest.chainId == this.store!.getState().selected
             return rest
         });
@@ -79,7 +81,7 @@ export class EVM {
         }
         this.store!.updateState({
             ...state,
-            networks: { ...state.networks, [network.chainId]: network },
+            networks: {...state.networks, [network.chainId]: network},
         });
         return this.persistToStorage();
     }
@@ -89,13 +91,13 @@ export class EVM {
         await this.load();
         const state = this.store!.getState();
         if (!state.networks[chainId]) return;
-        const { [chainId]: _, ...rest } = state.networks;
+        const {[chainId]: _, ...rest} = state.networks;
         if (state.selected == chainId) {
             let temp = Object.values(rest)
             state.selected = temp.length > 0 ? temp[0].chainId : ""
             sessionService.broadcastEvent('chainChanged', '0x' + Number(state.selected).toString(16));
         }
-        this.store!.updateState({ ...state, networks: rest });
+        this.store!.updateState({...state, networks: rest});
         return this.persistToStorage();
     }
 
@@ -161,7 +163,7 @@ export class EVM {
             ...state,
             networks: {
                 ...state.networks,
-                [chainId]: { ...network, contracts },
+                [chainId]: {...network, contracts},
             },
         });
         return this.persistToStorage();
@@ -179,7 +181,7 @@ export class EVM {
             ...state,
             networks: {
                 ...state.networks,
-                [chainId]: { ...network, contracts },
+                [chainId]: {...network, contracts},
             },
         });
         return this.persistToStorage();

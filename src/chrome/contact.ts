@@ -3,6 +3,7 @@ import { Chrome } from '@/chrome/chrome'
 import {AddressType} from "@/types/enum";
 
 export class Contact extends Chrome {
+    
     static add(address: Address): Promise<any> {
         return Chrome.request({ action: "Contact.add", address: address })
     }

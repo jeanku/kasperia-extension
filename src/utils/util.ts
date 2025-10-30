@@ -1,7 +1,6 @@
-import { NetworkType } from "@/types/enum";
 import { Address } from "@/utils/wallet/address";
 import {ethers} from "ethers";
-import {applyMiddleware} from "@reduxjs/toolkit";
+import { NetworkType } from "@/utils/wallet/consensus";
 
 export const isExtensionPopup = () => {
     return window.innerWidth <= 500;

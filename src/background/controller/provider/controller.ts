@@ -6,7 +6,6 @@ import {
     permissionService,
     evmService
 } from '@/background/service';
-import {Provider} from "@/utils/wallet/provider";
 
 interface RequestProps {
     data: {
@@ -100,22 +99,24 @@ class ProviderController {
         return
     };
 
-    walletSwitchEthereumChain = async (request: RequestProps) => {
+    walletSwitchEthereumChain  = async (request: RequestProps) => {
         const exist = await evmService.checkChainIdExist(request.data.params.chainId)
         if (!exist) {
-            return
+            throw new Error("4902::Unrecognized chain ID")
         }
-
+        
         const chainId = await evmService.getSelectedChainId()
         if (chainId === request.data.params.chainId) {
             return
         }
 
+        const requestId = crypto.randomUUID();
         return await notificationService.requestApproval(
             {
                 data: {
                     chainId: chainId,
-                    targetChainId:  request.data.params.chainId
+                    targetChainId:  request.data.params.chainId,
+                    requestId,
                 },
                 session: request.session
             },

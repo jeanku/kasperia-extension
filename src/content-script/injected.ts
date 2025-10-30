@@ -3,7 +3,8 @@ import BroadcastChannelMessage from './message/boardcastMessage';
 import { ReadyPromise } from './message/readyPromise';
 import {NetworkType} from "@/utils/wallet/consensus";
 import {AddEthereumChainParameter} from "@/model/evm";
-import KasperiaIcon from '@/assets/images/icon48.png'
+import KasperiaIcon from '@/assets/images/icon128.png'
+import { ethErrors, serializeError } from 'eth-rpc-errors';
 
 interface StateProvider {
     accounts: string[] | null;
@@ -66,13 +67,17 @@ export class KasperiaProvider extends EventEmitter {
 
     initialize = async () => {
         document.addEventListener('visibilitychange', this._requestPromiseCheckVisibility);
+        // window.addEventListener('focus', this._requestPromiseCheckVisibility);
+        // window.addEventListener('blur', this._requestPromiseCheckVisibility);
         this._bcm.connect().on('message', this._handleBackgroundMessage);
     };
 
     private _requestPromiseCheckVisibility = () => {
         if (document.visibilityState === 'visible') {
+            // console.log("_requestPromiseCheckVisibility", 'visible')
             this._requestPromise.check(1);
         } else {
+            // console.log("_requestPromiseCheckVisibility", 'not visible')
             this._requestPromise.uncheck(1);
         }
     };
@@ -85,10 +90,14 @@ export class KasperiaProvider extends EventEmitter {
         if (!data) {
             throw Error("data not find");
         }
-        this._requestPromiseCheckVisibility();
+        // this._requestPromiseCheckVisibility();
         return this._requestPromise.call(() => {
-            return this._bcm.request(data).then((res) => res).catch((err) => {
-                throw err;
+            return this._bcm.request(data).then((res) => res).catch((err: Error) => {
+                let resp = err.message.toString().split("::")
+                if (resp.length <= 1) {
+                    throw serializeError(err)
+                }
+                throw { code: Number(resp[0]), message: resp[1] }
             });
         });
     };
@@ -157,7 +166,7 @@ export class KasperiaProvider extends EventEmitter {
     };
 
     getVersion = async () => {
-        return "1.10.34";
+        return "1.10.36";
     };
 
     async request({ method, params }: RequestArguments): Promise<any> {
@@ -217,9 +226,9 @@ export class KasperiaProvider extends EventEmitter {
             }
             case 'wallet_switchEthereumChain': {
                 const chainHex = params?.[0].chainId;
-                if (!chainHex) throw new Error('chainId missing');
+                if (!chainHex) return { code: 4902, message: 'Unrecognized chain ID' }
                 const chainId = parseInt(chainHex, 16);
-                const result = await this._request({
+                const result: any = await this._request({
                     method: 'walletSwitchEthereumChain',
                     params: {
                         chainId: chainId.toString(),
@@ -301,7 +310,8 @@ export class KasperiaProvider extends EventEmitter {
                     method: 'walletRequestPermissions',
                     params: {},
                 });
-                return [{ parentCapability: "eth_accounts" }];
+                // return [{ parentCapability: "eth_accounts" }];
+                return []
             }
             default:
                 throw new Error(`Unsupported method: ${method}`);
@@ -398,6 +408,7 @@ if (!existing) {
         window.dispatchEvent(new Event('kasperia#initialized'));
     }
 }
+
 
 
 console.log("init 123123")

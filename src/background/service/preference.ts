@@ -1,14 +1,13 @@
-import { debounce } from 'lodash';
-import { Network, PreferenceState, KasPrice } from '@/model/account';
-import { TokenList } from '@/model/krc20';
-import { AccountDisplay } from '@/model/wallet';
-import {Oplist} from '@/model/krc20';
-import { KaspaTransaction } from '@/utils/wallet/kaspa';
+import {debounce} from 'lodash';
+import {KasPrice, Network, PreferenceState} from '@/model/account';
+import {Oplist, TokenList} from '@/model/krc20';
+import {AccountDisplay} from '@/model/wallet';
+import {KaspaTransaction} from '@/utils/wallet/kaspa';
 import {Storage} from '@/utils/storage';
 import {accountService, keyringService} from './index';
 import {ObservableStore} from '@metamask/obs-store';
 import {EvmTokenList} from "@/model/evm";
-import { NetworkType, NetworkId } from "@/utils/wallet/consensus";
+import {NetworkId, NetworkType} from "@/utils/wallet/consensus";
 
 export class Preference {
 
@@ -54,7 +53,12 @@ export class Preference {
         let curAccount = await keyringService.getActiveAccountDisplay(network.networkType)
         console.log("setNetwork 0")
         Preference.store?.updateState({
-            network: network, currentAccount: curAccount, krc20TokenList: [], krc20OpList: [], kaspaTxList: [], accountsBalance: {}
+            network: network,
+            currentAccount: curAccount,
+            krc20TokenList: [],
+            krc20OpList: [],
+            kaspaTxList: [],
+            accountsBalance: {}
         })
         console.log("setNetwork 1")
         accountService.reconnect(NetworkId.from(network.networkType))
@@ -66,7 +70,7 @@ export class Preference {
 
     static async setCurrentAccount(account: AccountDisplay) {
         await Preference.load()
-        let data = { currentAccount: account, krc20TokenList: [], krc20OpList: [], kaspaTxList: [], accountsBalance: {}}
+        let data = {currentAccount: account, krc20TokenList: [], krc20OpList: [], kaspaTxList: [], accountsBalance: {}}
         Preference.store?.updateState(data)
         return Preference.persistToStorage()
     }
@@ -78,7 +82,7 @@ export class Preference {
 
     static async setKrc20TokenList(data: TokenList[]) {
         await Preference.load()
-        Preference.store?.updateState( { krc20TokenList: data })
+        Preference.store?.updateState({krc20TokenList: data})
         return Preference.persistToStorage()
     }
 
@@ -89,7 +93,7 @@ export class Preference {
 
     static async setKrc20OpList(data: Oplist[]) {
         await Preference.load()
-        Preference.store?.updateState({ krc20OpList: data })
+        Preference.store?.updateState({krc20OpList: data})
         return Preference.persistToStorage()
     }
 
@@ -100,7 +104,7 @@ export class Preference {
 
     static async setKaspaTxList(data: KaspaTransaction[]) {
         await Preference.load()
-        Preference.store?.updateState({ kaspaTxList: data })
+        Preference.store?.updateState({kaspaTxList: data})
         return Preference.persistToStorage()
     }
 
@@ -112,7 +116,7 @@ export class Preference {
     static async setEvm20TokenList(chainId: string, data: EvmTokenList[]) {
         await Preference.load()
         let state = Preference.store?.getState()!
-        Preference.store?.updateState({ evmTokenList: {...state.evmTokenList, [chainId]: data} })
+        Preference.store?.updateState({evmTokenList: {...state.evmTokenList, [chainId]: data}})
         return Preference.persistToStorage()
     }
 
@@ -140,7 +144,7 @@ export class Preference {
         return Preference.persistToStorage()
     }
 
-    static async updateAccountsBalance(address: string, balance:string) {
+    static async updateAccountsBalance(address: string, balance: string) {
         await Preference.load()
         let state = Preference.store?.getState().accountsBalance! || {}
         let currentAccount = Preference.store?.getState().currentAccount
@@ -151,7 +155,7 @@ export class Preference {
         return Preference.persistToStorage()
     }
 
-    static async getAccountsBalance()  {
+    static async getAccountsBalance() {
         await Preference.load()
         return Preference.store?.getState().accountsBalance
     }
@@ -213,7 +217,7 @@ export class Preference {
 
     static async setIndex(index: string) {
         await Preference.load()
-        Preference.store?.updateState({ index })
+        Preference.store?.updateState({index})
         return Preference.persistToStorage()
     }
 

@@ -1,6 +1,6 @@
-import { LinkItem } from '@/model/links';
-import { Storage } from '@/utils/storage';
-import { ObservableStore } from '@metamask/obs-store';
+import {LinkItem} from '@/model/links';
+import {Storage} from '@/utils/storage';
+import {ObservableStore} from '@metamask/obs-store';
 
 /**
  * Share
@@ -32,7 +32,7 @@ export class Share {
             item.id = crypto.randomUUID();
         }
         state[item.id] = item;
-        this.store!.updateState({ ...state });
+        this.store!.updateState({...state});
         return this.persistToStorage();
     }
 
@@ -43,7 +43,7 @@ export class Share {
         if (state[id]) {
             delete state[id];
         }
-        this.store!.updateState({ ...state });
+        this.store!.updateState({...state});
         return this.persistToStorage();
     }
 

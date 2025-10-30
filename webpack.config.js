@@ -61,7 +61,7 @@ module.exports = (env, argv) => {
                     type: 'asset',
                     parser: {
                         dataUrlCondition: {
-                            maxSize: 10 * 1024,
+                            maxSize: 15 * 1024,
                         },
                     },
                     generator: {

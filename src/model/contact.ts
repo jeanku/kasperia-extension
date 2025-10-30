@@ -1,4 +1,5 @@
-import { NetworkType, AddressType } from '@/types/enum'
+import { AddressType } from '@/types/enum'
+import { NetworkType } from "@/utils/wallet/consensus";
 
 export type Address = {
     name: string,

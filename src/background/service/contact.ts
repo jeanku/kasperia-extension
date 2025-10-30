@@ -50,13 +50,12 @@ export class Contact {
         let resp: Address[] = []
         const state = Contact.store?.getState()
         let network = await preferenceService.getNetwork()
-        console.log("network:", network)
         for (const key in state) {
             if (type == AddressType.KaspaAddress) {
                 // console.log("state[key].network:", state[key].network, network.networkId, state[key].network == network.networkId)
-                // if (state[key].type == type && state[key].network == network.networkId) {
-                //     resp.push(state[key])
-                // }
+                if (state[key].type == type && state[key].network == network.networkType) {
+                    resp.push(state[key])
+                }
             } else {
                 if (state[key].type == type) {
                     resp.push(state[key])

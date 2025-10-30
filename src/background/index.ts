@@ -8,7 +8,6 @@ globalThis.Buffer = Buffer;
 
 console.log("bg init 12344...")
 
-
 // for page provider
 chrome.runtime.onConnect.addListener((port) => {
 
@@ -67,33 +66,21 @@ chrome.runtime.onConnect.addListener((port) => {
     // }
 
     const pm = new PortMessage(port);
-    pm.listen(async (data : any) => {
-        console.log("【BG】pm.listen:", data);
+    pm.listen((data : any) => {
+        console.log("【BG】pm.listen:", data, port.sender?.tab?.id);
         const tabId = port.sender?.tab?.id;
         if (!tabId) return;
-
         const origin = new URL(port.sender?.tab?.url || "").origin;
         const session = sessionService.getOrCreateSession(tabId, {
             origin,
             icon: port.sender?.tab?.favIconUrl || "",
             name: port.sender?.tab?.title || "",
         });
-
         const req = { data, session };
         req.session.pushMessage = (event: any, data: any) => {
             console.log("init pushMessage function", event, data)
             pm.send('message', { event, data });
         };
-
-        // try {
-        //     let s = await providerController(req);
-        //     console.log("providerController(msg) then", s);
-        //     return s;
-        // } catch (e) {
-        //     console.error("🔥 providerController 报错:", e);
-        // }
-        //
-        // console.log("【BG】pm.listen44:", msg);
         return providerController(req);
     });
 

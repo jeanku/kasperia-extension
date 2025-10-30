@@ -3,11 +3,12 @@ import HeadNav from '@/components/HeadNav'
 import {useNavigate} from "react-router-dom";
 import {Contact} from "@/chrome/contact"
 import {Button, Input} from "antd-mobile";
-import {AddressType, NetworkType} from "@/types/enum";
+import { AddressType } from "@/types/enum";
 import { ethers } from "ethers";
 import {useNotice} from "@/components/NoticeBar/NoticeBar";
-import {toAddressType} from "@/utils/util";
+import { toAddressType } from "@/utils/util";
 import {Address} from "@/utils/wallet/address";
+import { NetworkType } from "@/utils/wallet/consensus";
 
 const ContactAdd = () => {
     const navigate = useNavigate();
@@ -21,7 +22,7 @@ const ContactAdd = () => {
 
     const handleSubmit = async () => {
         var addressType = undefined
-        var networkType = NetworkType.Default
+        var networkType = NetworkType.Mainnet
 
         if (Address.validate(address)) {
             networkType = toAddressType(address)

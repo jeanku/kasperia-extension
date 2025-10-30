@@ -21,6 +21,7 @@ abstract class Message extends EventEmitter {
         if (!this._requestIdPool.length) {
             throw ethErrors.rpc.limitExceeded();
         }
+        console.log("bcm request start", data)
         const ident = this._requestIdPool.shift()!;
         return new Promise((resolve, reject) => {
             this._waitingMap.set(ident, {

@@ -6,28 +6,25 @@ import {
     KRC20_MINT_RETURN_FEES,
     KRC20_TRANSFER_TOTAL_FEES
 } from './types';
-import { RpcClient, Resolver } from '@/utils/wallet/rpc'
-import { Hash } from '@/utils/wallet/tx'
-import {Keypair, Wallet} from '@/utils/wallet/wallet'
-import { NetworkId } from '@/utils/wallet/consensus';
-import {Krc20DeployOptions, Krc20DeployScript, Krc20MintScript, Krc20TransferScript} from '@/utils/wallet/krc20';
+import {Resolver, RpcClient} from '@/utils/wallet/rpc'
 import {
-    PaymentOutput,
-    GeneratorSettings,
     Generator,
+    GeneratorSettings,
+    Hash,
+    PaymentOutput,
     TransactionOutpoint,
-    UtxoEntryReference,
-    U64_MAX_VALUE
-} from '@/utils/wallet/tx';
-import {
-   ScriptPublicKey
-} from '@/utils/wallet/consensus';
+    U64_MAX_VALUE,
+    UtxoEntryReference
+} from '@/utils/wallet/tx'
+import {Keypair, Wallet} from '@/utils/wallet/wallet'
+import {NetworkId, ScriptPublicKey} from '@/utils/wallet/consensus';
+import {Krc20DeployOptions, Krc20DeployScript, Krc20MintScript, Krc20TransferScript} from '@/utils/wallet/krc20';
 import {stringToUint8Array} from "@/utils/util";
 import {Provider} from "@/utils/wallet/provider";
 import {BlockTag, TransactionRequest} from "ethers/src.ts/providers/provider";
 
 export class Account {
-    private client:  RpcClient | undefined = undefined
+    private client: RpcClient | undefined = undefined
 
     private clients: Map<number, Provider> = new Map();
 
@@ -46,7 +43,7 @@ export class Account {
     }
 
 
-    async getBalance(addr: string| undefined = undefined) {
+    async getBalance(addr: string | undefined = undefined) {
         if (!this.client) {
             await this.connect()
         }
@@ -63,12 +60,12 @@ export class Account {
 
     async connect() {
         let networkId = await preferenceService.getNetworkId()
-        this.client =  new RpcClient({ resolver: new Resolver(), networkId });
+        this.client = new RpcClient({resolver: new Resolver(), networkId});
         await this.client.connect()
     }
 
     async reconnect(networkId: NetworkId | undefined) {
-        this.client =  undefined
+        this.client = undefined
         // this.client.connect()
     }
 
@@ -238,7 +235,7 @@ export class Account {
         let balance = inputEntries.reduce((sum, utxo) => sum + utxo.amount, 0n);
 
         let output = balance - KRC20_MINT_FEES
-        let outputAddress =  output < KRC20_MINT_FEES ? senderAddress : p2shAddress
+        let outputAddress = output < KRC20_MINT_FEES ? senderAddress : p2shAddress
         let revealSetting = new GeneratorSettings([
             new PaymentOutput(outputAddress, output)
         ], senderAddress, inputEntries, NetworkId.Testnet10, KRC20_MINT_FEES);
@@ -276,7 +273,7 @@ export class Account {
             )
             entries.push(entry)
         }
-        return { entries, balance: BigInt(balance) }
+        return {entries, balance: BigInt(balance)}
     }
 
     async estimateFee(to: string, amount: string, payload: string) {
@@ -307,7 +304,7 @@ export class Account {
         return this.transfer(account.priKey, senderAddress.toString(), to, BigInt(amount), networkId, payload)
     }
 
-    async transfer(privateKey: string, sender: string, to: string, amount: bigint, networkId: NetworkId, payload: string |undefined = undefined) {
+    async transfer(privateKey: string, sender: string, to: string, amount: bigint, networkId: NetworkId, payload: string | undefined = undefined) {
         let utxos = await this.client?.getUtxosByAddresses([sender])
         const output = new PaymentOutput(to, amount);
         let payloadArray = payload ? stringToUint8Array(payload) : undefined
@@ -342,7 +339,7 @@ export class Account {
         return await (await this.get_provider()).getTransactionReceipt(hash)
     }
 
-    async createTransaction(from: string, to: string,  amount: string): Promise<string> {
+    async createTransaction(from: string, to: string, amount: string): Promise<string> {
         return this.get_provider().then(provider => {
             return provider.createTransaction(from, to, amount)
         })
