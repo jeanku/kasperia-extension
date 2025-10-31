@@ -401,13 +401,19 @@ const Home = () => {
                 </div>
                 <div className="page-btn">
                     <div className="btn-icon" onClick={() => navigate('/account/receive')}>
-                        <SvgIcon iconName="IconReceive" offsetStyle={{ marginRight: '6px' }} color="#171717" />
+                        <SvgIcon iconName="IconReceive" offsetStyle={{ marginRight: '3px' }} color="#171717" />
                         Receive
+                    </div>
+                    <div className="btn-icon" onClick={() => navigate('/swap/swapIndex', {
+                        state: {token: {tick: "KAS", balance, dec: 8}}
+                    })}>
+                        <SvgIcon iconName="IconConvert" offsetStyle={{ marginRight: '3px' }} color="#171717" />
+                        Swap
                     </div>
                     <div className="btn-icon" onClick={() => navigate('/tx/send', {
                         state: {token: {tick: "KAS", balance, dec: 8}}
                     })}>
-                        <SvgIcon iconName="IconSend" offsetStyle={{ marginRight: '6px' }} color="#171717" />
+                        <SvgIcon iconName="IconSend" offsetStyle={{ marginRight: '3px' }} color="#171717" />
                         Send
                     </div>
                 </div>

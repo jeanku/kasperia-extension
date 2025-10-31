@@ -231,3 +231,7 @@ export function formatSignMessage(message: string): string {
     }
     return message;
 }
+
+export function calcAmount(balance: bigint, percent: number) {
+  return (balance * BigInt(Math.round(percent))) / BigInt(100)
+}

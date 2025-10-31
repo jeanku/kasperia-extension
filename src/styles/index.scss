@@ -220,7 +220,9 @@ em {
 .mt60 {
     margin-top: 60px;
 }
-
+.mb5 {
+    margin-bottom: 5px;
+}
 .mb12 {
     margin-bottom: 12px;
 }
@@ -251,7 +253,9 @@ em {
 .cursor-pointer {
     cursor: pointer;
 }
-
+.pt0 {
+    padding-top: 0!important;
+}
 .pt26 {
     padding-top: 26px;
 }
@@ -1425,9 +1429,14 @@ em {
     }
 
     .btn-icon {
-        min-width: 144px;
         cursor: pointer;
+        padding: 0 10px;
     }
+}
+.y-auto {
+    position: relative;
+    height: calc(100vh - 62vh);
+    overflow-y: auto;
 }
 
 .input-select {
@@ -2461,6 +2470,65 @@ em {
     background-color: $border-color-666;
     font-size: 16px;
     margin-right: 10px;
+}
+
+.card-box {
+    width: 100%;
+    background-color:$bg-color-f26;
+    border-radius: $border-radius;
+    padding: 15px;
+    box-sizing: border-box;
+    .card-title {
+        span {
+            font-size: 14px;
+        }
+    }
+    .input-box-fix {
+        width: 160px;
+        .adm-slider {
+            position: relative;
+            top: -7px;
+            width: 140px;
+            margin-bottom: 0;
+        }
+        .wd36 {
+            width: 36px;
+            text-align: right;
+        }
+    }
+}
+.swap-divider {
+    margin: 15px auto;
+    .adm-divider-content {
+        padding: 0;
+    }
+    .swap-icon {
+        border-radius: 50%;
+        text-align: center;
+        border: 1px solid $border-color-f97;
+        box-sizing: border-box;
+        padding: 4px;
+        cursor: pointer;
+        > div {
+            position: relative;
+            top: 5px;
+            transform: rotate(90deg);
+        }
+        &:hover {
+            background-color: #70c7ba;
+            border-color: #70c7ba;
+            box-shadow: rgba(176, 176, 176, 0.2) 0px 10px 15px -3px, rgba(14, 27, 25, 0.4) 0px 4px 6px -2px;
+        }
+    }
+}
+.poup-title {
+    margin-top: 10px;
+    text-align: center;
+    font-size: 22px;
+}
+.token-popup-body {
+    background-color: $bg-color-f1A;
+    box-shadow: 0 0 3px rgba(0, 0, 0, 0.1);
 }
 
 @keyframes ellipsis {

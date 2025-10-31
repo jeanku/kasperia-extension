@@ -339,7 +339,7 @@ function extensionIdToUUID(extensionId: string) {
 
 const existing = window.kasperia as KasperiaProvider | undefined;
 const baseProvider: KasperiaProvider = existing ?? new KasperiaProvider();
-(baseProvider as any).isKasperia = true;
+// (baseProvider as any).isKasperia = true;
 const proxied = new Proxy(baseProvider, handler);
 
 const kasperiaProviderInfo = {

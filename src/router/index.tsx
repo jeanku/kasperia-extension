@@ -91,6 +91,11 @@ import {
   SignMessage as NotificatioSign,
 } from "@/pages/notification";
 
+import {
+  Swap,
+  History as SwapHistroy,
+} from "@/pages/bridge/index";
+
 const AppRouter: React.FC = () => {
   return (
     <HashRouter>
@@ -171,6 +176,11 @@ const AppRouter: React.FC = () => {
             <Route path="notification/sendTransaction" element={<SendTransaction />} />
             <Route path="notification/addEthereumChain" element={<AddEthereumChain />} />
             <Route path="notification/addErc20Token" element={<AddErc20Token />} />
+          </Route>
+
+          <Route path="/swap">
+            <Route path="swapIndex" element={ <Swap /> } />
+            <Route path="swapHistory" element={ <SwapHistroy /> } />
           </Route>
 
           <Route path="*" element={<Nopage />} />
