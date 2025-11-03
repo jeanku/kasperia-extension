@@ -92,8 +92,8 @@ import {
 } from "@/pages/notification";
 
 import {
-  Swap,
-  History as SwapHistroy,
+  Bridge,
+  History as BridgeHistory,
 } from "@/pages/bridge/index";
 
 const AppRouter: React.FC = () => {
@@ -178,9 +178,9 @@ const AppRouter: React.FC = () => {
             <Route path="notification/addErc20Token" element={<AddErc20Token />} />
           </Route>
 
-          <Route path="/swap">
-            <Route path="swapIndex" element={ <Swap /> } />
-            <Route path="swapHistory" element={ <SwapHistroy /> } />
+          <Route path="/bridge">
+            <Route path="bridgeIndex" element={ <Bridge /> } />
+            <Route path="bridgeHistory" element={ <BridgeHistory /> } />
           </Route>
 
           <Route path="*" element={<Nopage />} />

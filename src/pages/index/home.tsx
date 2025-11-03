@@ -404,11 +404,11 @@ const Home = () => {
                         <SvgIcon iconName="IconReceive" offsetStyle={{ marginRight: '3px' }} color="#171717" />
                         Receive
                     </div>
-                    <div className="btn-icon" onClick={() => navigate('/swap/swapIndex', {
+                    <div className="btn-icon" onClick={() => navigate('/bridge/bridgeIndex', {
                         state: {token: {tick: "KAS", balance, dec: 8}}
                     })}>
-                        <SvgIcon iconName="IconConvert" offsetStyle={{ marginRight: '3px' }} color="#171717" />
-                        Swap
+                        <SvgIcon iconName="IconBridge" offsetStyle={{ marginRight: '3px' }} color="#171717" />
+                        Bridge
                     </div>
                     <div className="btn-icon" onClick={() => navigate('/tx/send', {
                         state: {token: {tick: "KAS", balance, dec: 8}}

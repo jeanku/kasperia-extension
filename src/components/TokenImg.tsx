@@ -43,10 +43,12 @@ interface TokenImgProps {
     height?: number;
     className?: string;
     showDefault?: boolean;
+    marginRight?: number;
+    styleInfo?: React.CSSProperties;
 }
 
 const TokenImg = (props: TokenImgProps) => {
-    const { name, width = 44, url, height = 44, urlPath = 'tokens', className = "", showDefault = true } = props;
+    const { name, width = 44, url, height = 44, urlPath = 'tokens', className = "", showDefault = true, marginRight = "16", styleInfo = {} } = props;
     const { src: imageSrc, exists: imageExists } = handleTokenImage(url, urlPath);
     if (!showDefault && !imageExists && name) {
         return (
@@ -64,7 +66,7 @@ const TokenImg = (props: TokenImgProps) => {
         placeholder={<SvgIcon iconName="PngCoinDef" size={width} color="" />}
         fallback={<SvgIcon iconName="PngCoinDef" size={width} color="" />}
         fit='cover'
-        style={{ borderRadius: '50%', marginRight: '16px' }}
+        style={{ ...styleInfo, borderRadius: '50%', marginRight: `${marginRight}px` }}
     />)
 }
 export default TokenImg;

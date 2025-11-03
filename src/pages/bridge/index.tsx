@@ -1,3 +1,3 @@
-import Swap from "./swap"
+import Bridge from "./bridge"
 import History from "./histoyr"
-export { Swap, History }
+export { Bridge, History }
