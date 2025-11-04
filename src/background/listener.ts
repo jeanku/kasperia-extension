@@ -103,6 +103,7 @@ const handlers: Record<string, (message: any) => Promise<any> | any> = {
     "Account.mintKrc20": (msg) => accountService.mintKrc20(msg.txid, msg.balance, msg.tick, msg.times, msg.useUtxo),
     "Account.estimateFee": (msg) => accountService.estimateFee(msg.to, msg.amount, msg.payload),
     "Account.transferKas": (msg) => accountService.transferKas(msg.to, msg.amount, msg.payload),
+    "Account.getBalanceFormatEther": (msg) => accountService.getBalanceFormatEther(msg.address),
 };
 
 const handleError = (error: unknown, sendResponse: (response: any) => void) => {

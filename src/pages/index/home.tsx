@@ -289,7 +289,6 @@ const Home = () => {
     };
 
     const handleHomeTab = async (key: string) => {
-        console.log("handleHomeTab::::", key)
         if (key === homeTabValue) return
         setHomeTabValue(key)
         dispatch(setHomeSelectTabValue(key))
@@ -405,7 +404,7 @@ const Home = () => {
                         Receive
                     </div>
                     <div className="btn-icon" onClick={() => navigate('/bridge/bridgeIndex', {
-                        state: {token: {tick: "KAS", balance, dec: 8}}
+                        state: {from: {tick: "KAS", balance, dec: 8}, evmNetwork}
                     })}>
                         <SvgIcon iconName="IconBridge" offsetStyle={{ marginRight: '3px' }} color="#171717" />
                         Bridge

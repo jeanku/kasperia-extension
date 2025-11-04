@@ -331,6 +331,10 @@ export class Account {
         return (await this.get_provider()).getBalance(address, blockTag)
     }
 
+    async getBalanceFormatEther(address: string) {
+        return (await this.get_provider()).getBalanceFormatEther(address)
+    }
+
     async eth_call(tx: TransactionRequest) {
         return (await this.get_provider()).ethCall(tx)
     }

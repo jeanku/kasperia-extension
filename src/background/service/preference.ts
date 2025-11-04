@@ -51,7 +51,6 @@ export class Preference {
     static async setNetwork(network: Network) {
         await Preference.load()
         let curAccount = await keyringService.getActiveAccountDisplay(network.networkType)
-        console.log("setNetwork 0")
         Preference.store?.updateState({
             network: network,
             currentAccount: curAccount,
@@ -60,11 +59,8 @@ export class Preference {
             kaspaTxList: [],
             accountsBalance: {}
         })
-        console.log("setNetwork 1")
         accountService.reconnect(NetworkId.from(network.networkType))
-        console.log("setNetwork 2")
         Preference.persistToStorage()
-        console.log("setNetwork 3")
         return curAccount
     }
 

@@ -2,13 +2,16 @@ import { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import { Button, Popup, SearchBar, Tabs } from 'antd-mobile'
 import { DownOutline } from 'antd-mobile-icons'
+import { useLocation } from 'react-router-dom'
 
+import { useSelector } from "react-redux";
 import { SvgIcon } from '@/components/Icon/index'
 import HeadNav from '@/components/HeadNav'
 import NoDataDom from "@/components/NoDataDom";
 import NumberInput from '@/components/NumberInput';
 import TokenImg from "@/components/TokenImg";
 import { useClipboard } from '@/components/useClipboard';
+import store, { RootState } from '@/store';
 
 import { formatAddress } from '@/utils/util'
 
@@ -16,6 +19,10 @@ import { AccountsSubListDisplay } from '@/model/account'
 import { Address } from '@/model/contact'
 import { Keyring } from '@/chrome/keyring'
 import { Contact } from '@/chrome/contact'
+import { Account } from '@/chrome/account'
+import { Evm } from '@/chrome/evm'
+import {EvmTokenList, EvmNetwork} from "@/model/evm";
+import { ethers } from "ethers";
 
 interface TokenItem {
     name?: string;
@@ -27,10 +34,26 @@ interface TokenItem {
     desc?: number;
 }
 
+interface SwitchItem {
+    address: string,
+    token: string,
+    balance: string,
+    amount: string,
+    desc: number,
+    isKaspa: boolean,
+    network: string
+}
+
 type PopupType = "FORM"  | "TO" | ""
 
 const Bridge = () => {
+    const { state } = useLocation()
     const navigate = useNavigate();
+
+    const { preference } = useSelector((state: RootState) => state.preference);
+    const [network] = useState<EvmNetwork>(state?.network)
+
+
     const { handleCopy } = useClipboard();
     const [swapLoading, setSwapLoading] = useState(false)
     const [tokenVisible, setTokenVisible] = useState(false)
@@ -40,130 +63,130 @@ const Bridge = () => {
     const [searchValue, setSearchValue] = useState('');
     const [contactTabValue, setContactTabValue] = useState<string>("")
 
-    const [tokenList, setTokenList] = useState<TokenItem[]>([])
     const [accountsValue, setAccountsValue] = useState<AccountsSubListDisplay[] | null>(null)
     const [contactValue, setContactValue] = useState<Address[] | null>(null)
     const [address, setAddress] = useState("")
     
-    const [selectType, setSelectType] = useState<PopupType>('FORM')
+    // const [selectType, setSelectType] = useState<PopupType>('FORM')
     
-    const [bridgeData, setBridgeData] = useState({
-        from: {
-            address: 'kaspatest:qp48ut63r78w5umx6tpk4vu6s4ftv79x2uf56arar3acqs368mxd65sfdeqjl',
-            token: 'KAS',
-            balance: 100000,
-            amount: 100000,
-            desc: 4,
-        },
-        to: {
-            address: '0x779Fa38D50db477CDF79C3AF52EDEf8612c3f48a',
-            token: 'IGRA',
-            balance: 3333,
-            amount: 3333,
-            desc: 4,
-        },
+    // const [bridgeData, setBridgeData] = useState({
+    //     from: {
+    //         address: preference.currentAccount?.address,
+    //         token: "KAS",
+    //         balance: preference.currentAccount?.balance || "0",
+    //         amount: 0,
+    //         desc: 8,
+    //         isKaspa: true
+    //     },
+    //     to: {
+    //         address: preference.currentAccount?.ethAddress,
+    //         token: 'KAS',
+    //         balance: 3333,
+    //         amount: 3333,
+    //         desc: 4,
+    //         isKaspa: false,
+    //         network: network
+    //     },
+    // })
+
+    const [fromData, setFromData] = useState<SwitchItem>({
+        address: preference.currentAccount?.address!,
+        token: "KAS",
+        balance: ethers.formatUnits(preference.currentAccount?.balance || "0", 8),
+        amount: "0",
+        desc: 8,
+        isKaspa: true,
+        network: preference.network.networkType.toString()
     })
 
-    useEffect(() => {
-        getTokenList()
-    }, [])
+    const [toData, setToData] = useState<SwitchItem>({
+        address: preference.currentAccount?.ethAddress!,
+        token: 'KAS',
+        balance: "0",
+        amount: "0",
+        desc: 18,
+        isKaspa: false,
+        network: ""
+    })
 
-    const submitDisabled = useMemo(() => {
-        return !bridgeData.from.amount || !bridgeData.to.address || !amount || !toAmount
-    }, [bridgeData, amount, toAmount])
-
-    const showList = useMemo(() => {
-        if (searchValue) {
-            const searchTxt = searchValue.toLocaleLowerCase()
-            const newList = tokenList.filter(item => item.token!.toLocaleLowerCase().includes(searchTxt) || item.address.toLocaleLowerCase().includes(searchTxt))
-            return newList
-        } else {
-            return tokenList
+    const syncBalance = async () =>  {
+        getBalance(fromData.address).then(r => {
+            if (fromData.balance != r) {
+                fromData.balance = r
+            }
+            setFromData(fromData)
+        })
+        if (!network) {
+            let _network = await Evm.getSelectedNetwork()
+            if (!_network) return
+            toData.network = _network.name
+            toData.desc = _network.decimals
+            toData.token = _network.symbol
+            setToData(toData)
         }
-    }, [tokenList, searchValue]);
-    const getTokenList = async () => {
-        const list = [
-            {
-                name: 'KAS',
-                token: 'KAS',
-                address: "0x779Fa38D50db477CDF79C3AF52EDEf8612c3f48a",
-                balance: 2223,
-                chainId: '33453',
-                amount: 5
-            },
-            {
-                name: 'USDT',
-                token: 'USDT',
-                address: "0x779Fa38D50db477CDF79C3AF52EDEf8612c3f484",
-                balance: 300,
-                chainId: '33453',
-                amount: 100
-            },
-            {
-                name: 'IGRA',
-                token: 'IGRA',
-                address: "0x779Fa38D50db477CDF79C3AF52EDEf8612c3f483",
-                balance: 666,
-                chainId: '33453',
-                amount: 333
-            },
-            {
-                name: 'TKCOM',
-                token: 'TKCOM',
-                address: "0x0b1793776e43d71cc892e58849a0d2465ff36f10",
-                balance: 199,
-                chainId: '33453',
-                amount: 0,
-                desc: 4,
-            },
-        ]
-        setTokenList(list)
+    }
+
+    const getBalance = async (data: any) =>  {
+        if (data.isKaspa) {
+            return await Account.getBalance(data.from.address)
+        } else {
+            return await Account.getEvmBalanceFormatEther(fromData.address)
+        }
+    }
+
+    const setMax = () => {
+        fromData.amount = fromData.balance
+        setFromData(fromData)
     }
 
     useEffect(() => {
-            switchContactTab("Contacts")
-        }, [])
-    
-        const switchContactTab = async (key: string) => {
-            if (key === contactTabValue) return
-            setContactTabValue(key)
-            switch (key) {
-                case "Contacts":
-                    if (!contactValue) {
-                        let contacts: Address[] = await Contact.get()
-                        setContactValue(contacts)
-                    }
-                    break
-                case "Accounts":
-                    if (!accountsValue) {
-                        let accounts = await Keyring.getAccountsSubListDisplay()
-                        setAccountsValue(accounts);
-                    }
-                    break;
-                default:
-                    break;
-            }
-        }
+        syncBalance()
+    }, [])
 
-    const setMax = () => {
-        setAmount(bridgeData.from.amount)
+    const submitDisabled = useMemo(() => {
+        return !fromData.amount || !toData.address || !amount || !toAmount
+    }, [amount, toAmount])
+
+
+    useEffect(() => {
+        switchContactTab("Contacts")
+    }, [])
+    
+    const switchContactTab = async (key: string) => {
+        if (key === contactTabValue) return
+        setContactTabValue(key)
+        switch (key) {
+            case "Contacts":
+                if (!contactValue) {
+                    let contacts: Address[] = await Contact.get()
+                    setContactValue(contacts)
+                }
+                break
+            case "Accounts":
+                if (!accountsValue) {
+                    let accounts = await Keyring.getAccountsSubListDisplay()
+                    setAccountsValue(accounts);
+                }
+                break;
+            default:
+                break;
+        }
     }
 
     const showPopup = (type:PopupType, item: TokenItem) => {
         if(item.token === "KAS") return
-        setSelectType(type)
+        // setSelectType(type)
         setTokenVisible(true)
     }
     const hidePopup = () => {
-        setSelectType("")
+        // setSelectType("")
         setTokenVisible(false)
     }
 
     const switchInfo = () => {
-        const toInfo = bridgeData.to
-        bridgeData.to = bridgeData.from
-        bridgeData.from = toInfo
-        setBridgeData({ ...bridgeData})
+        let temp = fromData
+        setFromData(toData)
+        setToData(temp)
     }
 
     const swapSubmit = () => {
@@ -178,7 +201,7 @@ const Bridge = () => {
                     <div className='card-title flex-row cb as'>
                         <span>From</span>
                         <p className="cursor-pointer" onClick={() => setPopupVisible(true)}>
-                            <em className="one-line">{formatAddress(bridgeData.from?.address, 6)}</em>
+                            <em className="one-line">{formatAddress(fromData.address, 6)}</em>
                             <SvgIcon iconName="IconParase" color="#7F7F7F" size={18} offsetStyle={{ marginLeft: '5px' }} />
                         </p>
                     </div>
@@ -186,8 +209,8 @@ const Bridge = () => {
                         <NumberInput
                             value={Number(amount)}
                             onChange={(e) => setAmount(e.toString())}
-                            decimalPlaces={Number(bridgeData.from.desc)}
-                            max={Number(bridgeData.from.balance)}
+                            decimalPlaces={Number(fromData.desc)}
+                            max={Number(fromData.balance)}
                             allowNegative={true}
                             placeholder="0"
                             style={{ fontSize: '14px', color: 'white', flex: 2 }}
@@ -196,16 +219,15 @@ const Bridge = () => {
                             <div className='sub-tit mr10 mb0import'>
                                 <strong className='strong' onClick={ () => setMax() }>MAX</strong>
                             </div>
-                            <div className="input-select flex-row cb ac" onClick={ () => showPopup('FORM', bridgeData.from) }>
-                                <TokenImg url={bridgeData.from.token!} className={ 'visable-top-img'} name={bridgeData.from.token} width={20} height={20} marginRight={3} />
-                                <span>{bridgeData.from.token || 'Select Token'}</span>
-                                { bridgeData.from.token !== 'KAS' ? <DownOutline fontSize={14} /> : null }
+                            <div className="input-select flex-row cb ac">
+                                <TokenImg url={fromData.token!} className={ 'visable-top-img'} name={fromData.token} width={20} height={20} marginRight={3} />
+                                <span>{fromData.token}</span>
                             </div>
                         </div>
                     </div>
                     <h6 className="sub-tit mb0import mt15">
-                        <span>{bridgeData.from.amount}</span>
-                        <span>Kasplex-Text</span>
+                        <span>total: {fromData.balance} Kas</span>
+                        <span>{ fromData.network }</span>
                     </h6>
                 </div>
                 <div className='bridge-divider flex-row cc ac'>
@@ -217,7 +239,7 @@ const Bridge = () => {
                     <div className='card-title flex-row cb as'>
                         <span>To</span>
                         <p className="cursor-pointer" onClick={() => setPopupVisible(true)}>
-                            <em className="one-line">{formatAddress(bridgeData.to?.address, 6)}</em>
+                            <em className="one-line">{formatAddress(toData.address, 6)}</em>
                             <SvgIcon iconName="IconParase" color="#7F7F7F" size={18} offsetStyle={{ marginLeft: '5px' }} />
                         </p>
                     </div>
@@ -225,20 +247,18 @@ const Bridge = () => {
                         <NumberInput
                             value={Number(toAmount)}
                             onChange={(e) => setToAmount(e.toString())}
-                            decimalPlaces={Number(bridgeData.to.desc)}
+                            decimalPlaces={Number(toData.desc)}
                             allowNegative={true}
                             placeholder="0"
                             style={{ fontSize: '14px', color: 'white', flex: 2 }}
                         />
-                        <div className="input-select flex-row cb ac" onClick={() => showPopup('TO', bridgeData.to)} >
-                            <TokenImg url={bridgeData.to.token!} className={ 'visable-top-img'} name={bridgeData.to.token} width={20} height={20} marginRight={3} />
-                            <span>{bridgeData.to.token}</span>
-                            { bridgeData.to.token !== 'KAS' ? <DownOutline fontSize={14} /> : null }
+                        <div className="input-select flex-row cb ac" >
+                            <TokenImg url={toData.token!} className={ 'visable-top-img'} name={toData.token} width={20} height={20} marginRight={3} />
+                            <span>{toData.token}</span>
                         </div>
                     </div>
                     <h6 className="sub-tit mb0import mt15">
-                        <span>{bridgeData.to.amount}</span>
-                        <span><span>Kasplex-Text</span></span>
+                        <span>{ toData.network }</span>
                     </h6>
                 </div>
                 <div className="btn-pos-two flexd-row post-bottom">
@@ -331,26 +351,6 @@ const Bridge = () => {
                             icon={<SvgIcon iconName="IconSearch" offsetStyle={{ marginRight: '2px' }} />}
                             placeholder="Search tokens"
                         />
-                    </div>
-                    <div className='y-auto'>
-                    {
-                        showList.length ?
-                            showList.map((item) => (
-                                <div className="coin-item" key={item.name}>
-                                    <TokenImg url={item.name!} name={item.name!} />
-                                    <div className="coin-item-info">
-                                        <div className="coin-item-name">
-                                            <span>{item.name}</span>
-                                            {0}
-                                        </div>
-                                        <div className="coin-item-network">
-                                            {item.amount ? <em>${item.amount}</em> : <em></em>}
-                                            <em >{formatAddress(item?.address, 6)} <SvgIcon onClick={() => handleCopy(item.address || "") } iconName="IconCopy" color="#7F7F7F" offsetStyle={{ marginLeft: '5px',  marginRight: '-8px' }} /> </em>
-                                        </div>
-                                    </div>
-                                </div>
-                            )) : null
-                    }
                     </div>
                 </div>
             </Popup>
