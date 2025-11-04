@@ -193,7 +193,7 @@ const Bridge = () => {
                     <div className='flex-row cb ac mb12 mt20'>
                         <NumberInput
                             value={Number(amount)}
-                            onChange={(e) => setAmountAndCaluToAmount(e.toString())}
+                            onChange={(e) => setToAmountAndCaluFromAmount(e.toString())}
                             decimalPlaces={Number(fromData.desc)}
                             max={Number(fromData.balance)}
                             allowNegative={true}
@@ -233,7 +233,9 @@ const Bridge = () => {
                             value={Number(toAmount)}
                             decimalPlaces={Number(toData.desc)}
                             allowNegative={true}
+                            onChange={(e) => setToAmount(e.toString())}
                             placeholder=""
+                            disabled={true}
                             style={{ fontSize: '14px', color: 'white', flex: 2 }}
                         />
                         <div className="input-select flex-row cb ac" >
@@ -246,19 +248,15 @@ const Bridge = () => {
                         <span></span>
                     </div>
                 </div>
-                {
-                    toData.address && toData.address.includes('kaspa') ? (
-                        <div className='mt15'>
-                            <h6 className='sub-tit'>
-                                Recipient
-                            </h6>
-                            <div className="text-area">
-                                <textarea placeholder="Please Address" rows={3} value={l1Address || toData.address}
-                                    onChange={(e) => setL1Address(e.target.value)} />
-                            </div>
-                        </div>
-                    ) : null
-                }
+                <div className='mt15'>
+                    <h6 className='sub-tit'>
+                        Recipient
+                    </h6>
+                    <div className="text-area">
+                        <textarea placeholder="Please Address" rows={3} value={l1Address || toData.address}
+                            onChange={(e) => setL1Address(e.target.value)} />
+                    </div>
+                </div>
                 <div className="btn-pos-two flexd-row post-bottom">
                     <Button block size="large" color="primary" loading={swapLoading} disabled={submitDisabled()} onClick={() => swapSubmit()}>
                         Bridge
