@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import { Button, Popup, Tabs } from 'antd-mobile'
 import { useLocation } from 'react-router-dom'
-
+import { AddressType } from '@/types/enum'
 
 import { useSelector } from "react-redux";
 import { SvgIcon } from '@/components/Icon/index'
@@ -11,7 +11,6 @@ import HeadNav from '@/components/HeadNav'
 import NoDataDom from "@/components/NoDataDom";
 import NumberInput from '@/components/NumberInput';
 import TokenImg from "@/components/TokenImg";
-import { useClipboard } from '@/components/useClipboard';
 import { RootState } from '@/store';
 
 import { formatAddress, formatBalanceFixed } from '@/utils/util'
@@ -22,7 +21,7 @@ import { Keyring } from '@/chrome/keyring'
 import { Contact } from '@/chrome/contact'
 import { Account } from '@/chrome/account'
 import { Evm } from '@/chrome/evm'
-import { EvmTokenList, EvmNetwork } from "@/model/evm";
+import { EvmNetwork } from "@/model/evm";
 import { ethers } from "ethers";
 
 interface TokenItem {
@@ -37,6 +36,7 @@ interface TokenItem {
 
 interface SwitchItem {
     address: string,
+    changeAddress?: string,
     token: string,
     balance: string,
     desc: number,
@@ -60,8 +60,6 @@ const Bridge = () => {
 
     const [accountsValue, setAccountsValue] = useState<AccountsSubListDisplay[] | null>(null)
     const [contactValue, setContactValue] = useState<Address[] | null>(null)
-    const [address, setAddress] = useState("")
-    const [l1Address, setL1Address] = useState("")
 
     const [fromData, setFromData] = useState<SwitchItem>({
         address: preference.currentAccount?.address!,
@@ -113,6 +111,11 @@ const Bridge = () => {
         setAmount(fromData.balance)
     }
 
+    const setAddress = (address: string) => {
+        toData.changeAddress = address
+        setToData(toData)
+    }
+
     useEffect(() => {
         syncBalance()
     }, [])
@@ -131,13 +134,15 @@ const Bridge = () => {
         switch (key) {
             case "Contacts":
                 if (!contactValue) {
-                    let contacts: Address[] = await Contact.get()
+                    let addrType = toData.isKaspa ? AddressType.KaspaAddress : AddressType.EvmAddress
+                    let contacts: Address[] = await Contact.get(addrType)
                     setContactValue(contacts)
                 }
                 break
             case "Accounts":
                 if (!accountsValue) {
-                    let accounts = await Keyring.getAccountsSubListDisplay()
+                    let addrType = toData.isKaspa ? AddressType.KaspaAddress : AddressType.EvmAddress
+                    let accounts = await Keyring.getAccountsSubListDisplay(addrType)
                     setAccountsValue(accounts);
                 }
                 break;
@@ -150,12 +155,11 @@ const Bridge = () => {
         let temp = fromData
         if (!toData.isKaspa && Number(toData.balance) == 0) {
             Account.getEvmBalanceFormatEther(toData.address).then(r => {
-                toData.balance = r
+                toData.balance = formatBalanceFixed(r, 8)
                 setFromData(toData)
             })
-        } else {
-            setFromData(toData)
         }
+        setFromData(toData)
         setToData(temp)
         setAmount("")
         setToAmount("")
@@ -166,22 +170,41 @@ const Bridge = () => {
         setSwapLoading(true)
     }
 
+    const caluL1ToL2ReceiveAmount = () => {
+        const amountBN = ethers.parseUnits(amount.toString(), 8);
+        const feeBN = ethers.parseUnits("0.5", 8);
+        return formatBalanceFixed(ethers.formatUnits(amountBN - feeBN, 8).toString(), 8)
+    }
+
+    const caluL2ToL1ReceiveAmout = () => {
+        const amountBN = ethers.parseUnits(amount.toString(), 8);
+        const feeBN = ethers.parseUnits("0.995", 8);
+        return formatBalanceFixed(ethers.formatUnits(amountBN * feeBN, 16).toString(), 8)
+    }
+
     useMemo(() => {
-        if (!amount || Number(amount) <= 0) {
+        if (!amount || Number(amount) < 1) {
             setToAmount("")
             return
         }
+
         if (fromData.isKaspa) {
             switch (toData.chainId) {
-                case "167012" || "202555":
-                    setToAmount(Number(amount) - 0.5)
+                case "167012":
+                    setToAmount(caluL1ToL2ReceiveAmount())
+                    break
+                case "202555":
+                    setToAmount(caluL1ToL2ReceiveAmount())
                     break
                 default:
             }
         } else {
             switch (fromData.chainId) {
-                case "167012" || "202555":
-                    setToAmount(Number(amount) * (1 - 0.005))
+                case "167012" :
+                    setToAmount(caluL2ToL1ReceiveAmout())
+                    break
+                case "202555":
+                    setToAmount(caluL2ToL1ReceiveAmout())
                     break
                 default:
             }
@@ -201,11 +224,12 @@ const Bridge = () => {
                     </div>
                     <div className='flex-row cb ac mb12 mt20'>
                         <NumberInput
-                            value={Number(amount)}
+                            value={amount && Number(amount)}
                             onChange={(e) => setAmount(e.toString())}
                             decimalPlaces={Number(fromData.desc)}
                             max={Number(fromData.balance)}
                             allowNegative={true}
+                            placeholder="amount"
                             style={{ fontSize: '14px', color: 'white', flex: 2 }}
                         />
                         <div className='flex-row cb ac'>
@@ -232,7 +256,7 @@ const Bridge = () => {
                     <div className='card-title flex-row cb as'>
                         <span>To</span>
                         <p className="cursor-pointer" onClick={() => setPopupVisible(true)}>
-                            <em className="one-line">{formatAddress(toData.address, 6)}</em>
+                            <em className="one-line">{formatAddress(toData.changeAddress ? toData.changeAddress : toData.address, 6)}</em>
                             <SvgIcon iconName="IconParase" color="#7F7F7F" size={18} offsetStyle={{ marginLeft: '5px' }} />
                         </p>
                     </div>
@@ -242,7 +266,8 @@ const Bridge = () => {
                             onChange={(e) => {}}
                             decimalPlaces={Number(toData.desc)}
                             allowNegative={true}
-                            placeholder="0"
+                            placeholder=""
+                            disabled={true}
                             style={{ fontSize: '14px', color: 'white', flex: 2 }}
                         />
                         <div className="input-select flex-row cb ac" >
@@ -255,19 +280,15 @@ const Bridge = () => {
                         <span></span>
                     </div>
                 </div>
-                {
-                    toData.address && toData.address.includes('kaspa') ? (
-                        <div className='mt15'>
-                            <h6 className='sub-tit'>
-                                Recipient
-                            </h6>
-                            <div className="text-area">
-                                <textarea placeholder="Please Address" rows={3} value={l1Address || toData.address}
-                                    onChange={(e) => setL1Address(e.target.value)} />
-                            </div>
-                        </div>
-                    ) : null
-                }
+                {/*<div className='mt15'>*/}
+                {/*    <h6 className='sub-tit'>*/}
+                {/*        Recipient*/}
+                {/*    </h6>*/}
+                {/*    <div className="text-area">*/}
+                {/*        <textarea placeholder="Please Address" rows={3} value={l1Address || toData.address}*/}
+                {/*            onChange={(e) => setL1Address(e.target.value)} />*/}
+                {/*    </div>*/}
+                {/*</div>*/}
                 <div className="btn-pos-two flexd-row post-bottom">
                     <Button block size="large" color="primary" loading={swapLoading} disabled={submitDisabled()} onClick={() => swapSubmit()}>
                         Bridge
@@ -302,7 +323,7 @@ const Bridge = () => {
                             contactValue && contactValue.length > 0 ? (
                                 contactValue.map((item: Address, index) => (
                                     <div className="contact-list-box" key={index}>
-                                        <div className="contact-list-item" key={address} onClick={() => {
+                                        <div className="contact-list-item" onClick={() => {
                                             setAddress(item.address)
                                             setPopupVisible(false)
                                         }}>

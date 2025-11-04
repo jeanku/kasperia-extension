@@ -9,6 +9,7 @@ interface NumberInputProps {
     className?: string;
     style?: React.CSSProperties;
     max?: number;
+    disabled?: boolean;
 }
 
 const NumberInput: React.FC<NumberInputProps> = ({
@@ -20,6 +21,7 @@ const NumberInput: React.FC<NumberInputProps> = ({
     className = '',
     style = {},
     max,
+    disabled = false,
     ...props
 }) => {
     const [displayValue, setDisplayValue] = useState('');
@@ -183,6 +185,7 @@ const NumberInput: React.FC<NumberInputProps> = ({
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
             className={className}
+            disabled={disabled}
             style={style}
             {...props}
         />

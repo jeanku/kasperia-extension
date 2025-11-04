@@ -88,6 +88,9 @@ textarea {
         color: $text-color-desc;
     }
 }
+input:disabled {
+    cursor: not-allowed
+}
 
 ul,
 ol {
