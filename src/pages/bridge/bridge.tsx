@@ -1,8 +1,10 @@
 import { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
+
 import { Button, Popup, SearchBar, Tabs } from 'antd-mobile'
 import { DownOutline } from 'antd-mobile-icons'
 import { useLocation } from 'react-router-dom'
+
 
 import { useSelector } from "react-redux";
 import { SvgIcon } from '@/components/Icon/index'
@@ -55,18 +57,17 @@ const Bridge = () => {
 
 
     const { handleCopy } = useClipboard();
+
     const [swapLoading, setSwapLoading] = useState(false)
-    const [tokenVisible, setTokenVisible] = useState(false)
     const [popupVisible, setPopupVisible] = useState(false)
     const [amount, setAmount] = useState<number | string>('')
     const [toAmount, setToAmount] = useState<number | string>('')
-    const [searchValue, setSearchValue] = useState('');
     const [contactTabValue, setContactTabValue] = useState<string>("")
 
     const [accountsValue, setAccountsValue] = useState<AccountsSubListDisplay[] | null>(null)
     const [contactValue, setContactValue] = useState<Address[] | null>(null)
     const [address, setAddress] = useState("")
-    
+
     // const [selectType, setSelectType] = useState<PopupType>('FORM')
     
     // const [bridgeData, setBridgeData] = useState({
@@ -143,15 +144,31 @@ const Bridge = () => {
         syncBalance()
     }, [])
 
+    const [bridgeData, setBridgeData] = useState({
+        from: {
+            address: 'kaspatest:qp48ut63r78w5umx6tpk4vu6s4ftv79x2uf56arar3acqs368mxd65sfdeqjl',
+            token: 'KAS',
+            balance: 100000,
+            amount: 100000,
+            desc: 4,
+        },
+        to: {
+            address: '0x779Fa38D50db477CDF79C3AF52EDEf8612c3f48a',
+            token: 'IGRA',
+            balance: 3333,
+            amount: 3333,
+            desc: 4,
+        },
+    })
+    
     const submitDisabled = useMemo(() => {
-        return !fromData.amount || !toData.address || !amount || !toAmount
-    }, [amount, toAmount])
-
+        return !bridgeData.from.amount || !bridgeData.to.address || !amount || !toAmount
+    }, [bridgeData, amount, toAmount])
 
     useEffect(() => {
         switchContactTab("Contacts")
     }, [])
-    
+
     const switchContactTab = async (key: string) => {
         if (key === contactTabValue) return
         setContactTabValue(key)
@@ -176,11 +193,11 @@ const Bridge = () => {
     const showPopup = (type:PopupType, item: TokenItem) => {
         if(item.token === "KAS") return
         // setSelectType(type)
-        setTokenVisible(true)
+        // setTokenVisible(true)
     }
     const hidePopup = () => {
         // setSelectType("")
-        setTokenVisible(false)
+        // setTokenVisible(false)
     }
 
     const switchInfo = () => {
@@ -193,6 +210,7 @@ const Bridge = () => {
         if (swapLoading) return
         setSwapLoading(true)
     }
+
     return (
         <div className="page-box">
             <HeadNav title='Bridge' rightType="history" url="/bridge/bridgeHistory" onBack={() => navigate('/home')}></HeadNav>
@@ -217,7 +235,7 @@ const Bridge = () => {
                         />
                         <div className='flex-row cb ac'>
                             <div className='sub-tit mr10 mb0import'>
-                                <strong className='strong' onClick={ () => setMax() }>MAX</strong>
+                                <strong className='strong' onClick={() => setMax()}>MAX</strong>
                             </div>
                             <div className="input-select flex-row cb ac">
                                 <TokenImg url={fromData.token!} className={ 'visable-top-img'} name={fromData.token} width={20} height={20} marginRight={3} />
@@ -277,8 +295,10 @@ const Bridge = () => {
                 onClose={() => {
                     setPopupVisible(false)
                 }}
-                bodyStyle={{ height: '46vh', borderTopLeftRadius: '8px',
-                    borderTopRightRadius: '8px', overflowY: 'scroll' }}
+                bodyStyle={{
+                    height: '46vh', borderTopLeftRadius: '8px',
+                    borderTopRightRadius: '8px', overflowY: 'scroll'
+                }}
             >
                 <Tabs activeKey={contactTabValue} onChange={key => {
                     switchContactTab(key)
@@ -289,7 +309,7 @@ const Bridge = () => {
 
                 <div className="contact-list">
                     {
-                        contactTabValue == "Contacts" ? (
+                        contactTabValue === "Contacts" ? (
                             contactValue && contactValue.length > 0 ? (
                                 contactValue.map((item: Address, index) => (
                                     <div className="contact-list-box" key={index}>
@@ -306,13 +326,13 @@ const Bridge = () => {
                         ) : null
                     }
                     {
-                        contactTabValue == "Accounts" ? (
+                        contactTabValue === "Accounts" ? (
                             accountsValue && accountsValue.length > 0 ? (
                                 accountsValue.map((item, index) => (
                                     <div className="contact-list-box mb20" key={index}>
                                         <strong>{item.name}</strong>
                                         {
-                                            item.drive!.map((dr, index) => (
+                                            item.drive!.map((dr) => (
                                                 <div className="contact-list-item" key={dr.address} onClick={() => {
                                                     setAddress(dr.address)
                                                     setPopupVisible(false)
@@ -324,34 +344,9 @@ const Bridge = () => {
                                         }
                                     </div>
                                 ))
-                            ) :  <NoDataDom />
+                            ) : <NoDataDom />
                         ) : null
                     }
-                </div>
-            </Popup>
-            <Popup
-                visible={tokenVisible}
-                className="token-popup"
-                bodyClassName="token-popup-body"
-                showCloseButton
-                onMaskClick={() => {
-                    hidePopup()
-                }}
-                onClose={() => {
-                    hidePopup()
-                }}
-                bodyStyle={{ height: '55vh', borderTopLeftRadius: '8px', borderTopRightRadius: '8px', }}
-            >
-                <div className='poup-title'>Select Token</div>
-                <div className='content-main pt0 mt15'>
-                    <div className="search-box mb20">
-                        <SearchBar
-                            value={searchValue}
-                            onChange={(val) => setSearchValue(val)}
-                            icon={<SvgIcon iconName="IconSearch" offsetStyle={{ marginRight: '2px' }} />}
-                            placeholder="Search tokens"
-                        />
-                    </div>
                 </div>
             </Popup>
         </div>
