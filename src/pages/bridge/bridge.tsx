@@ -166,18 +166,27 @@ const Bridge = () => {
         setSwapLoading(true)
     }
 
-    const setToAmountAndCaluFromAmount = (value: string) => {
-        setToAmount(value)
-        if (fromData.isKaspa) {
-            if (toData.chainId == "167012" || toData.chainId == "202555") {
-                setAmount(Number(amount) + 0.5)
-            } else {}
-        } else {
-            if (toData.chainId == "167012" || toData.chainId == "202555") {
-                setAmount(Number(amount) * (1 + 0.005))
-            } else {}
+    useMemo(() => {
+        if (!amount || Number(amount) <= 0) {
+            setToAmount("")
+            return
         }
-    }
+        if (fromData.isKaspa) {
+            switch (toData.chainId) {
+                case "167012" || "202555":
+                    setToAmount(Number(amount) - 0.5)
+                    break
+                default:
+            }
+        } else {
+            switch (fromData.chainId) {
+                case "167012" || "202555":
+                    setToAmount(Number(amount) * (1 - 0.005))
+                    break
+                default:
+            }
+        }
+    }, [amount]);
 
     return (
         <div className="page-box">
@@ -193,11 +202,10 @@ const Bridge = () => {
                     <div className='flex-row cb ac mb12 mt20'>
                         <NumberInput
                             value={Number(amount)}
-                            onChange={(e) => setAmountAndCaluToAmount(e.toString())}
+                            onChange={(e) => setAmount(e.toString())}
                             decimalPlaces={Number(fromData.desc)}
                             max={Number(fromData.balance)}
                             allowNegative={true}
-                            placeholder="0"
                             style={{ fontSize: '14px', color: 'white', flex: 2 }}
                         />
                         <div className='flex-row cb ac'>
@@ -231,9 +239,10 @@ const Bridge = () => {
                     <div className='flex-row cb ac mb12 mt20'>
                         <NumberInput
                             value={Number(toAmount)}
+                            onChange={(e) => {}}
                             decimalPlaces={Number(toData.desc)}
                             allowNegative={true}
-                            placeholder=""
+                            placeholder="0"
                             style={{ fontSize: '14px', color: 'white', flex: 2 }}
                         />
                         <div className="input-select flex-row cb ac" >
