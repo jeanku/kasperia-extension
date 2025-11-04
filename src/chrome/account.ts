@@ -13,8 +13,8 @@ export class Account extends Chrome {
         return Chrome.request({ action: "Account.getBalance", address })
     }
 
-    static getEvmBalanceFormatEther(address: string | undefined = undefined): Promise<any> {
-        return Chrome.request({ action: "Account.getEvmBalanceFormatEther", address })
+    static getEvmBalanceFormatEther(address: string): Promise<any> {
+        return Chrome.request({ action: "Account.getBalanceFormatEther", address })
     }
 
     static getAddressesBalance(addresses: string[]): Promise<GetBalancesByAddressesResponseMessage> {

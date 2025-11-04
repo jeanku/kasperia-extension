@@ -14,7 +14,7 @@ import TokenImg from "@/components/TokenImg";
 import { useClipboard } from '@/components/useClipboard';
 import { RootState } from '@/store';
 
-import { formatAddress } from '@/utils/util'
+import { formatAddress, formatBalanceFixed } from '@/utils/util'
 
 import { AccountsSubListDisplay } from '@/model/account'
 import { Address } from '@/model/contact'
@@ -39,13 +39,11 @@ interface SwitchItem {
     address: string,
     token: string,
     balance: string,
-    amount: string,
     desc: number,
     isKaspa: boolean,
-    network: string
+    network: string,
+    chainId: string
 }
-
-type PopupType = "FORM" | "TO" | ""
 
 const Bridge = () => {
     const { state } = useLocation()
@@ -69,20 +67,20 @@ const Bridge = () => {
         address: preference.currentAccount?.address!,
         token: "KAS",
         balance: ethers.formatUnits(preference.currentAccount?.balance || "0", 8),
-        amount: "0",
         desc: 8,
         isKaspa: true,
-        network: preference.network.networkType.toString()
+        network: `Kaspa ${preference.network.networkType}`,
+        chainId: ""
     })
 
     const [toData, setToData] = useState<SwitchItem>({
         address: preference.currentAccount?.ethAddress!,
         token: 'KAS',
         balance: "0",
-        amount: "0",
         desc: 18,
         isKaspa: false,
-        network: ""
+        network: "",
+        chainId: ""
     })
 
     const syncBalance = async () => {
@@ -96,6 +94,7 @@ const Bridge = () => {
             let _network = await Evm.getSelectedNetwork()
             if (!_network) return
             toData.network = _network.name
+            toData.chainId = _network.chainId
             toData.desc = _network.decimals
             toData.token = _network.symbol
             setToData(toData)
@@ -111,34 +110,16 @@ const Bridge = () => {
     }
 
     const setMax = () => {
-        fromData.amount = fromData.balance
-        setFromData(fromData)
+        setAmount(fromData.balance)
     }
 
     useEffect(() => {
         syncBalance()
     }, [])
 
-    const [bridgeData, setBridgeData] = useState({
-        from: {
-            address: 'kaspatest:qp48ut63r78w5umx6tpk4vu6s4ftv79x2uf56arar3acqs368mxd65sfdeqjl',
-            token: 'KAS',
-            balance: 100000,
-            amount: 100000,
-            desc: 4,
-        },
-        to: {
-            address: '0x779Fa38D50db477CDF79C3AF52EDEf8612c3f48a',
-            token: 'IGRA',
-            balance: 3333,
-            amount: 3333,
-            desc: 4,
-        },
-    })
-
-    const submitDisabled = useMemo(() => {
-        return !bridgeData.from.amount || !bridgeData.to.address || !amount || !toAmount
-    }, [bridgeData, amount, toAmount])
+    const submitDisabled = () => {
+        return !amount || !toAmount
+    }
 
     useEffect(() => {
         switchContactTab("Contacts")
@@ -165,15 +146,37 @@ const Bridge = () => {
         }
     }
 
-    const switchInfo = () => {
+    const switchInfo = async () => {
         let temp = fromData
-        setFromData(toData)
+        if (!toData.isKaspa && Number(toData.balance) == 0) {
+            Account.getEvmBalanceFormatEther(toData.address).then(r => {
+                toData.balance = r
+                setFromData(toData)
+            })
+        } else {
+            setFromData(toData)
+        }
         setToData(temp)
+        setAmount("")
+        setToAmount("")
     }
 
     const swapSubmit = () => {
         if (swapLoading) return
         setSwapLoading(true)
+    }
+
+    const setToAmountAndCaluFromAmount = (value: string) => {
+        setToAmount(value)
+        if (fromData.isKaspa) {
+            if (toData.chainId == "167012" || toData.chainId == "202555") {
+                setAmount(Number(amount) + 0.5)
+            } else {}
+        } else {
+            if (toData.chainId == "167012" || toData.chainId == "202555") {
+                setAmount(Number(amount) * (1 + 0.005))
+            } else {}
+        }
     }
 
     return (
@@ -183,15 +186,14 @@ const Bridge = () => {
                 <div className='card-box'>
                     <div className='card-title flex-row cb as'>
                         <span>From</span>
-                        <p className="cursor-pointer" onClick={() => setPopupVisible(true)}>
+                        <p className="cursor-pointer">
                             <em className="one-line">{formatAddress(fromData.address, 6)}</em>
-                            <SvgIcon iconName="IconParase" color="#7F7F7F" size={18} offsetStyle={{ marginLeft: '5px' }} />
                         </p>
                     </div>
                     <div className='flex-row cb ac mb12 mt20'>
                         <NumberInput
                             value={Number(amount)}
-                            onChange={(e) => setAmount(e.toString())}
+                            onChange={(e) => setAmountAndCaluToAmount(e.toString())}
                             decimalPlaces={Number(fromData.desc)}
                             max={Number(fromData.balance)}
                             allowNegative={true}
@@ -210,7 +212,7 @@ const Bridge = () => {
                     </div>
                     <div className='mt15 flex-row cb ac'>
                         <span>{fromData.network}</span>
-                        <span>total: {fromData.balance} Kas</span>
+                        <span>max: {formatBalanceFixed(fromData.balance, 4)}</span>
                     </div>
                 </div>
                 <div className='bridge-divider flex-row cc ac'>
@@ -229,10 +231,9 @@ const Bridge = () => {
                     <div className='flex-row cb ac mb12 mt20'>
                         <NumberInput
                             value={Number(toAmount)}
-                            onChange={(e) => setToAmount(e.toString())}
                             decimalPlaces={Number(toData.desc)}
                             allowNegative={true}
-                            placeholder="0"
+                            placeholder=""
                             style={{ fontSize: '14px', color: 'white', flex: 2 }}
                         />
                         <div className="input-select flex-row cb ac" >
@@ -259,7 +260,7 @@ const Bridge = () => {
                     ) : null
                 }
                 <div className="btn-pos-two flexd-row post-bottom">
-                    <Button block size="large" color="primary" loading={swapLoading} disabled={submitDisabled} onClick={() => swapSubmit()}>
+                    <Button block size="large" color="primary" loading={swapLoading} disabled={submitDisabled()} onClick={() => swapSubmit()}>
                         Bridge
                     </Button>
                 </div>
