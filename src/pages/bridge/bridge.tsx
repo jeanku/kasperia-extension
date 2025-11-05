@@ -74,6 +74,12 @@ const Bridge = () => {
     const [accountsValue, setAccountsValue] = useState<AccountsSubListDisplay[] | null>(null)
     const [contactValue, setContactValue] = useState<Address[] | null>(null)
 
+    const isKasplex = useMemo(() => {
+        if(!evmNetwork || !evmNetwork.chainId) return false
+        const chainId = Number(evmNetwork.chainId)
+        return chainId === KasplexL2TestnetChainId || chainId === KasplexL2MainnetChainId
+    }, [evmNetwork ]);
+
     const [fromData, setFromData] = useState<SwitchItem>({
         address: preference.currentAccount?.address!,
         token: "KAS",
@@ -206,8 +212,6 @@ const Bridge = () => {
             setSwapLoading(true)
             checkChainValid()
             let isKaspaMain = preference.network.networkType == NetworkType.Mainnet
-            let chainId = Number(evmNetwork.chainId)
-            let isKasplex = chainId == KasplexL2TestnetChainId || chainId == KasplexL2MainnetChainId
             if (isKasplex) {
                 if (fromData.isKaspa) {
                     await bridgeL1ToKasplexL2(isKaspaMain)
@@ -287,7 +291,7 @@ const Bridge = () => {
 
     return (
         <div className="page-box">
-            <HeadNav title='Bridge' rightType="history" url="/bridge/bridgeHistory" onBack={() => navigate('/home')}></HeadNav>
+            <HeadNav title='Bridge' rightType={ isKasplex ? "history" : ""} url={ isKasplex ? "/bridge/bridgeHistory" : ""} onBack={() => navigate('/home')}></HeadNav>
             <div className="content-main page-bridge">
                 <div className='card-box'>
                     <div className='card-title flex-row cb as'>

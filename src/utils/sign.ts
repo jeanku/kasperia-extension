@@ -1,8 +1,6 @@
 import crypto from 'crypto-js';
 import md5 from 'js-md5';
-import { OrderApiKay } from '@/types/enum'
-
-const ApiKey = OrderApiKay.Testnet;
+import type { AppKey } from '@/types/type';
 
 export interface SignableObject {
     [key: string]:
@@ -22,17 +20,17 @@ export interface SignableObject {
 /**
  * get Sign
  */
-export function getSign(obj: SignableObject): string {
+export function getSign(obj: SignableObject, apiKey: AppKey): string {
     const temp = sort_ASCII(obj);
     const queryStr = objTransUrlParams(temp);
-    const hash = crypto.HmacSHA256(queryStr, ApiKey.appsecret).toString();
+    const hash = crypto.HmacSHA256(queryStr, apiKey.appsecret).toString();
     return (md5 as unknown as ((input: string) => string))(hash).toLowerCase()
 }
 
 /**
  * checkSign
  */
-export function checkSign(obj: SignableObject): Record<string, unknown> | { error: string } {
+export function checkSign(obj: SignableObject, apiKey: AppKey): Record<string, unknown> | { error: string } {
     if (!obj.sign || !obj.appid || !obj.randomstr || !obj.timestamp) {
         return { error: 'sign_error' };
     }
@@ -48,7 +46,7 @@ export function checkSign(obj: SignableObject): Record<string, unknown> | { erro
     const cloned = { ...obj };
     delete cloned.sign;
 
-    const _sign = getSign(cloned);
+    const _sign = getSign(cloned, apiKey);
     if (!_sign || _sign !== paramSign) {
         return { error: 'sign_error' };
     }
@@ -91,12 +89,12 @@ export function generateRandomStr(length = 8): string {
 /**
  * 获取签名基础数据
  */
-export function getSignData(): { appid: string; timestamp: number; randomstr: string } {
+export function getSignData(apiKey: AppKey): { appid: string; timestamp: number; randomstr: string } {
     const timestamp = Math.floor(Date.now() / 1000);
     const randomstr = generateRandomStr();
-    const { appid } = ApiKey;
+    const { appid } = apiKey;
     return {
-        appid,
+        appid: appid.toString(),
         timestamp,
         randomstr,
     };

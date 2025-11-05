@@ -337,7 +337,7 @@ export class Account {
     }
 
     async getBalanceFormatEther(address: string) {
-        return (await this.get_provider()).getBalanceFormatEther(address)
+        // return (await this.get_provider()).getBalanceFormatEther(address)
     }
 
     async eth_call(tx: TransactionRequest) {
@@ -362,6 +362,7 @@ export class Account {
 
     async createContractTx(tx: TransactionRequest): Promise<TransactionRequest> {
         return this.get_provider().then(provider => {
+            // @ts-ignore
             return provider.createContractTx(tx)
         })
     }
