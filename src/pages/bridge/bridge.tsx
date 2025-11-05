@@ -206,7 +206,7 @@ const Bridge = () => {
         }
     }
 
-    const swapSubmit = async () => {
+    const bridgeSubmit = async () => {
         try {
             if (swapLoading) return
             setSwapLoading(true)
@@ -244,7 +244,7 @@ const Bridge = () => {
             from: preference.currentAccount?.ethAddress!,
             to: bridgeAddr,
             data,
-            value: ethers.parseUnits(amount.toString(), 18).toString()
+            value: ethers.parseUnits(amount.toString(), evmNetwork.decimals).toString()
         })
         navigate('/bridge/sendTx', { state: { unSignedTx: unSignedTx, evmNetwork, toAddress: toData.changeAddress || toData.address, amount: amount.toString() }})
     }
@@ -368,7 +368,7 @@ const Bridge = () => {
                 {/*    </div>*/}
                 {/*</div>*/}
                 <div className="btn-pos-two flexd-row post-bottom">
-                    <Button block size="large" color="primary" loading={swapLoading} disabled={submitDisabled()} onClick={() => swapSubmit()}>
+                    <Button block size="large" color="primary" loading={swapLoading} disabled={submitDisabled()} onClick={() => bridgeSubmit()}>
                         Bridge
                     </Button>
                 </div>
