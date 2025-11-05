@@ -1,6 +1,9 @@
 import { Address } from "@/utils/wallet/address";
-import {ethers} from "ethers";
+import { ethers } from "ethers";
 import { NetworkType } from "@/utils/wallet/consensus";
+import type { PlainObject } from '@/types/type'
+import { getSign, getSignData } from '@/utils/sign'
+import qs from 'qs';
 
 export const isExtensionPopup = () => {
     return window.innerWidth <= 500;
@@ -71,12 +74,44 @@ export const formatDecimal = (amount: string, dec: number | string): number => {
     return formatFixed(value)
 }
 
+export function sompiToKaspa(input: number) {
+    if (typeof input !== "number" && typeof input !== "bigint") {
+        throw new Error("Invalid Sompi input type");
+    }
+    const amount = Number(input) / 1e8;
+    return parseFloat(amount.toFixed(8));
+}
+
+export function truncateDecimal(num: number, decimalPlaces: number = 8): number {
+    if(!num || isNaN(num)) return 0
+    if(Number.isInteger(num)) return num;
+    const factor = Math.pow(10, decimalPlaces);
+    return Math.trunc(num * factor) / factor;
+}
+
+export function formatBigInt(value: bigint, decimals: number): string {
+    const scale = 10n ** BigInt(decimals);
+    const integerPart = value / scale;
+    const fractionPart = value % scale;
+
+    if (fractionPart === 0n) return integerPart.toString();
+
+    const fractionStr = fractionPart.toString().padStart(decimals, "0");
+    return `${integerPart}.${fractionStr}`.replace(/\.?0+$/, "");
+}
 
 export const formatDecBalance = (amount: string, dec: string): BigInt => {
     if (amount === "" || dec === "") {
         return BigInt("")
     }
     return (BigInt(amount) / BigInt(10 ** Number(dec)))
+}
+
+export function fromWei(amount: string | number | bigint, decimals = 18): string {
+    const amtStr = BigInt(amount).toString().padStart(decimals + 1, '0');
+    const intPart = amtStr.slice(0, -decimals) || '0';
+    const fracPart = amtStr.slice(-decimals).replace(/0+$/, '');
+    return fracPart ? `${intPart}.${fracPart}` : intPart;
 }
 
 export const toTokenUnits = (amount: number | string, decimals: number | string): BigInt => {
@@ -204,16 +239,24 @@ export function getUrlIcon(url: string): string {
     return `${protocol}//${domain}/favicon.ico`
 }
 
-export function formatUTCToLocal(utcStr: string): string {
-    const date = new Date(utcStr);
+export function formatUTCToLocal(utcStr: string | Date): string {
+    const date = utcStr instanceof Date ? utcStr : new Date(utcStr);
+    console.log('date', date)
     const pad = (n: number) => n.toString().padStart(2, "0");
     const year = date.getFullYear();
-    const month = pad(date.getMonth() + 1); // 月份从0开始
+    console.log('year', year)
+    const month = pad(date.getMonth() + 1);
     const day = pad(date.getDate());
     const hour = pad(date.getHours());
     const minute = pad(date.getMinutes());
     const second = pad(date.getSeconds());
     return `${year}-${month}-${day} ${hour}:${minute}:${second}`;
+}
+
+export function convertUTCToLocalTime(utcTimeString: string): string {
+    const utcDate = new Date(utcTimeString + 'Z');
+    console.log('utcDate', utcDate)
+    return formatUTCToLocal(utcDate);
 }
 
 export function capitalizeFirstLetter(str: string): string {
@@ -233,5 +276,27 @@ export function formatSignMessage(message: string): string {
 }
 
 export function calcAmount(balance: bigint, percent: number) {
-  return (balance * BigInt(Math.round(percent))) / BigInt(100)
+    return (balance * BigInt(Math.round(percent))) / BigInt(100)
+}
+
+export function withSignedParams<T extends PlainObject>(params: T): T & { sign: string } {
+    const signBase = {
+        ...getSignData(),
+        ...params,
+    };
+    const sign = getSign(signBase);
+    return {
+        ...signBase,
+        sign,
+    };
+}
+
+export const mergeUrlParams = (url: string, params = {}) => {
+    const [cleanUrl, queryString] = url.split('?');
+    const queryParams = qs.parse(queryString);
+    const mergedParams = { ...queryParams, ...params };
+    return {
+        cleanUrl,
+        mergedParams
+    };
 }

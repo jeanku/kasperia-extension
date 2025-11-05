@@ -36,3 +36,19 @@ export interface Session {
     icon: string;
     name: string;
 }
+
+export interface PlainObject {
+    [key: string]: string | number | boolean | null | undefined | Record<string, unknown> | Array<unknown>;
+}
+
+export interface ApiResponse<T = unknown> {
+    code?: number;
+    message?: string;
+    data: T;
+}
+
+export interface AppKey {
+    appid: number  | string;
+    appsecret: string;
+}
+export type NetworkNameType = 'Mainnet' | 'Testnet'
