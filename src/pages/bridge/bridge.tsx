@@ -51,7 +51,6 @@ interface SwitchItem {
     desc: number,
     isKaspa: boolean,
     network: string,
-    // chainId: string
 }
 
 type BridgeConfig = {
@@ -103,7 +102,7 @@ const Bridge = () => {
     }
 
     const syncBalance = async () => {
-        getBalance(fromData.address).then(r => {
+        getBalance().then(r => {
             if (fromData.balance != r) {
                 fromData.balance = r
             }
@@ -118,9 +117,10 @@ const Bridge = () => {
         }
     }
 
-    const getBalance = async (data: any) => {
-        if (data.isKaspa) {
-            return await Account.getBalance(data.from.address)
+    const getBalance = async () => {
+        if (fromData.isKaspa) {
+            let balance = await Account.getBalance(fromData.address)
+            return balance.balance
         } else {
             return await Account.getEvmBalanceFormatEther(fromData.address)
         }
@@ -242,10 +242,8 @@ const Bridge = () => {
             data,
             value: ethers.parseUnits(amount.toString(), 18).toString()
         })
-        navigate('/bridge/sendTx', { state: { unSignedTx: unSignedTx, evmNetwork }})
+        navigate('/bridge/sendTx', { state: { unSignedTx: unSignedTx, evmNetwork, toAddress: toData.changeAddress || toData.address, amount: amount.toString() }})
     }
-
-
 
     const caluL1ToL2ReceiveAmount = () => {
         const amountBN = ethers.parseUnits(amount.toString(), 8);

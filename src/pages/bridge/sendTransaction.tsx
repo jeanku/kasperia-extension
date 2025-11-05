@@ -1,34 +1,17 @@
-import React, {useEffect, useState} from "react"
+import React, {useState} from "react"
 import HeadNav from '@/components/HeadNav'
-import { Button } from 'antd-mobile'
-import { useNavigate, useLocation } from "react-router-dom";
+import {Button} from 'antd-mobile'
+import {useLocation, useNavigate} from "react-router-dom";
 
 import '@/styles/transaction.scss'
-import { EvmNetwork } from "@/model/evm";
-import {Notification} from "@/chrome/notification";
+import {EvmNetwork} from "@/model/evm";
 import {useNotice} from "@/components/NoticeBar/NoticeBar";
 import {Account} from "@/chrome/account";
 import {TransactionRequest} from "ethers/src.ts/providers/provider";
 
-interface SendParams {
-    tx: TransactionRequest;
-    network: EvmNetwork | undefined;
-}
-
-interface Session {
-    origin: string;
-    icon: string;
-    name: string;
-}
-
-interface RequestParam {
-    data: SendParams
-    session: Session
-}
-
 const SendTransaction = () => {
-    const { noticeError } = useNotice()
-    const { state } = useLocation()
+    const {noticeError} = useNotice()
+    const {state} = useLocation()
     const navigate = useNavigate();
 
     const [btnLoading, setBtnLoading] = useState(false)
@@ -37,11 +20,24 @@ const SendTransaction = () => {
 
     const [evmNetwork, setEvmNetwork] = useState<EvmNetwork>(state?.evmNetwork)
 
+    const [amount] = useState<string>(state?.amount)
+
+    const [toAddress] = useState<EvmNetwork>(state?.toAddress)
+
     const submitTransaction = async () => {
         try {
             setBtnLoading(true)
             let hash = await Account.sendTransaction(unSignedTx)
-            // na
+            navigate('/bridge/sendResult', {
+                state: {
+                    hash,
+                    evmNetwork,
+                    sendTo: {
+                        address: toAddress,
+                        amount: amount,
+                    },
+                }
+            })
         } catch (error) {
             noticeError(error);
         }

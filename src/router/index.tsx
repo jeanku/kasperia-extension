@@ -95,6 +95,7 @@ import {
   Bridge,
   History as BridgeHistory,
   SendTransaction as BridgeSendTransaction,
+  SendResult as BridgeSendResult,
 } from "@/pages/bridge/index";
 
 const AppRouter: React.FC = () => {
@@ -183,6 +184,7 @@ const AppRouter: React.FC = () => {
             <Route path="bridgeIndex" element={ <Bridge /> } />
             <Route path="bridgeHistory" element={ <BridgeHistory /> } />
             <Route path="sendTx" element={ <BridgeSendTransaction /> } />
+            <Route path="sendResult" element={ <BridgeSendResult /> } />
           </Route>
 
           <Route path="*" element={<Nopage />} />
