@@ -1,3 +1,5 @@
+import { withSignedParams, mergeUrlParams } from '@/utils/util'
+
 type HttpMethod = "GET" | "POST" | "PUT" | "DELETE";
 
 interface HttpClientOptions {
@@ -75,9 +77,15 @@ class HttpClient {
     get<T>(
         url: string,
         params?: Record<string, any>,
-        config?: Omit<RequestConfig, "body" | "method" | "params">
+        config?: Omit<RequestConfig, "body" | "method" | "params">,
+        isSign?: boolean,
     ): Promise<T> {
-        return this.request<T>("GET", url, { ...config, params });
+        let newParams = params
+        if(isSign) {
+            const { mergedParams } = mergeUrlParams(url, params);
+            newParams = withSignedParams(mergedParams);
+        }
+        return this.request<T>("GET", url, { ...config, params: newParams });
     }
 
     post<T>(

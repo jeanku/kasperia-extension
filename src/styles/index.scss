@@ -208,6 +208,9 @@ em {
 .mr10 {
     margin-right: 10px;
 }
+.mt8 {
+    margin-top: 8px;
+}
 .mt10 {
     margin-top: 10px;
 }
@@ -223,6 +226,9 @@ em {
 
 .mt32 {
     margin-top: 32px;
+}
+.mt35 {
+    margin-top: 35px;
 }
 
 .mt60 {
@@ -796,6 +802,15 @@ em {
         transition: all 0.3s ease;
         will-change: transform, width;
     }
+}
+.tabs-fixed {
+    position: fixed;
+    top: 44px;
+    left: 0;
+    width: 100%;
+    padding-left: 22px;
+    background-color: $bg-color;
+    z-index: 10;
 }
 
 .contact-list {
@@ -2274,6 +2289,13 @@ em {
         .failed {
             color: $flide-color;
         }
+        .success {
+            color: $primary-color;
+        }
+        .share {
+            color: $primary-color;
+            cursor: pointer;
+        }
     }
 
     .history-bottom {
@@ -2334,6 +2356,55 @@ em {
     .tip-test-tn {
         top: 50%;
         transform: translateY(-60%);
+    }
+
+}
+.k-card {
+    border-radius: $border-radius;
+    padding: 10px 12px 16px;
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.55), 0 4px 10px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    .hash-line {
+        position: relative;
+        padding-bottom: 10px;
+        &::after {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            bottom: 0;
+            height: 1px;
+            content: '';
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0));
+            margin: 6px 0 2px;
+        }
+        .success {
+            background: rgba(116, 230, 216, 0.15);
+            color: $primary-color;
+            border: 1px solid $primary-color;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: .2px;
+            box-shadow: 0 6px 10px rgba(116, 230, 216, 0.2);
+        }
+        .pending {
+            background: rgba(255, 123, 33, 0.15);
+            color: $tip-test-color;
+            border: 1px solid $tip-test-color;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: .2px;
+            box-shadow: 0 6px 10px rgba(255, 123, 33, 0.2);
+        }
+
+    }
+    .history-top  {
+        em {
+            font-size: 12px;
+            color: $border-color-f97;
+        }
     }
 
 }

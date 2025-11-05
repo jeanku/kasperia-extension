@@ -1,4 +1,3 @@
-import { MINUTE } from '@/types/constant'
 
 export enum AddressType {
     KaspaAddress = 1,
@@ -28,6 +27,28 @@ export enum KaspaExplorerUrl {
     Mainnet = 'https://kas.fyi/txs/',
     Testnet = 'https://explorer-tn10.kaspa.org/txs/',
 }
+
+export enum EvmExplorerUrl {
+    Mainnet = 'https://explorer.kasplex.org/tx/',
+    Testnet = 'https://explorer.testnet.kasplextest.xyz/tx/',
+}
+
+export enum ApiUrl {
+    Mainnet = 'https://kasbridge-evm-api.kaspafoundation.org/',
+    Testnet = 'http://46.51.197.117:8091/',
+}
+
+export const OrderApiKay = {
+    Mainnet:  {
+        appid: "25070309",
+        appsecret: 'e50a2796234a2b7ab65b896dd1d0ed16'
+    },
+    Testnet: {
+        appid: "36274501",
+        appsecret: '097e4886510707a1ddb9cd22140779ee'
+    }
+}
+
 
 export enum KaspaEnum {
     KAS = "KAS"
