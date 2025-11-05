@@ -332,7 +332,7 @@ export class Account {
     }
 
     async getBalanceFormatEther(address: string) {
-        // return (await this.get_provider()).getBalanceFormatEther(address)
+        return (await this.get_provider()).getBalanceFormatEther(address)
     }
 
     async eth_call(tx: TransactionRequest) {
