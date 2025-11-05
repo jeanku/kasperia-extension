@@ -28,8 +28,13 @@ export class Account {
 
     private clients: Map<number, Provider> = new Map();
 
-    async get_provider(): Promise<Provider> {
-        const network = await evmService.getSelectedNetwork();
+    async get_provider(chainIdStr: string | undefined = undefined): Promise<Provider> {
+        let network = undefined
+        if (chainIdStr) {
+            network = await evmService.getNetwork(chainIdStr)
+        } else {
+            network = await evmService.getSelectedNetwork();
+        }
         if (!network || network.rpcUrl.length == 0) {
             throw Error("network not found");
         }
@@ -352,6 +357,12 @@ export class Account {
     async createERC20TransferTx(from: string, tokenAddress: string, toAddress: string, amount: string, tokenDecimals: number): Promise<string> {
         return this.get_provider().then(provider => {
             return provider.createERC20TransferTx(from, tokenAddress, toAddress, amount, tokenDecimals)
+        })
+    }
+
+    async createContractTx(tx: TransactionRequest): Promise<TransactionRequest> {
+        return this.get_provider().then(provider => {
+            return provider.createContractTx(tx)
         })
     }
 

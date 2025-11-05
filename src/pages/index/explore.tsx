@@ -23,7 +23,6 @@ const Explore = () => {
                 };
             })
         );
-        console.log("linksWithIcons", linksWithIcons)
         setLinks(linksWithIcons)
     }
 

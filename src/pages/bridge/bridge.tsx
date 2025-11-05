@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Button, Popup, Tabs } from 'antd-mobile'
 import { useLocation } from 'react-router-dom'
 import { AddressType } from '@/types/enum'
+import { useNotice } from '@/components/NoticeBar/NoticeBar'
 
 import { useSelector } from "react-redux";
 import { SvgIcon } from '@/components/Icon/index'
@@ -12,8 +13,16 @@ import NoDataDom from "@/components/NoDataDom";
 import NumberInput from '@/components/NumberInput';
 import TokenImg from "@/components/TokenImg";
 import { RootState } from '@/store';
-
+import { NetworkType } from "@/utils/wallet/consensus";
 import { formatAddress, formatBalanceFixed } from '@/utils/util'
+import {
+    KasplexL2TestnetChainId,
+    KasplexL2MainnetChainId,
+    KasplexL1ToL2BridgeAddressForMainnet,
+    KasplexL2ToL1BridgeAddressForMainnet,
+    KasplexL2ToL1BridgeAddressForTestnet,
+    KasplexL1ToL2BridgeAddressForTestnet
+} from '@/types/constant'
 
 import { AccountsSubListDisplay } from '@/model/account'
 import { Address } from '@/model/contact'
@@ -42,22 +51,27 @@ interface SwitchItem {
     desc: number,
     isKaspa: boolean,
     network: string,
-    chainId: string
+    // chainId: string
+}
+
+type BridgeConfig = {
+    [key: string]: any
 }
 
 const Bridge = () => {
     const { state } = useLocation()
+    const { noticeError } = useNotice();
     const navigate = useNavigate();
 
     const { preference } = useSelector((state: RootState) => state.preference);
-    const [network] = useState<EvmNetwork>(state?.network)
+
+    const [evmNetwork, setEvmNetwork] = useState<EvmNetwork>(state?.evmNetwork)
 
     const [swapLoading, setSwapLoading] = useState(false)
     const [popupVisible, setPopupVisible] = useState(false)
     const [amount, setAmount] = useState<number | string>('')
     const [toAmount, setToAmount] = useState<number | string>('')
     const [contactTabValue, setContactTabValue] = useState<string>("")
-
     const [accountsValue, setAccountsValue] = useState<AccountsSubListDisplay[] | null>(null)
     const [contactValue, setContactValue] = useState<Address[] | null>(null)
 
@@ -68,7 +82,6 @@ const Bridge = () => {
         desc: 8,
         isKaspa: true,
         network: `Kaspa ${preference.network.networkType}`,
-        chainId: ""
     })
 
     const [toData, setToData] = useState<SwitchItem>({
@@ -77,9 +90,17 @@ const Bridge = () => {
         balance: "0",
         desc: 18,
         isKaspa: false,
-        network: "",
-        chainId: ""
+        network: evmNetwork?.name || "",
     })
+
+    const bridgeConfig:  BridgeConfig = {
+        mainnet: {
+            [KasplexL2MainnetChainId]: true
+        },
+        testnet: {
+            [KasplexL2TestnetChainId]: true
+        },
+    }
 
     const syncBalance = async () => {
         getBalance(fromData.address).then(r => {
@@ -88,13 +109,11 @@ const Bridge = () => {
             }
             setFromData(fromData)
         })
-        if (!network) {
-            let _network = await Evm.getSelectedNetwork()
-            if (!_network) return
-            toData.network = _network.name
-            toData.chainId = _network.chainId
-            toData.desc = _network.decimals
-            toData.token = _network.symbol
+        if (!evmNetwork) {
+            let network = await Evm.getSelectedNetwork()
+            if (!network) return
+            setEvmNetwork(network)
+            toData.network = network.name
             setToData(toData)
         }
     }
@@ -117,7 +136,11 @@ const Bridge = () => {
     }
 
     useEffect(() => {
-        syncBalance()
+        try {
+            syncBalance()
+        } catch (err) {
+            noticeError(err)
+        }
     }, [])
 
     const submitDisabled = () => {
@@ -154,21 +177,75 @@ const Bridge = () => {
     const switchInfo = async () => {
         let temp = fromData
         if (!toData.isKaspa && Number(toData.balance) == 0) {
-            Account.getEvmBalanceFormatEther(toData.address).then(r => {
-                toData.balance = formatBalanceFixed(r, 8)
-                setFromData(toData)
-            })
+            let balance = await Account.getEvmBalanceFormatEther(toData.address)
+            toData.balance = formatBalanceFixed(balance, 8)
+            setFromData(toData)
+        } else {
+            setFromData(toData)
         }
-        setFromData(toData)
         setToData(temp)
         setAmount("")
         setToAmount("")
     }
 
-    const swapSubmit = () => {
-        if (swapLoading) return
-        setSwapLoading(true)
+    const checkChainValid = () => {
+        let network = preference.network.networkType.toString()
+        let config = bridgeConfig[network]
+        if (!config) {
+            throw new Error("target network invalid!")
+        }
+        let targetChinnId = Number(evmNetwork.chainId)
+        if (!config[targetChinnId]) {
+            throw new Error("target network not support!")
+        }
     }
+
+    const swapSubmit = async () => {
+        try {
+            if (swapLoading) return
+            setSwapLoading(true)
+            checkChainValid()
+            let isKaspaMain = preference.network.networkType == NetworkType.Mainnet
+            let chainId = Number(evmNetwork.chainId)
+            let isKasplex = chainId == KasplexL2TestnetChainId || chainId == KasplexL2MainnetChainId
+            if (isKasplex) {
+                if (fromData.isKaspa) {
+                    await bridgeL1ToKasplexL2(isKaspaMain)
+                } else {
+                    await bridgeL2ToKasplexL1(isKaspaMain)
+                }
+            }
+        } catch (error) {
+            noticeError(error)
+        }
+        setSwapLoading(false)
+    }
+
+    const bridgeL1ToKasplexL2 = async (isKaspaMainnet: boolean) => {
+        let bridgeAddr = isKaspaMainnet ? KasplexL1ToL2BridgeAddressForMainnet : KasplexL1ToL2BridgeAddressForTestnet
+        let payload = toData.changeAddress || toData.address
+        navigate('/tx/sign', { state: { submitTx: {
+            address: bridgeAddr,
+            amount: ethers.parseUnits(amount.toString(), 8),
+            payload: payload,
+        }}})
+    }
+
+    const bridgeL2ToKasplexL1 = async (isKaspaMainnet: boolean) => {
+        let bridgeAddr = isKaspaMainnet ? KasplexL2ToL1BridgeAddressForMainnet : KasplexL2ToL1BridgeAddressForTestnet
+        const iface = new ethers.Interface(["function lockForBridge(bytes calldata payload)"]);
+        const hexString = ethers.hexlify(ethers.toUtf8Bytes(toData.changeAddress || toData.address));
+        const data = iface.encodeFunctionData("lockForBridge", [hexString]);
+        let unSignedTx = await Account.createContractTx({
+            from: preference.currentAccount?.ethAddress!,
+            to: bridgeAddr,
+            data,
+            value: ethers.parseUnits(amount.toString(), 18).toString()
+        })
+        navigate('/bridge/sendTx', { state: { unSignedTx: unSignedTx, evmNetwork }})
+    }
+
+
 
     const caluL1ToL2ReceiveAmount = () => {
         const amountBN = ethers.parseUnits(amount.toString(), 8);
@@ -187,23 +264,22 @@ const Bridge = () => {
             setToAmount("")
             return
         }
-
         if (fromData.isKaspa) {
-            switch (toData.chainId) {
-                case "167012":
+            switch (Number(evmNetwork.chainId)) {
+                case KasplexL2TestnetChainId:
                     setToAmount(caluL1ToL2ReceiveAmount())
                     break
-                case "202555":
+                case KasplexL2MainnetChainId:
                     setToAmount(caluL1ToL2ReceiveAmount())
                     break
                 default:
             }
         } else {
-            switch (fromData.chainId) {
-                case "167012" :
+            switch (Number(evmNetwork.chainId)) {
+                case KasplexL2TestnetChainId:
                     setToAmount(caluL2ToL1ReceiveAmout())
                     break
-                case "202555":
+                case KasplexL2MainnetChainId:
                     setToAmount(caluL2ToL1ReceiveAmout())
                     break
                 default:

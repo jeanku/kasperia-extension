@@ -1,3 +1,5 @@
 import Bridge from "./bridge"
 import History from "./histoyr"
-export { Bridge, History }
+import SendTransaction from "./sendTransaction"
+import SendResult from "./sendResult"
+export { Bridge, History, SendTransaction }

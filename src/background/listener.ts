@@ -94,6 +94,7 @@ const handlers: Record<string, (message: any) => Promise<any> | any> = {
 
     "Account.createTransaction": (msg) => accountService.createTransaction(msg.from, msg.to, msg.amount),
     "Account.createERC20TransferTx": (msg) => accountService.createERC20TransferTx(msg.from, msg.tokenAddress, msg.toAddress, msg.amount, msg.tokenDecimals),
+    "Account.createContractTx": (msg) => accountService.createContractTx(msg.tx),
     "Account.sendTransaction": (msg) => accountService.sendTransaction(msg.tx),
     "Account.signMessage": (msg) => accountService.signMessage(msg.message),
     "Account.getBalance": (msg) => accountService.getBalance(msg.address),

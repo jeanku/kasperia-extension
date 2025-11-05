@@ -404,7 +404,7 @@ const Home = () => {
                         Receive
                     </div>
                     <div className="btn-icon" onClick={() => navigate('/bridge/bridgeIndex', {
-                        state: {from: {tick: "KAS", balance, dec: 8}, evmNetwork}
+                        state: {from: {tick: "KAS", balance, dec: 8}, evmNetwork }
                     })}>
                         <SvgIcon iconName="IconBridge" offsetStyle={{ marginRight: '3px' }} color="#171717" />
                         Bridge

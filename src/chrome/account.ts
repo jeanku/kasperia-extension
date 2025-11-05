@@ -51,6 +51,10 @@ export class Account extends Chrome {
         return Chrome.request({ action: "Account.createERC20TransferTx", from, tokenAddress, toAddress, amount, tokenDecimals })
     }
 
+    static async createContractTx(tx: TransactionRequest): Promise<TransactionRequest> {
+        return Chrome.request({ action: "Account.createContractTx", tx })
+    }
+
     static async sendTransaction(tx: TransactionRequest): Promise<string> {
         return Chrome.request({ action: "Account.sendTransaction", tx })
     }

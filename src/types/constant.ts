@@ -1,3 +1,10 @@
 
 export const SECOND = 1000;
 export const MINUTE = 60 * SECOND;
+
+export const KasplexL2TestnetChainId = 167012
+export const KasplexL2MainnetChainId = 202555
+export const KasplexL1ToL2BridgeAddressForTestnet = "kaspatest:qyp7xxc2c2u0rs6uhgrs88ljjd0tlgjjxnu5a48899xmma894p68mggzct64wuu"
+export const KasplexL2ToL1BridgeAddressForTestnet = "0x6181d079fe60b44077e7a461d31519a53124fd54"
+export const KasplexL1ToL2BridgeAddressForMainnet = ""
+export const KasplexL2ToL1BridgeAddressForMainnet = ""
