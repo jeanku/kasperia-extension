@@ -195,11 +195,12 @@ em {
 .md-mr-30 {
     margin: 0 30px;
 }
-
+.ml3 {
+    margin-left: 3px;
+}
 .ml5 {
     margin-left: 5px;
 }
-
 
 
 .mr5 {
@@ -1242,7 +1243,7 @@ em {
         flex: 2;
         align-items: center;
         flex-direction: column;
-        gap: 10px;
+        gap: 8px;
 
         strong {
             font-size: 16px;
@@ -2381,7 +2382,7 @@ em {
             color: $primary-color;
             border: none;
             padding: 6px 10px;
-            border-radius: 999px;
+            padding-right: 0;
             font-size: 13px;
             font-weight: 700;
             letter-spacing: .2px;
@@ -2391,7 +2392,7 @@ em {
             color: $tip-test-color;
             border: none;
             padding: 6px 10px;
-            border-radius: 999px;
+            padding-right: 0;
             font-size: 13px;
             font-weight: 700;
             letter-spacing: .2px;

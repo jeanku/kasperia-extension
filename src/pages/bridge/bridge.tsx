@@ -335,7 +335,7 @@ const Bridge = () => {
                         <span>To</span>
                         <p className="cursor-pointer" onClick={() => setPopupVisible(true)}>
                             <em className="one-line">{formatAddress(toData.changeAddress ? toData.changeAddress : toData.address, 6)}</em>
-                            <SvgIcon iconName="IconParase" color="#7F7F7F" size={18} offsetStyle={{ marginLeft: '5px' }} />
+                            <SvgIcon iconName="IconUser" size={18} offsetStyle={{ marginLeft: '3px' }} />
                         </p>
                     </div>
                     <div className='flex-row cb ac mb12 mt20'>

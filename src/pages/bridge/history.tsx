@@ -80,12 +80,12 @@ const History = () => {
         if (isL1) {
             i.amountSent = formatBalance(i.amount, 8).toString();
             i.amountFee = isNaN(Number(i.fee)) ? "-" : fromWei(i.fee);
-            i.bridgeAmount = isNaN(Number(i.bridge_amount)) ? "-" : formatBalance(i.bridge_amount, 18).toString();
+            i.bridgeAmount = isNaN(Number(i.bridge_amount))  || !i.bridge_amount ? "-" : formatBalance(i.bridge_amount, 18).toString();
             i.state = i.hash ? 'Successful' : 'Pending'
         } else {
             i.amountSent = formatBalance(i.amount, 18).toString();
             i.amountFee = isNaN(Number(i.fee)) ? "-" : formatBalance(i.fee, 4).toString();
-            i.bridgeAmount = isNaN(Number(i.bridge_amount)) ? "-" : formatBalance(i.bridge_amount, 8).toString();
+            i.bridgeAmount = isNaN(Number(i.bridge_amount)) || !i.bridge_amount ? "-" : formatBalance(i.bridge_amount, 8).toString();
             i.from_address = i.from ?? i.from_address;
             i.state = i.txid ? 'Successful' : 'Pending'
         }
@@ -122,12 +122,10 @@ const History = () => {
                             <div className="history-item k-card" key={item.id}>
                                 <div className="history-top hash-line">
                                     {
-                                        selectTab === 'L1' ? <span className='share' onClick={() => openExplorer('kaspa',item.txid)}>Txid: {formatAddress(item.txid, 6)} <SendOutline className="ml5"/></span> 
-                                        : <span className='share' onClick={() => openExplorer('evm',item.hash)}>Hsah: {formatAddress(item.hash, 6)} <SendOutline className="ml5"/></span>
+                                        selectTab === 'L1' ? <span className='share' onClick={() => openExplorer('kaspa',item.txid)}>Txid: {formatAddress(item.txid, 6)} <SendOutline /></span> 
+                                        : <span className='share' onClick={() => openExplorer('evm',item.hash)}>Hash: {formatAddress(item.hash, 6)} <SendOutline /></span>
                                     }
-                                    {
-                                        item.state === 'Successful' ?  <Tag color='success' className='success'>Successful</Tag> : <Tag color='warning' className='pending'>Pending</Tag>
-                                    }
+                                    <Tag color={item.state === 'Successful' ? 'success' : 'warning' } className={item.state === 'Successful' ? 'success' : 'pending' }>{ item.state }</Tag> 
                                 </div>
                                 <div className="history-top mt8">
                                     <em>From: </em>
