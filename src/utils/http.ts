@@ -1,3 +1,4 @@
+import { AppKey } from '@/types/type';
 import { withSignedParams, mergeUrlParams } from '@/utils/util'
 
 type HttpMethod = "GET" | "POST" | "PUT" | "DELETE";
@@ -78,12 +79,12 @@ class HttpClient {
         url: string,
         params?: Record<string, any>,
         config?: Omit<RequestConfig, "body" | "method" | "params">,
-        isSign?: boolean,
+        apiKey?: AppKey,
     ): Promise<T> {
         let newParams = params
-        if(isSign) {
+        if(apiKey) {
             const { mergedParams } = mergeUrlParams(url, params);
-            newParams = withSignedParams(mergedParams);
+            newParams = withSignedParams(mergedParams, apiKey);
         }
         return this.request<T>("GET", url, { ...config, params: newParams });
     }

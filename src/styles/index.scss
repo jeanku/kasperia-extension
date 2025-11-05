@@ -2377,26 +2377,24 @@ em {
             margin: 6px 0 2px;
         }
         .success {
-            background: rgba(116, 230, 216, 0.15);
+            background: none;
             color: $primary-color;
-            border: 1px solid $primary-color;
+            border: none;
             padding: 6px 10px;
             border-radius: 999px;
             font-size: 13px;
             font-weight: 700;
             letter-spacing: .2px;
-            box-shadow: 0 6px 10px rgba(116, 230, 216, 0.2);
         }
         .pending {
-            background: rgba(255, 123, 33, 0.15);
+            background: none;
             color: $tip-test-color;
-            border: 1px solid $tip-test-color;
+            border: none;
             padding: 6px 10px;
             border-radius: 999px;
             font-size: 13px;
             font-weight: 700;
             letter-spacing: .2px;
-            box-shadow: 0 6px 10px rgba(255, 123, 33, 0.2);
         }
 
     }

@@ -1,7 +1,7 @@
 import { Address } from "@/utils/wallet/address";
 import { ethers } from "ethers";
 import { NetworkType } from "@/utils/wallet/consensus";
-import type { PlainObject } from '@/types/type'
+import type { AppKey, PlainObject } from '@/types/type'
 import { getSign, getSignData } from '@/utils/sign'
 import qs from 'qs';
 
@@ -241,10 +241,8 @@ export function getUrlIcon(url: string): string {
 
 export function formatUTCToLocal(utcStr: string | Date): string {
     const date = utcStr instanceof Date ? utcStr : new Date(utcStr);
-    console.log('date', date)
     const pad = (n: number) => n.toString().padStart(2, "0");
     const year = date.getFullYear();
-    console.log('year', year)
     const month = pad(date.getMonth() + 1);
     const day = pad(date.getDate());
     const hour = pad(date.getHours());
@@ -255,7 +253,6 @@ export function formatUTCToLocal(utcStr: string | Date): string {
 
 export function convertUTCToLocalTime(utcTimeString: string): string {
     const utcDate = new Date(utcTimeString + 'Z');
-    console.log('utcDate', utcDate)
     return formatUTCToLocal(utcDate);
 }
 
@@ -279,12 +276,12 @@ export function calcAmount(balance: bigint, percent: number) {
     return (balance * BigInt(Math.round(percent))) / BigInt(100)
 }
 
-export function withSignedParams<T extends PlainObject>(params: T): T & { sign: string } {
+export function withSignedParams<T extends PlainObject>(params: T, apiKey: AppKey): T & { sign: string } {
     const signBase = {
-        ...getSignData(),
+        ...getSignData(apiKey),
         ...params,
     };
-    const sign = getSign(signBase);
+    const sign = getSign(signBase, apiKey);
     return {
         ...signBase,
         sign,

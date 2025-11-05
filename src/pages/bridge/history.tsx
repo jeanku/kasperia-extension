@@ -17,7 +17,7 @@ const History = () => {
     const navigate = useNavigate();
     const { preference } = useSelector((state: RootState) => state.preference);
 
-    const [selectTab, setSelectTab] = useState('1')
+    const [selectTab, setSelectTab] = useState('L1')
     const [nextPage, setNextPage] = useState<number>(1)
     const [hasMore, setHasMore] = useState(true)
     const [isLoading, setIsLoading] = useState(false);
@@ -29,8 +29,8 @@ const History = () => {
     const networkName = preference.network.networkType === NetworkType.Mainnet ? 'Mainnet' : 'Testnet';
 
     const TabsList = [
-        { title: 'L1 History', key: '1' },
-        { title: 'L2 History', key: '2' },
+        { title: 'L1 History', key: 'L1' },
+        { title: 'L2 History', key: 'L2' },
     ]
 
     useEffect(() => {
@@ -52,7 +52,7 @@ const History = () => {
         }
         lastRequestTimeRef.current = now
 
-        const isL1 = tab === '1'
+        const isL1 = tab === 'L1'
         const address = isL1 ? l1Address : l2Address
         if (!address) return
         setIsLoading(true);
@@ -76,22 +76,19 @@ const History = () => {
     }
 
     const transformRecord = (item: OrderListItem, isL1: boolean) => {
-        const decimal = 4
         const i: OrderListItem = { ...item };
         if (isL1) {
-            i.amountSent = truncateDecimal(sompiToKaspa(Number(i.amount)), decimal).toString();
+            i.amountSent = formatBalance(i.amount, 8).toString();
             i.amountFee = isNaN(Number(i.fee)) ? "-" : fromWei(i.fee);
-            i.bridgeAmount = isNaN(Number(i.bridge_amount)) ? "-" : formatDecimal((formatBalance(i.bridge_amount, decimal)), decimal).toString();
+            i.bridgeAmount = isNaN(Number(i.bridge_amount)) ? "-" : formatBalance(i.bridge_amount, 18).toString();
             i.state = i.hash ? 'Successful' : 'Pending'
         } else {
-            i.amountSent = truncateDecimal(Number(formatBigInt(BigInt(i.amount), 18)), decimal).toString();
-            i.amountFee = isNaN(Number(i.fee)) ? "-" : truncateDecimal(sompiToKaspa(Number(i.fee)), decimal).toString();
-            i.bridgeAmount = isNaN(Number(i.bridge_amount)) ? "-" : truncateDecimal(sompiToKaspa(Number(i.bridge_amount)), decimal).toString();
+            i.amountSent = formatBalance(i.amount, 18).toString();
+            i.amountFee = isNaN(Number(i.fee)) ? "-" : formatBalance(i.fee, 4).toString();
+            i.bridgeAmount = isNaN(Number(i.bridge_amount)) ? "-" : formatBalance(i.bridge_amount, 8).toString();
             i.from_address = i.from ?? i.from_address;
             i.state = i.txid ? 'Successful' : 'Pending'
         }
-        i.showTime = convertUTCToLocalTime(i.create_time)
-        i.id = i.id ?? `${i.txid ?? ""}-${i.hash ?? ""}-${i.create_time ?? ""}`;
         return i as OrderListItem;
     }
 
@@ -125,7 +122,7 @@ const History = () => {
                             <div className="history-item k-card" key={item.id}>
                                 <div className="history-top hash-line">
                                     {
-                                        selectTab === '1' ? <span className='share' onClick={() => openExplorer('kaspa',item.txid)}>Txid: {formatAddress(item.txid, 6)} <SendOutline className="ml5"/></span> 
+                                        selectTab === 'L1' ? <span className='share' onClick={() => openExplorer('kaspa',item.txid)}>Txid: {formatAddress(item.txid, 6)} <SendOutline className="ml5"/></span> 
                                         : <span className='share' onClick={() => openExplorer('evm',item.hash)}>Hsah: {formatAddress(item.hash, 6)} <SendOutline className="ml5"/></span>
                                     }
                                     {
@@ -137,25 +134,25 @@ const History = () => {
                                     <span>{formatAddress(item.from_address, 6)}</span>
                                 </div>
                                 {
-                                    selectTab === '1' ? <div className="history-top mt8">
-                                        <em>To EVM Address: </em>
+                                    selectTab === 'L1' ? <div className="history-top mt8">
+                                        <em>To: </em>
                                         <span>{formatAddress(item.to_eth_address, 6)}</span>
                                     </div> : <div className="history-top mt8">
-                                        <em>To Layer 1 Address: </em>
+                                        <em>To: </em>
                                         <span>{formatAddress(item.to_kaspa_address, 6)}</span>
                                     </div>
                                 }
                                 <div className="history-top mt8">
                                     <em>Amount: </em>
-                                    <span className='success'>{item.amountSent}</span>
+                                    <span>{item.amountSent}</span>
                                 </div>
                                 <div className="history-top mt8">
                                     <em>Received: </em>
                                     <span>{item.bridgeAmount}</span>
                                 </div>
                                 <div className="history-top mt8">
-                                    <em>Fee: {item.amountFee}</em>
-                                    <span>{ item.showTime }</span>
+                                    <em>Time:</em>
+                                    <span>{ convertUTCToLocalTime(item.create_time) }</span>
                                 </div>
                             </div>
                         )) : ((
