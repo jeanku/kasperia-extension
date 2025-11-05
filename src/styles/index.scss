@@ -2381,7 +2381,7 @@ em {
             color: $primary-color;
             border: none;
             padding: 6px 10px;
-            border-radius: 999px;
+            padding-right: 0;
             font-size: 13px;
             font-weight: 700;
             letter-spacing: .2px;
@@ -2391,7 +2391,7 @@ em {
             color: $tip-test-color;
             border: none;
             padding: 6px 10px;
-            border-radius: 999px;
+            padding-right: 0;
             font-size: 13px;
             font-weight: 700;
             letter-spacing: .2px;
