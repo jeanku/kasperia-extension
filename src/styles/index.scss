@@ -195,11 +195,12 @@ em {
 .md-mr-30 {
     margin: 0 30px;
 }
-
+.ml3 {
+    margin-left: 3px;
+}
 .ml5 {
     margin-left: 5px;
 }
-
 
 
 .mr5 {
@@ -1242,7 +1243,7 @@ em {
         flex: 2;
         align-items: center;
         flex-direction: column;
-        gap: 10px;
+        gap: 8px;
 
         strong {
             font-size: 16px;
