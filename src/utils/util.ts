@@ -100,12 +100,6 @@ export const formatDate = (mts: string) => {
         `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 };
 
-export const getDecimals = (num: number) => {
-    if (isNaN(num)) return 0;
-    const str = num.toString();
-    return str.includes('.') ? str.split('.')[1].length : 0;
-};
-
 export const hexToString = (hex: string): string => {
     if (hex == "") return ""
     const bytes = new Uint8Array(hex.match(/.{1,2}/g)!.map(byte => parseInt(byte, 16)));

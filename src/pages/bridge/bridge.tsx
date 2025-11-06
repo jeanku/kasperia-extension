@@ -1,8 +1,7 @@
 import { useMemo, useState, useEffect } from 'react';
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 import { Button, Popup, Tabs } from 'antd-mobile'
-import { useLocation } from 'react-router-dom'
 import { AddressType } from '@/types/enum'
 import { useNotice } from '@/components/NoticeBar/NoticeBar'
 
@@ -33,16 +32,6 @@ import { Evm } from '@/chrome/evm'
 import { EvmNetwork } from "@/model/evm";
 import { ethers } from "ethers";
 
-interface TokenItem {
-    name?: string;
-    address: string
-    token?: string;
-    balance: number;
-    chainId?: string;
-    amount?: number;
-    desc?: number;
-}
-
 interface SwitchItem {
     address: string,
     changeAddress?: string,
@@ -66,7 +55,7 @@ const Bridge = () => {
 
     const [evmNetwork, setEvmNetwork] = useState<EvmNetwork>(state?.evmNetwork)
 
-    const [swapLoading, setSwapLoading] = useState(false)
+    const [bridgeLoading, setBridgeLoading] = useState(false)
     const [popupVisible, setPopupVisible] = useState(false)
     const [amount, setAmount] = useState<number | string>('')
     const [toAmount, setToAmount] = useState<number | string>('')
@@ -208,8 +197,8 @@ const Bridge = () => {
 
     const bridgeSubmit = async () => {
         try {
-            if (swapLoading) return
-            setSwapLoading(true)
+            if (bridgeLoading) return
+            setBridgeLoading(true)
             checkChainValid()
             let isKaspaMain = preference.network.networkType == NetworkType.Mainnet
             if (isKasplex) {
@@ -222,7 +211,7 @@ const Bridge = () => {
         } catch (error) {
             noticeError(error)
         }
-        setSwapLoading(false)
+        setBridgeLoading(false)
     }
 
     const bridgeL1ToKasplexL2 = async (isKaspaMainnet: boolean) => {
@@ -358,17 +347,8 @@ const Bridge = () => {
                         <span></span>
                     </div>
                 </div>
-                {/*<div className='mt15'>*/}
-                {/*    <h6 className='sub-tit'>*/}
-                {/*        Recipient*/}
-                {/*    </h6>*/}
-                {/*    <div className="text-area">*/}
-                {/*        <textarea placeholder="Please Address" rows={3} value={l1Address || toData.address}*/}
-                {/*            onChange={(e) => setL1Address(e.target.value)} />*/}
-                {/*    </div>*/}
-                {/*</div>*/}
                 <div className="btn-pos-two flexd-row post-bottom">
-                    <Button block size="large" color="primary" loading={swapLoading} disabled={submitDisabled()} onClick={() => bridgeSubmit()}>
+                    <Button block size="large" color="primary" loading={bridgeLoading} disabled={submitDisabled()} onClick={() => bridgeSubmit()}>
                         Bridge
                     </Button>
                 </div>
