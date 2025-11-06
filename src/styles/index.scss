@@ -812,6 +812,10 @@ em {
     padding-left: 22px;
     background-color: $bg-color;
     z-index: 10;
+    li {
+        font-size: 16px;
+        font-weight: 500;
+    }
 }
 
 .contact-list {

@@ -29,8 +29,8 @@ const History = () => {
     const networkName = preference.network.networkType === NetworkType.Mainnet ? 'Mainnet' : 'Testnet';
 
     const TabsList = [
-        { title: 'L1 History', key: 'L1' },
-        { title: 'L2 History', key: 'L2' },
+        { title: 'L1→L2 History', key: 'L1' },
+        { title: 'L2→L1 History', key: 'L2' },
     ]
 
     useEffect(() => {
@@ -104,7 +104,7 @@ const History = () => {
 
     return (
         <div className="page-box">
-            <HeadNav title='Kaspa-History' onBack={() => navigate('/bridge/bridgeIndex')} ></HeadNav>
+            <HeadNav title='Bridge-History' onBack={() => navigate('/bridge/bridgeIndex')} ></HeadNav>
             <div className="content-main history-box">
                 <ul className="page-tabs tabs-fixed">
                     {
