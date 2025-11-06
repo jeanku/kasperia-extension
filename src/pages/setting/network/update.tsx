@@ -28,9 +28,13 @@ const NetworkUpdate = () => {
     const { preference} = useSelector((state: RootState) => state.preference);
 
     const isValidUrl = (url: string): boolean => {
-        const urlPattern = /^(https?|wss?):\/\/(localhost|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|\[::1\])(:\d+)?(\/.*)?$/i;
+        if (url.trim() == "") {
+            return true
+        }
+        const urlPattern = /^(https?|wss?):\/\/(localhost|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|\[::1\]|([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,})(:\d+)?(\/.*)?$/i;
         return urlPattern.test(url);
-    };    
+    }
+
     const changeNetworkUrl = async (url: string) => {
         try {
             if (network.url === url) return
@@ -39,12 +43,8 @@ const NetworkUpdate = () => {
             let networkConfig = await Preference.setNetworkConfig(network);
             if (state.isChecked) {
                 const dispatch: Dispatch = store.dispatch;
-                // dispatch(setRpcClient(null));
-
                 setMaskVisible(true)
                 dispatch(setNetworkConfigSlice(networkConfig))
-                // dispatchRefreshNetwork(network, preference?.currentAccount!);
-                // await dispatchRpcConnect(network)
             } else {
                 dispatch(setNetworkConfigSlice(networkConfig))
             }

@@ -65,7 +65,7 @@ export class Account {
 
     async connect() {
         let networkId = await preferenceService.getNetworkId()
-        this.client = new RpcClient({resolver: new Resolver(), networkId});
+        this.client = new RpcClient({resolver: new Resolver(), networkId });
         await this.client.connect()
     }
 

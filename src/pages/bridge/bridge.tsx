@@ -108,28 +108,17 @@ const Bridge = () => {
     }
 
     const syncBalance = async () => {
-        getBalance().then(r => {
-            if (fromData.balance != r) {
-                fromData.balance = r
+        Account.getBalance(fromData.address).then(r => {
+            let bal = ethers.formatUnits(r, 8)
+            if (fromData.balance != bal) {
+                fromData.balance = bal
+                setFromData(fromData)
             }
-            setFromData(fromData)
         })
-        if (!evmNetwork) {
-            let network = await Evm.getSelectedNetwork()
-            if (!network) return
-            setEvmNetwork(network)
-            toData.network = network.name
+        Account.getEvmBalanceFormatEther(toData.address).then(r => {
+            toData.balance = formatBalanceFixed(r, 8)
             setToData(toData)
-        }
-    }
-
-    const getBalance = async () => {
-        if (fromData.isKaspa) {
-            let balance = await Account.getBalance(fromData.address)
-            return balance.balance
-        } else {
-            return await Account.getEvmBalanceFormatEther(fromData.address)
-        }
+        })
     }
 
     const setMax = () => {
@@ -143,6 +132,17 @@ const Bridge = () => {
 
     useEffect(() => {
         try {
+            if (!evmNetwork) {
+                Evm.getSelectedNetwork().then(network => {
+                    if (!network) return
+                    setEvmNetwork(network)
+                    toData.network = network.name
+                    setToData(toData)
+                    checkChainValid()
+                })
+            } else {
+                checkChainValid()
+            }
             syncBalance()
         } catch (err) {
             noticeError(err)

@@ -6,68 +6,11 @@ import {Buffer} from 'buffer'
 
 globalThis.Buffer = Buffer;
 
-console.log("bg init 12344...")
-
 // for page provider
 chrome.runtime.onConnect.addListener((port) => {
 
-    console.log("onConnect start provider", port.name)
-    // if (port.name === 'popup' || port.name === 'notification' || port.name === 'tab') {
-    //     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    //     const pm = new PortMessage(port as any);
-    //     pm.listen((data: any) => {
-    //         console.log("haha: controller", data)
-    //         if (data?.type) {
-    //             switch (data.type) {
-    //                 // console.log("haha: controller")
-    //                 // case 'broadcast':
-    //                 //     eventBus.emit(data.method, data.params);
-    //                 //     break;
-    //                 // case 'openapi':
-    //                 //     if (walletController.openapi[data.method]) {
-    //                 //         return walletController.openapi[data.method].apply(null, data.params);
-    //                 //     }
-    //                 //     break;
-    //                 case 'controller':
-    //                 default:
-    //                     console.log("haha: controller")
-    //                 // if (data.method) {
-    //                 //     return walletController[data.method].apply(null, data.params);
-    //                 // }
-    //             }
-    //         }
-    //     });
-    //
-    //     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    //     const boardcastCallback = (data: any) => {
-    //         pm.request({
-    //             type: 'broadcast',
-    //             method: data.method,
-    //             params: data.params
-    //         });
-    //     };
-    //
-    //     if (port.name === 'popup') {
-    //         // preferenceService.setPopupOpen(true);
-    //
-    //         port.onDisconnect.addListener(() => {
-    //             // preferenceService.setPopupOpen(false);
-    //         });
-    //     }
-    //
-    //     // eventBus.addEventListener(EVENTS.broadcastToUI, boardcastCallback);
-    //     port.onDisconnect.addListener(() => {
-    //         // eventBus.removeEventListener(EVENTS.broadcastToUI, boardcastCallback);
-    //         // gradually close rpc when popup window is closed --shwan
-    //         // openapiService.countDownToCloseRpc()
-    //     });
-    //
-    //     return;
-    // }
-
     const pm = new PortMessage(port);
     pm.listen((data : any) => {
-        console.log("【BG】pm.listen:", data, port.sender?.tab?.id);
         const tabId = port.sender?.tab?.id;
         if (!tabId) return;
         const origin = new URL(port.sender?.tab?.url || "").origin;
@@ -78,7 +21,6 @@ chrome.runtime.onConnect.addListener((port) => {
         });
         const req = { data, session };
         req.session.pushMessage = (event: any, data: any) => {
-            console.log("init pushMessage function", event, data)
             pm.send('message', { event, data });
         };
         return providerController(req);
