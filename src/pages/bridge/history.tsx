@@ -9,7 +9,7 @@ import NoDataDom from "@/components/NoDataDom";
 import { RootState } from '@/store';
 import {NetworkType} from "@/utils/wallet/consensus";
 import { useSelector } from "react-redux";
-import { formatAddress, convertUTCToLocalTime, formatDecimal, fromWei, formatBigInt, formatBalance, sompiToKaspa, truncateDecimal } from '@/utils/util'
+import { formatAddress, convertUTCToLocalTime, formatBalance } from '@/utils/util'
 import { KaspaExplorerUrl, EvmExplorerUrl } from '@/types/enum'
 import { getKaspaList, getKlayerList, type OrderListItem } from '@/api/index'
 
@@ -79,12 +79,10 @@ const History = () => {
         const i: OrderListItem = { ...item };
         if (isL1) {
             i.amountSent = formatBalance(i.amount, 8).toString();
-            i.amountFee = isNaN(Number(i.fee)) ? "-" : fromWei(i.fee);
             i.bridgeAmount = isNaN(Number(i.bridge_amount))  || !i.bridge_amount ? "-" : formatBalance(i.bridge_amount, 18).toString();
             i.state = i.hash ? 'Successful' : 'Pending'
         } else {
             i.amountSent = formatBalance(i.amount, 18).toString();
-            i.amountFee = isNaN(Number(i.fee)) ? "-" : formatBalance(i.fee, 4).toString();
             i.bridgeAmount = isNaN(Number(i.bridge_amount)) || !i.bridge_amount ? "-" : formatBalance(i.bridge_amount, 8).toString();
             i.from_address = i.from ?? i.from_address;
             i.state = i.txid ? 'Successful' : 'Pending'

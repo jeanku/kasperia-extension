@@ -74,44 +74,11 @@ export const formatDecimal = (amount: string, dec: number | string): number => {
     return formatFixed(value)
 }
 
-export function sompiToKaspa(input: number) {
-    if (typeof input !== "number" && typeof input !== "bigint") {
-        throw new Error("Invalid Sompi input type");
-    }
-    const amount = Number(input) / 1e8;
-    return parseFloat(amount.toFixed(8));
-}
-
-export function truncateDecimal(num: number, decimalPlaces: number = 8): number {
-    if(!num || isNaN(num)) return 0
-    if(Number.isInteger(num)) return num;
-    const factor = Math.pow(10, decimalPlaces);
-    return Math.trunc(num * factor) / factor;
-}
-
-export function formatBigInt(value: bigint, decimals: number): string {
-    const scale = 10n ** BigInt(decimals);
-    const integerPart = value / scale;
-    const fractionPart = value % scale;
-
-    if (fractionPart === 0n) return integerPart.toString();
-
-    const fractionStr = fractionPart.toString().padStart(decimals, "0");
-    return `${integerPart}.${fractionStr}`.replace(/\.?0+$/, "");
-}
-
 export const formatDecBalance = (amount: string, dec: string): BigInt => {
     if (amount === "" || dec === "") {
         return BigInt("")
     }
     return (BigInt(amount) / BigInt(10 ** Number(dec)))
-}
-
-export function fromWei(amount: string | number | bigint, decimals = 18): string {
-    const amtStr = BigInt(amount).toString().padStart(decimals + 1, '0');
-    const intPart = amtStr.slice(0, -decimals) || '0';
-    const fracPart = amtStr.slice(-decimals).replace(/0+$/, '');
-    return fracPart ? `${intPart}.${fracPart}` : intPart;
 }
 
 export const toTokenUnits = (amount: number | string, decimals: number | string): BigInt => {
@@ -138,12 +105,6 @@ export const getDecimals = (num: number) => {
     const str = num.toString();
     return str.includes('.') ? str.split('.')[1].length : 0;
 };
-
-export const stringToHex = (str: string): string => {
-    return Array.from(str)
-        .map(c => c.charCodeAt(0).toString(16).padStart(2, '0'))
-        .join('');
-}
 
 export const hexToString = (hex: string): string => {
     if (hex == "") return ""
@@ -271,11 +232,6 @@ export function formatSignMessage(message: string): string {
     }
     return message;
 }
-
-export function calcAmount(balance: bigint, percent: number) {
-    return (balance * BigInt(Math.round(percent))) / BigInt(100)
-}
-
 export function withSignedParams<T extends PlainObject>(params: T, apiKey: AppKey): T & { sign: string } {
     const signBase = {
         ...getSignData(apiKey),
