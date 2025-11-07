@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useRef } from "react"
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import CountUp from 'react-countup';
-import {ethers} from "ethers";
+import { ethers } from "ethers";
 
 import { SearchBar, DotLoading, List, Image, Popover } from 'antd-mobile'
 import { UserOutline, DownOutline, AddOutline, UndoOutline } from 'antd-mobile-icons'
@@ -14,10 +14,10 @@ import TokenImg from "@/components/TokenImg";
 import { useNotice } from '@/components/NoticeBar/NoticeBar'
 
 import { Oplist, TokenList } from '@/model/krc20';
-import {EvmTokenList, EvmNetwork} from '@/model/evm';
+import { EvmTokenList, EvmNetwork } from '@/model/evm';
 import { NetworkType } from "@/utils/wallet/consensus";
 import { Provider } from '@/utils/wallet/provider';
-import {formatAddress, formatBalance, formatDate, formatHash, formatDecimal, formatBalanceFixed} from "@/utils/util"
+import { formatAddress, formatBalance, formatDate, formatHash, formatDecimal, formatBalanceFixed } from "@/utils/util"
 import { Evm } from "@/chrome/evm"
 import { Account } from "@/chrome/account"
 import store, { RootState } from '@/store';
@@ -33,12 +33,12 @@ import {
     KasplexL2TestnetChainId,
     KasplexL2MainnetChainId,
 } from '@/types/constant'
-import {setHomeSelectTabValue } from "@/store/userSlice";
-import {GetKrc20OperationListResponse, Krc20Client, Krc20TokenBalanceInfo} from "@/utils/wallet/krc20";
+import { setHomeSelectTabValue } from "@/store/userSlice";
+import { GetKrc20OperationListResponse, Krc20Client, Krc20TokenBalanceInfo } from "@/utils/wallet/krc20";
 import { KaspaClient, KaspaTransaction } from "@/utils/wallet/kaspa";
 import { Dispatch } from 'redux';
 import IconArrorRight from '@/assets/images/home-arrow-right.png'
-import {GetKrc20AddressTokenListResponse, Krc20Response} from "@/utils/wallet/krc20/types";
+import { GetKrc20AddressTokenListResponse, Krc20Response } from "@/utils/wallet/krc20/types";
 
 
 export type TimedList<T> = {
@@ -66,7 +66,7 @@ const Home = () => {
     const [filteredValue, setfilteredValue] = useState('');
 
     const [krc20TokenList, setKrc20TokenList] = useState<TimedList<TokenList>>({
-        time: 0,  list: preference!.krc20TokenList || [],
+        time: 0, list: preference!.krc20TokenList || [],
     });
 
     const [krc20OpList, setKrc20OpList] = useState<TimedList<Oplist>>({
@@ -81,7 +81,7 @@ const Home = () => {
         time: 0, list: [],
     });
 
-    const homeTabs = ['Tokens', "EVM",  'Activity']
+    const homeTabs = ['Tokens', "EVM", 'Activity']
     const activityTabs = ['KAS', 'KRC20']
 
     const underlineRef = useRef(null);
@@ -99,8 +99,8 @@ const Home = () => {
     }, [currentAccount]);
 
     const actions: Action[] = [
-        { key: 'add', icon: <AddOutline fontSize={ 16 } color="#FFFFFF" />, text: 'Add Token' },
-        { key: 'refresh', icon: <UndoOutline fontSize={ 16 } color="#FFFFFF"  />, text: 'Refresh' },
+        { key: 'add', icon: <AddOutline fontSize={16} color="#FFFFFF" />, text: 'Add Token' },
+        { key: 'refresh', icon: <UndoOutline fontSize={16} color="#FFFFFF" />, text: 'Refresh' },
     ];
 
     const popoverAction = async (key: string) => {
@@ -123,7 +123,7 @@ const Home = () => {
         let client = new Krc20Client(preference.network.networkType)
         if (!preference?.currentAccount?.address) return
         client.getKrc20AddressTokenList(preference!.currentAccount!.address).then((r: Krc20Response<GetKrc20AddressTokenListResponse>) => {
-            let fetchSc : string[] = []
+            let fetchSc: string[] = []
             if (r.result && r.result.length > 0) {
                 let tokens = r.result.map((r: Krc20TokenBalanceInfo) => {
                     if (r.ca && !contractAddressMap[r.ca]) {
@@ -179,8 +179,7 @@ const Home = () => {
         if (!preference?.currentAccount?.address) return
         client.getKrc20OperationList({ address: preference?.currentAccount?.address! }).then((r: Krc20Response<GetKrc20OperationListResponse>) => {
             if (r.result && r.result.length != krc20OpList.list.length ||
-                r.result && r.result.length > 0 && krc20OpList.list.length > 0 && r.result[0].hashRev != krc20OpList.list[0].hashRev)
-           {
+                r.result && r.result.length > 0 && krc20OpList.list.length > 0 && r.result[0].hashRev != krc20OpList.list[0].hashRev) {
                 setKrc20OpList({ time: curTime, list: r.result as Oplist[] })
                 dispatch(setKrc20OpListSlice(r.result as Oplist[]))
             }
@@ -237,10 +236,10 @@ const Home = () => {
                 setEvmTokenList({ time: curTime, list: listdata });
                 dispatch(setPreferenceEvmTokenList({ chainId, listData: listdata }));
             }
-        } catch(error) {
+        } catch (error) {
             console.log('error-fetchEvmTokenlist', error)
         }
-        
+
     }
 
     const fetchKaspaTxlist = async () => {
@@ -358,20 +357,6 @@ const Home = () => {
         navigate("/evm/tokenInfo", { state: { token: item, network: evmNetwork } })
     }
 
-    const goBridge = () => {
-        if(!evmNetwork || !evmNetwork.chainId) return false
-        const chainId = Number(evmNetwork.chainId)
-        let isKaspaMain = preference.network.networkType === NetworkType.Testnet
-        const isKasplex = isKaspaMain ? chainId === KasplexL2TestnetChainId : chainId === KasplexL2MainnetChainId
-        if(isKasplex) {
-            navigate('/bridge/bridgeIndex', {
-                state: {from: {tick: "KAS", balance, dec: 8}, evmNetwork }
-            })
-        } else {
-            noticeError("target network not support!")
-        }
-    }
-
     function isEqualByNameAndBalance(a: any[], b: any[]): boolean {
         if (a.length !== b.length) return false;
         return a.every((item, index) =>
@@ -390,7 +375,7 @@ const Home = () => {
         <div className="page-box">
             <div className="nav-bar">
                 <div className="nav-left no-cursor">
-                    {isConnect ? (<><span>{ preference.network.networkType }</span></>) :
+                    {isConnect ? (<><span>{preference.network.networkType}</span></>) :
                         (<><span>Connecting</span><DotLoading color='#74E6D8' /></>)
                     }
                 </div>
@@ -424,12 +409,14 @@ const Home = () => {
                         <SvgIcon iconName="IconReceive" offsetStyle={{ marginRight: '3px' }} color="#171717" />
                         Receive
                     </div>
-                    <div className="btn-icon" onClick={() => goBridge() }>
+                    <div className="btn-icon" onClick={() => navigate('/bridge/bridgeIndex', {
+                        state: { from: { tick: "KAS", balance, dec: 8 }, evmNetwork }
+                    })}>
                         <SvgIcon iconName="IconBridge" offsetStyle={{ marginRight: '3px' }} color="#171717" />
                         Bridge
                     </div>
                     <div className="btn-icon" onClick={() => navigate('/tx/send', {
-                        state: {token: {tick: "KAS", balance, dec: 8}}
+                        state: { token: { tick: "KAS", balance, dec: 8 } }
                     })}>
                         <SvgIcon iconName="IconSend" offsetStyle={{ marginRight: '3px' }} color="#171717" />
                         Send
@@ -463,10 +450,10 @@ const Home = () => {
                                             width={44}
                                             height={44}
                                             lazy={true}
-                                            placeholder={<SvgIcon iconName="PngCoinDef" size={44} color=""/>}
-                                            fallback={<SvgIcon iconName="PngCoinDef" size={44} color=""/>}
+                                            placeholder={<SvgIcon iconName="PngCoinDef" size={44} color="" />}
+                                            fallback={<SvgIcon iconName="PngCoinDef" size={44} color="" />}
                                             fit='cover'
-                                            style={{borderRadius: '50%', marginRight: '16px'}}
+                                            style={{ borderRadius: '50%', marginRight: '16px' }}
                                         />
                                         <div className="list-item-content">
                                             <strong>{token.name}</strong>
@@ -479,42 +466,42 @@ const Home = () => {
                                     </div>
                                 ))}
                             </div> :
-                        homeTabValue === 'Activity' ?
-                            <div className="page-activity">
+                            homeTabValue === 'Activity' ?
+                                <div className="page-activity">
                                     <div className="activity-tabs">
                                         {
                                             activityTabs.map((key, index) => {
                                                 return <span key={index}
-                                                             className={activityTabValue === key ? 'active' : ''}
-                                                             onClick={() => handleActivityTab(key)}>{key}</span>
+                                                    className={activityTabValue === key ? 'active' : ''}
+                                                    onClick={() => handleActivityTab(key)}>{key}</span>
                                             })
                                         }
                                     </div>
                                     <List>
                                         {activityTabValue === activityTabs[0] ?
                                             kaspaActList.list.map((item, index) =>
-                                                (
-                                                    <div className="history-item" onClick={() => showKaspaTxinfo(index)}
-                                                         key={index}>
-                                                        <div className="history-top">
-                                                            <span>{formatHash(item.transaction_id)}{item.payload ? "(payload)" : null}</span>
-                                                            <strong
-                                                                className={item.is_accepted ? 'history-status' : 'history-status failed'}>{item.is_accepted ? "Success" : "Failed"}</strong>
-                                                        </div>
-                                                        <div className="history-bottom">
-                                                            <div className="history-left">
-                                                                <em className={item.amount < 0 ? 'history-icon sub' : 'history-icon'}>{item.amount < 0 ? "-" : "+"}</em>
-                                                                <strong
-                                                                    className="history-amount">{formatBalance(`${Math.abs(item.amount)}`, 8)} Kas</strong>
-                                                            </div>
-                                                            <span
-                                                                className="history-time">{formatDate(item.block_time.toString())}</span>
-                                                        </div>
+                                            (
+                                                <div className="history-item" onClick={() => showKaspaTxinfo(index)}
+                                                    key={index}>
+                                                    <div className="history-top">
+                                                        <span>{formatHash(item.transaction_id)}{item.payload ? "(payload)" : null}</span>
+                                                        <strong
+                                                            className={item.is_accepted ? 'history-status' : 'history-status failed'}>{item.is_accepted ? "Success" : "Failed"}</strong>
                                                     </div>
-                                                )) :
+                                                    <div className="history-bottom">
+                                                        <div className="history-left">
+                                                            <em className={item.amount < 0 ? 'history-icon sub' : 'history-icon'}>{item.amount < 0 ? "-" : "+"}</em>
+                                                            <strong
+                                                                className="history-amount">{formatBalance(`${Math.abs(item.amount)}`, 8)} Kas</strong>
+                                                        </div>
+                                                        <span
+                                                            className="history-time">{formatDate(item.block_time.toString())}</span>
+                                                    </div>
+                                                </div>
+                                            )) :
                                             krc20OpList.list.map((item, index) => (
                                                 <div className="history-item" onClick={() => toOpinfo(index)}
-                                                     key={index}>
+                                                    key={index}>
                                                     <div className="history-top">
                                                         <span>{item.op} {item.to ? formatAddress(item.to, 4) : ""}</span>
                                                         <strong
@@ -543,45 +530,45 @@ const Home = () => {
                                         }
                                     </List>
                                 </div> :
-                        homeTabValue === 'EVM' ?
-                            evmNetwork && (
-                                <div className="page-list-box">
-                                    <div className="flex-row cb ac">
-                                        <div className="input-select" onClick={() => navigate('/evm/select') } >
-                                            <span>{ evmNetwork.name }</span>
-                                            <DownOutline fontSize={14} />
-                                        </div>
-                                        <Popover.Menu
-                                            className="account-popover"
-                                            actions={ actions }
-                                            mode='dark'
-                                            trigger='click'
-                                            placement='bottom'
-                                            onAction={node => popoverAction(node.key as string)}
-                                        >
-                                            <SvgIcon className="cursor-pointer" size={22} iconName="IconMoreVertical" />
-                                        </Popover.Menu>
-                                    </div>
-                                    {evmTokenList.list.map((token, index) => (
-                                        <div className="page-list-item" key={index} onClick={() => toTokenInfo(index)}>
-                                            <TokenImg url={ token.symbol } name={token.name} />
-                                            <div className="list-item-content">
-                                                <strong>{token.symbol}</strong>
-                                                <span className="one-line"> {formatAddress(token.address || token.name)} </span>
+                                homeTabValue === 'EVM' ?
+                                    evmNetwork && (
+                                        <div className="page-list-box">
+                                            <div className="flex-row cb ac">
+                                                <div className="input-select" onClick={() => navigate('/evm/select')} >
+                                                    <span>{evmNetwork.name}</span>
+                                                    <DownOutline fontSize={14} />
+                                                </div>
+                                                <Popover.Menu
+                                                    className="account-popover"
+                                                    actions={actions}
+                                                    mode='dark'
+                                                    trigger='click'
+                                                    placement='bottom'
+                                                    onAction={node => popoverAction(node.key as string)}
+                                                >
+                                                    <SvgIcon className="cursor-pointer" size={22} iconName="IconMoreVertical" />
+                                                </Popover.Menu>
                                             </div>
-                                            <div className="list-item-content text-right">
-                                                <strong>{formatBalanceFixed(token.balance, 4)}</strong>
-                                                <span></span>
-                                            </div>
+                                            {evmTokenList.list.map((token, index) => (
+                                                <div className="page-list-item" key={index} onClick={() => toTokenInfo(index)}>
+                                                    <TokenImg url={token.symbol} name={token.name} />
+                                                    <div className="list-item-content">
+                                                        <strong>{token.symbol}</strong>
+                                                        <span className="one-line"> {formatAddress(token.address || token.name)} </span>
+                                                    </div>
+                                                    <div className="list-item-content text-right">
+                                                        <strong>{formatBalanceFixed(token.balance, 4)}</strong>
+                                                        <span></span>
+                                                    </div>
+                                                </div>
+                                            ))}
                                         </div>
-                                    ))}
-                                </div>
-                            ) : ""
+                                    ) : ""
                     }
                     {
                         listLoadingType ? (
                             <div className="list-loading">
-                                {listLoadingType === 1 ? <>Loading<DotLoading/></> : <p>No more</p>}
+                                {listLoadingType === 1 ? <>Loading<DotLoading /></> : <p>No more</p>}
                             </div>
                         ) : ''
                     }
@@ -592,4 +579,4 @@ const Home = () => {
     )
 }
 
-export {Home};
+export { Home };
