@@ -122,9 +122,6 @@ const addServiceListener = () => chrome.runtime.onMessage.addListener( (message,
             throw Error(`${action} not found`)
         }
         handler(message).then((result: any) => {
-            console.log("【bg event end】", result);
-
-            // ✅ 主动通知 DApp（通过 port -> content -> BroadcastChannel）
             if (sender && sender.tab && sender.tab.id) {
                 chrome.tabs.sendMessage(sender.tab.id, {
                     type: "notify_dapp",
@@ -132,7 +129,6 @@ const addServiceListener = () => chrome.runtime.onMessage.addListener( (message,
                     data: result,
                 });
             }
-
             sendResponse(result);
         }).catch((error: { toString: () => any; }) => {
             handleError(error, sendResponse);

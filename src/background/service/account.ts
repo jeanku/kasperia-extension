@@ -282,7 +282,8 @@ export class Account {
     }
 
     async estimateFee(to: string, amount: string, payload: string) {
-        if (BigInt(amount) < 100000000n) return
+        let bigAmount = BigInt(amount)
+        if (bigAmount < 100000000n) return
         let account = keyringService.currentAccount()
         let networkId = await preferenceService.getNetworkId()
         const senderAddress = Keypair.fromPrivateKeyHex(account.priKey).toAddress(networkId.networkType);
@@ -290,10 +291,9 @@ export class Account {
         if (!utxos) {
             throw Error("fetch utxo fail")
         }
-        const fee = 0n;
-        const output = new PaymentOutput(to || senderAddress, BigInt(amount) - 100000000n);
+        const output = new PaymentOutput(senderAddress, bigAmount - 100000n);
         let setting = new GeneratorSettings([output],
-            senderAddress, utxos.entries, NetworkId.Testnet10, fee, undefined, undefined,
+            senderAddress, utxos.entries, networkId, 0n, undefined, undefined,
             undefined, stringToUint8Array(payload)
         );
         const generator = new Generator(setting);
