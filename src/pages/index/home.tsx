@@ -15,7 +15,6 @@ import { useNotice } from '@/components/NoticeBar/NoticeBar'
 
 import { Oplist, TokenList } from '@/model/krc20';
 import { EvmTokenList, EvmNetwork } from '@/model/evm';
-import { NetworkType } from "@/utils/wallet/consensus";
 import { Provider } from '@/utils/wallet/provider';
 import { formatAddress, formatBalance, formatDate, formatHash, formatDecimal, formatBalanceFixed } from "@/utils/util"
 import { Evm } from "@/chrome/evm"
@@ -29,10 +28,6 @@ import {
     setEvm20TokenList as setPreferenceEvmTokenList,
     setAccountBalance as setAccountBalanceSlice
 } from "@/store/preferenceSlice";
-import {
-    KasplexL2TestnetChainId,
-    KasplexL2MainnetChainId,
-} from '@/types/constant'
 import { setHomeSelectTabValue } from "@/store/userSlice";
 import { GetKrc20OperationListResponse, Krc20Client, Krc20TokenBalanceInfo } from "@/utils/wallet/krc20";
 import { KaspaClient, KaspaTransaction } from "@/utils/wallet/kaspa";
@@ -51,7 +46,6 @@ type LoadingType = 0 | 1 | 2
 const Home = () => {
     const { handleCopy } = useClipboard();
     const navigate = useNavigate();
-    const { noticeError } = useNotice();
 
     const { preference } = useSelector((state: RootState) => state.preference);
     const { homeSelectTab } = useSelector((state: RootState) => state.user);
@@ -412,7 +406,7 @@ const Home = () => {
                     <div className="btn-icon" onClick={() => navigate('/bridge/bridgeIndex', {
                         state: { from: { tick: "KAS", balance, dec: 8 }, evmNetwork }
                     })}>
-                        <SvgIcon iconName="IconBridge" offsetStyle={{ marginRight: '3px' }} color="#171717" />
+                        <SvgIcon iconName="IconBridge" offsetStyle={{ marginRight: '3px', width: '26px', height: '26px' }} color="#171717" />
                         Bridge
                     </div>
                     <div className="btn-icon" onClick={() => navigate('/tx/send', {
