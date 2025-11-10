@@ -98,6 +98,7 @@ const handlers: Record<string, (message: any) => Promise<any> | any> = {
     "Account.sendTransaction": (msg) => accountService.sendTransaction(msg.tx),
     "Account.signMessage": (msg) => accountService.signMessage(msg.message),
     "Account.getBalance": (msg) => accountService.getBalance(msg.address),
+    "Account.getERC20Tokens": (msg) => accountService.getERC20Tokens(msg.address),
     "Account.getAddressesBalance": (msg) => accountService.getAddressesBalance(msg.addresses),
     "Account.transferKrc20": (msg) => accountService.transferKrc20(msg.tick, msg.ca, msg.amount, msg.to),
     "Account.deployKrc20": (msg) => accountService.deployKrc20(msg.data),

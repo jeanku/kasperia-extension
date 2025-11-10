@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo, useRef } from "react"
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import CountUp from 'react-countup';
-import { ethers } from "ethers";
 
 import { SearchBar, DotLoading, List, Image, Popover } from 'antd-mobile'
 import { UserOutline, DownOutline, AddOutline, UndoOutline } from 'antd-mobile-icons'
@@ -11,11 +10,9 @@ import Footer from '@/components/Footer'
 import { SvgIcon } from '@/components/Icon/index'
 import { useClipboard } from '@/components/useClipboard';
 import TokenImg from "@/components/TokenImg";
-import { useNotice } from '@/components/NoticeBar/NoticeBar'
 
 import { Oplist, TokenList } from '@/model/krc20';
 import { EvmTokenList, EvmNetwork } from '@/model/evm';
-import { Provider } from '@/utils/wallet/provider';
 import { formatAddress, formatBalance, formatDate, formatHash, formatDecimal, formatBalanceFixed } from "@/utils/util"
 import { Evm } from "@/chrome/evm"
 import { Account } from "@/chrome/account"
@@ -183,6 +180,7 @@ const Home = () => {
     }
 
     const fetchEvmTokenlist = async () => {
+        setListLoadingType(1)
         let network = evmNetwork
         if (!network) {
             network = await Evm.getSelectedNetwork()
@@ -193,47 +191,20 @@ const Home = () => {
             let chainId = network.chainId
             let curTime = new Date().getTime() / 1000
             const oldList = preference?.evmTokenList?.[chainId] || [];
-            if (evmTokenList.time === 0 && oldList.length > 0) {
-                setEvmTokenList({
-                    time: curTime,
-                    list: oldList
-                })
+            if (evmTokenList.time === 0) {
+                setEvmTokenList({ time: curTime, list: oldList })
             }
-            if (curTime - evmTokenList.time <= 5) return
-            setListLoadingType(1)
-            let provider = new Provider(network.rpcUrl[0], Number(network.chainId))
-            let ethAddress = preference.currentAccount!.ethAddress
-
-            let ethBalance = await provider.getBalance(ethAddress)
-            let listdata = [{
-                symbol: network.symbol,
-                balance: ethers.formatUnits(ethBalance, network.decimals),
-                name: network.name,
-                address: "",
-                decimals: network.decimals
-            }]
-
-            if (network.contracts) {
-                let tokensBalance = await provider.getMultipleTokenBalances(ethAddress, network.contracts)
-                const tokenList = network.contracts.map((token) => ({
-                    symbol: token.symbol,
-                    balance: tokensBalance[token.address] || "0",
-                    name: token.name,
-                    address: token.address,
-                    decimals: token.decimals
-                }));
-                listdata = listdata.concat(tokenList);
-            }
-            setListLoadingType(0)
-
-            if (!shallowCompareTokens(listdata, oldList)) {
-                setEvmTokenList({ time: curTime, list: listdata });
-                dispatch(setPreferenceEvmTokenList({ chainId, listData: listdata }));
+            if (curTime - evmTokenList.time <= 1) return
+            let data = await Account.getERC20Tokens(preference.currentAccount!.ethAddress)
+            console.log("fetchEvmTokenlist", data)
+            if (!shallowCompareTokens(data, oldList)) {
+                setEvmTokenList({ time: curTime, list: data });
+                dispatch(setPreferenceEvmTokenList({ chainId, listData: data }));
             }
         } catch (error) {
             console.log('error-fetchEvmTokenlist', error)
         }
-
+        setListLoadingType(0)
     }
 
     const fetchKaspaTxlist = async () => {
@@ -545,7 +516,7 @@ const Home = () => {
                                             </div>
                                             {evmTokenList.list.map((token, index) => (
                                                 <div className="page-list-item" key={index} onClick={() => toTokenInfo(index)}>
-                                                    <TokenImg url={token.symbol} name={token.name} />
+                                                    <TokenImg url={token.symbol} name={token.symbol} />
                                                     <div className="list-item-content">
                                                         <strong>{token.symbol}</strong>
                                                         <span className="one-line"> {formatAddress(token.address || token.name)} </span>

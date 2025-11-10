@@ -2,6 +2,7 @@ import { Chrome } from '@/chrome/chrome'
 import {GetBalancesByAddressesResponseMessage} from "@/utils/wallet/rpc/types";
 import {Krc20DeployOptions} from "@/utils/wallet/krc20";
 import {TransactionRequest} from "ethers/src.ts/providers/provider";
+import {EvmTokenList} from "@/model/evm";
 
 export class Account extends Chrome {
 
@@ -57,5 +58,9 @@ export class Account extends Chrome {
 
     static async sendTransaction(tx: TransactionRequest): Promise<string> {
         return Chrome.request({ action: "Account.sendTransaction", tx })
+    }
+
+    static getERC20Tokens(address: string): Promise<EvmTokenList[]> {
+        return Chrome.request({ action: "Account.getERC20Tokens", address })
     }
 }

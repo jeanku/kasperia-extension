@@ -17,11 +17,13 @@ import {
     UtxoEntryReference
 } from '@/utils/wallet/tx'
 import {Keypair, Wallet} from '@/utils/wallet/wallet'
+import {EvmTokenList} from '@/model/evm'
 import {NetworkId, ScriptPublicKey} from '@/utils/wallet/consensus';
 import {Krc20DeployOptions, Krc20DeployScript, Krc20MintScript, Krc20TransferScript} from '@/utils/wallet/krc20';
 import {stringToUint8Array} from "@/utils/util";
 import {Provider} from "@/utils/wallet/provider";
 import {BlockTag, TransactionRequest} from "ethers/src.ts/providers/provider";
+import { ethers } from "ethers";
 
 export class Account {
     private client: RpcClient | undefined = undefined
@@ -322,6 +324,34 @@ export class Account {
             allowOrphan: false
         });
         return signedTx.transaction.id.toString()
+    }
+
+    async getERC20Tokens(address: string): Promise<EvmTokenList[]> {
+        let provider = await this.get_provider()
+        let network = await evmService.getSelectedNetwork()
+        if (!network) throw new Error("no network find")
+        let ethBalance = await provider.getBalance(address)
+        let listdata = [{
+            native: true,
+            symbol: network.symbol,
+            balance: ethers.formatUnits(ethBalance, network.decimals),
+            name: network.name,
+            address: "",
+            decimals: network.decimals
+        }]
+        if (network.contracts) {
+            let tokensBalance = await provider.getMultipleTokenBalances(address, network.contracts)
+            const tokenList = network.contracts.map((token) => ({
+                native: false,
+                symbol: token.symbol,
+                balance: tokensBalance[token.address] || "0",
+                name: token.name,
+                address: token.address,
+                decimals: token.decimals
+            }));
+            listdata = listdata.concat(tokenList);
+        }
+        return listdata
     }
 
     async eth_blockNumber() {

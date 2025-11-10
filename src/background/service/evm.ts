@@ -73,16 +73,23 @@ export class EVM {
     async addNetwork(network: EvmNetwork) {
         await this.load();
         const state = this.store!.getState();
-        if (state.networks[network.chainId]) {
-            throw Error("network exist")
+        if (!state.networks[network.chainId]) {
+            if (!state.selected) {
+                state.selected = network.chainId
+            }
+            this.store!.updateState({
+                ...state,
+                networks: {...state.networks, [network.chainId]: network},
+            });
+        } else {
+            this.store!.updateState({
+                ...state,
+                networks: {...state.networks, [network.chainId]: {
+                    ...state.networks[network.chainId],
+                    ...network
+                }},
+            });
         }
-        if (!state.selected) {
-            state.selected = network.chainId
-        }
-        this.store!.updateState({
-            ...state,
-            networks: {...state.networks, [network.chainId]: network},
-        });
         return this.persistToStorage();
     }
 

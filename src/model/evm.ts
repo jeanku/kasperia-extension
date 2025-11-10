@@ -19,6 +19,7 @@ export type Erc20Options = {
 
 
 export type EvmTokenList = {
+    native: boolean,
     symbol: string;
     balance: string,
     name: string,
