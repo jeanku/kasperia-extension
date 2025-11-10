@@ -81,6 +81,7 @@ const Setting = () => {
                 <div className="otth-icon">
                     <div className="otth-icon-box">
                          {/*<SvgIcon className="cursor-pointer" size={20} iconName="IconDiscord" />*/}
+                         <SvgIcon className="cursor-pointer" size={20} iconName="IconWeb" onClick={() => openUrl('https://kasperia-doc.github.io/index.html')} />
                         <SvgIcon className="cursor-pointer" onClick={() => openUrl('https://x.com/KasperiaWallet')}
                                  size={20} iconName="IconTwitter"/>
                          <SvgIcon className="cursor-pointer" size={20} iconName="IconGithub" onClick={() => openUrl('https://github.com/jeanku/kasperia-extension')} />
