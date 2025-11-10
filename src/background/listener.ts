@@ -122,13 +122,6 @@ const addServiceListener = () => chrome.runtime.onMessage.addListener( (message,
             throw Error(`${action} not found`)
         }
         handler(message).then((result: any) => {
-            if (sender && sender.tab && sender.tab.id) {
-                chrome.tabs.sendMessage(sender.tab.id, {
-                    type: "notify_dapp",
-                    action,
-                    data: result,
-                });
-            }
             sendResponse(result);
         }).catch((error: { toString: () => any; }) => {
             handleError(error, sendResponse);
