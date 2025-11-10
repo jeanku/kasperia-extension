@@ -332,7 +332,7 @@ const Home = () => {
     const shallowCompareTokens = (a: EvmTokenList[], b: EvmTokenList[]) => {
         if (a.length !== b.length) return false;
         return a.every((item, i) => (
-            item.balance === b[i].balance && item.name === b[i].name
+            item.balance === b[i].balance && item.name === b[i].name && item.symbol === b[i].symbol
         ));
     };
 
