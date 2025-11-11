@@ -2633,6 +2633,9 @@ em {
         vertical-align: top;
     }
 }
+.p-desc {
+  color: $text-color-desc;
+}
 
 @keyframes ellipsis {
     0% {

@@ -9,15 +9,15 @@ import NoDataDom from "@/components/NoDataDom";
 import { useNotice } from '@/components/NoticeBar/NoticeBar'
 import { SvgIcon } from '@/components/Icon/index'
 
-import { formatAddress } from '@/utils/util'
+import { formatAddress, formatBalance } from '@/utils/util'
 import { Address as AddressHelper } from '@/utils/wallet/address'
 import { AccountsSubListDisplay } from '@/model/account'
 import { TokenList } from '@/model/krc20'
 import { Address } from '@/model/contact'
 
 import { Keyring } from '@/chrome/keyring'
-import { Contact } from '@/chrome/contact'
 import { Account } from '@/chrome/account'
+import { Contact } from '@/chrome/contact'
 
 import '@/styles/transaction.scss'
 import {NetworkTypeHelper} from "@/utils/wallet/consensus";
@@ -38,6 +38,7 @@ const Send = () => {
 
     const [payloadChecked, setPayloadChecked] = useState(false)
     const [payload, setPayload] = useState('')
+    const [fee, setFee] = useState('0')
 
     const [contactTabValue, setContactTabValue] = useState<string>("")
 
@@ -68,6 +69,26 @@ const Send = () => {
         }}})
     }
 
+    useMemo (async () => {
+        if (!amount) {
+            setFee("0")
+            return
+        }
+        let from = preference.currentAccount?.address!
+        let sompi = ethers.parseUnits(amount, 8).toString()
+        let fee = await Account.estimateFee(from, address || from, sompi, payloadChecked ? payload : undefined)
+        setFee(fee || "0")
+    }, [amount])
+
+    useMemo (async () => {
+        if (payloadChecked || amount) {
+            let from = preference.currentAccount?.address!
+            let sompi = ethers.parseUnits(amount, 8).toString()
+            let fee = await Account.estimateFee(from, address || from, sompi, payloadChecked ? payload : undefined)
+            setFee(fee || "0")
+        }
+    }, [payload])
+
     useEffect(() => {
         switchContactTab("Contacts")
     }, [])
@@ -93,10 +114,8 @@ const Send = () => {
         }
     }
 
-    const estimateFee = async () => {
-        const fee = await Account.estimateFee(address, token.balance, payload) || 10000n
-        const max = Number(token.balance) - Number(fee)
-        setAmount(ethers.formatUnits(max, 8))
+    const setMax = async () => {
+        setAmount(ethers.formatUnits(token.balance, 8))
     }
 
     return (
@@ -136,7 +155,7 @@ const Send = () => {
                 <div className="amount-box mt15 mb12">
                     <h6 className="sub-tit">
                         <span>{ethers.formatUnits(token.balance, token.dec)} {token.tick}</span>
-                        <strong onClick={() => estimateFee()}>MAX</strong>
+                        <strong onClick={() => setMax()}>MAX</strong>
                     </h6>
                     <div className="input-box">
                         <NumberInput
@@ -150,12 +169,13 @@ const Send = () => {
                     </div>
                 </div>
 
-                <div className="page-check check-span-pl0">
+                <div className="page-check check-span-pl0 flex-row cb ac">
                     <Space direction='vertical' block>
                         <Checkbox block onChange={(val: boolean) => setPayloadChecked(val)}
                             icon={(payloadChecked) => (payloadChecked ? <SvgIcon iconName="IconCheckSelect" color="#74E6D8" /> : <SvgIcon iconName="IconCheck" />)}
                         >payload</Checkbox>
                     </Space>
+                    <p className="p-desc">{ formatBalance(fee, 8) } transaction fee</p>
                 </div>
                 {payloadChecked ? <div className="text-area">
                     <textarea placeholder="Please enter the payload" rows={3} value={payload}
@@ -165,7 +185,7 @@ const Send = () => {
                     <p>{ kasTips }</p>
                 </div>
                 <div className="btn-pos-two flexd-row post-bottom">
-                    <Button block size="large" color="primary" disabled={submitDisabled} onClick={() => sendSubmit()}>
+                    <Button block size="large" color="primary" disabled={ submitDisabled } onClick={() => sendSubmit()}>
                         Next
                     </Button>
                 </div>

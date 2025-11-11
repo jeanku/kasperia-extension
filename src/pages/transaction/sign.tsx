@@ -1,12 +1,14 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from 'antd-mobile'
 import { ethers } from "ethers";
 import { useNavigate, useLocation } from "react-router-dom";
+import {useSelector} from "react-redux";
+import {RootState} from "@/store";
 
 import HeadNav from '@/components/HeadNav'
 import { useNotice } from '@/components/NoticeBar/NoticeBar'
 import { SubmitSendTx } from '@/model/transaction'
-import { formatAddress } from '@/utils/util'
+import { formatAddress, formatBalance } from '@/utils/util'
 import RoundLine from '@/assets/icons/round-line.svg'
 import '@/styles/transaction.scss'
 import {Account} from "@/chrome/account";
@@ -14,9 +16,11 @@ import {Account} from "@/chrome/account";
 const Sign = () => {
     const navigate = useNavigate();
     const { state } = useLocation()
+    const { preference } = useSelector((state: RootState) => state.preference);
     const { noticeError } = useNotice()
     const [submitTx, _] = useState<SubmitSendTx>(state?.submitTx)
     const [btnLoading, setBtnLoading] = useState(false)
+    const [fee, setFee] = useState("")
 
     const submitTransaction = async () => {
         try {
@@ -28,6 +32,18 @@ const Sign = () => {
             setBtnLoading(false)
         }
     }
+
+    const getEstimateFee = async () => {
+        let fee = await Account.estimateFee(preference.currentAccount?.address!, submitTx.address, submitTx.amount.toString(), submitTx.payload)
+        if (fee) {
+            console.log("getEstimateFee", fee, formatBalance(fee, 8))
+            setFee(fee)
+        }
+    }
+
+    useEffect(() => {
+        getEstimateFee()
+    }, [])
 
     return (
         <article className="page-box">
@@ -42,7 +58,7 @@ const Sign = () => {
                     <div className="sign-card-bg">
                         <strong>Spend amount</strong>
                         <h6>{ethers.formatUnits(submitTx.amount.toString(), 8)} KAS</h6>
-                        <p></p>
+                        <p>{formatBalance(fee, 8)} transaction fee</p>
                     </div>
                 </div>
                 {submitTx.payload ?

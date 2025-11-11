@@ -6,7 +6,8 @@ import {
     KRC20_MINT_RETURN_FEES,
     KRC20_TRANSFER_TOTAL_FEES
 } from './types';
-import {Resolver, RpcClient} from '@/utils/wallet/rpc'
+import {Resolver, RpcClient, } from '@/utils/wallet/rpc'
+import { RpcUtxosByAddressesEntry } from '@/utils/wallet/rpc/types'
 import {
     Generator,
     GeneratorSettings,
@@ -14,7 +15,8 @@ import {
     PaymentOutput,
     TransactionOutpoint,
     U64_MAX_VALUE,
-    UtxoEntryReference
+    UtxoEntryReference,
+    FeeSource, Fees,
 } from '@/utils/wallet/tx'
 import {Keypair, Wallet} from '@/utils/wallet/wallet'
 import {EvmTokenList} from '@/model/evm'
@@ -29,6 +31,12 @@ export class Account {
     private client: RpcClient | undefined = undefined
 
     private clients: Map<number, Provider> = new Map();
+
+    private entry: { total: bigint, from: string, data: RpcUtxosByAddressesEntry[]} = {
+        from: "",
+        total: 0n,
+        data: []
+    };
 
     async get_provider(chainIdStr: string | undefined = undefined): Promise<Provider> {
         let network = undefined
@@ -283,20 +291,26 @@ export class Account {
         return {entries, balance: BigInt(balance)}
     }
 
-    async estimateFee(to: string, amount: string, payload: string) {
-        let bigAmount = BigInt(amount)
-        if (bigAmount < 100000000n) return
-        let account = keyringService.currentAccount()
+    async estimateFee(from: string, to: string, sompi: string, payload: string | undefined) {
+        let amount = BigInt(sompi)
         let networkId = await preferenceService.getNetworkId()
-        const senderAddress = Keypair.fromPrivateKeyHex(account.priKey).toAddress(networkId.networkType);
-        let utxos = await this.client?.getUtxosByAddresses([senderAddress.toString()])
-        if (!utxos) {
-            throw Error("fetch utxo fail")
+        if (this.entry.total < amount || this.entry.from != from) {
+            let utxos = await this.client?.getUtxosByAddresses([from])
+            if (!utxos) {
+                throw new Error("fetch utxo fail")
+            }
+            let total = utxos.entries.reduce((sum, utxo) => sum + (utxo.utxoEntry?.amount || 0), 0)
+            this.entry = {
+                from,
+                total: BigInt(total),
+                data: utxos.entries
+            }
         }
-        const output = new PaymentOutput(senderAddress, bigAmount - 100000n);
+        const output = new PaymentOutput(to, amount);
+        let fee = new Fees(0n, this.entry.total == amount ? FeeSource.ReceiverPays : FeeSource.SenderPays)
         let setting = new GeneratorSettings([output],
-            senderAddress, utxos.entries, networkId, 0n, undefined, undefined,
-            undefined, stringToUint8Array(payload)
+            from, this.entry.data, networkId, fee, undefined, undefined,
+            undefined, payload ? stringToUint8Array(payload) : undefined
         );
         const generator = new Generator(setting);
         let transaction = generator.generateTransaction()
@@ -306,16 +320,20 @@ export class Account {
     async transferKas(to: string, amount: string, payload: string | undefined) {
         let account = keyringService.currentAccount()
         let networkId = await preferenceService.getNetworkId()
-
         const senderAddress = Keypair.fromPrivateKeyHex(account.priKey).toAddress(networkId.networkType);
         return this.transfer(account.priKey, senderAddress.toString(), to, BigInt(amount), networkId, payload)
     }
 
     async transfer(privateKey: string, sender: string, to: string, amount: bigint, networkId: NetworkId, payload: string | undefined = undefined) {
         let utxos = await this.client?.getUtxosByAddresses([sender])
+        if (!utxos) {
+            throw new Error("fetch utxo fail")
+        }
+        let total = utxos.entries.reduce((sum, utxo) => sum + (utxo.utxoEntry?.amount || 0), 0)
         const output = new PaymentOutput(to, amount);
         let payloadArray = payload ? stringToUint8Array(payload) : undefined
-        let setting = new GeneratorSettings([output], sender, utxos?.entries!, networkId, 0n, undefined, undefined, undefined, payloadArray);
+        let fee = new Fees(0n, BigInt(total) == amount ? FeeSource.ReceiverPays : FeeSource.SenderPays)
+        let setting = new GeneratorSettings([output], sender, utxos?.entries!, networkId, fee, undefined, undefined, undefined, payloadArray);
         const generator = new Generator(setting);
         let transaction = generator.generateTransaction()
         const signedTx = await transaction!.sign([privateKey]);

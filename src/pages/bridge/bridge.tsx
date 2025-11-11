@@ -111,7 +111,7 @@ const Bridge = () => {
     }
 
     const setMax = () => {
-        setAmount(fromData.balance)
+        setAmount(fromData.balance) 
     }
 
     const setAddress = (address: string) => {

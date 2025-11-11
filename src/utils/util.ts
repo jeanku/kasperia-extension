@@ -37,7 +37,7 @@ export const formatBalance = (amount: string, dec: number | string): string => {
     }
     let valueStr = ethers.formatUnits(amount, Number(dec))
     const value = parseFloat(valueStr)
-    let fixed = formatFixed(Math.floor(value))
+    let fixed = formatFixed(value)
     let result = value.toFixed(fixed).replace(/(\.\d*?[1-9])0+$/g, "$1")
     return result.replace(/\.0+$/, "")
 };
@@ -48,7 +48,7 @@ export const formatBalanceFixed = (valueStr: string, round?: number): string => 
     }
     const value = parseFloat(valueStr)
     if (!round) {
-        round = formatFixed(Math.floor(value))
+        round = formatFixed(value)
     }
     let result = value.toFixed(round).replace(/(\.\d*?[1-9])0+$/g, "$1")
     return result.replace(/\.0+$/, "")

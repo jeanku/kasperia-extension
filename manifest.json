@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "kasperia",
-  "version": "1.10.43",
+  "version": "1.10.45",
   "description": "Lightweight Kaspa wallet for Web3 interaction.",
   "action": {
     "default_popup": "index.html",

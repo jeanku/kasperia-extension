@@ -41,8 +41,8 @@ export class Account extends Chrome {
         return Chrome.request({ action: "Account.transferKas", to, amount, payload})
     }
 
-    static estimateFee(to: string, amount: string, payload: string): Promise<string | undefined> {
-        return Chrome.request({ action: "Account.estimateFee", to, amount, payload})
+    static estimateFee(from: string, to: string, sompi: string, payload: string | undefined): Promise<string | undefined> {
+        return Chrome.request({ action: "Account.estimateFee", from, to, sompi, payload})
     }
     static async createTransaction(from: string, to: string, amount: string): Promise<TransactionRequest> {
         return Chrome.request({ action: "Account.createTransaction", from, to, amount })
