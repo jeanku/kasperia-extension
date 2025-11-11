@@ -57,13 +57,20 @@ export class Account {
         return client;
     }
 
-
     async getBalance(addr: string | undefined = undefined) {
         if (!this.client) {
             await this.connect()
         }
         const address = addr || await keyringService._getActiveAddress()
         return await this.client!.getBalanceByAddress(address)
+    }
+
+    resetEntry = () => {
+        this.entry = {
+            from: "",
+            total: 0n,
+            data: []
+        }
     }
 
     async getAddressesBalance(addresses: string[]) {
@@ -299,11 +306,12 @@ export class Account {
             if (!utxos) {
                 throw new Error("fetch utxo fail")
             }
-            let total = utxos.entries.reduce((sum, utxo) => sum + (utxo.utxoEntry?.amount || 0), 0)
+            let entry = utxos.entries.sort((a, b) => (a.utxoEntry?.amount || 0) - (b.utxoEntry?.amount || 0))
+            let total = entry.reduce((sum, utxo) => sum + (utxo.utxoEntry?.amount || 0), 0)
             this.entry = {
                 from,
                 total: BigInt(total),
-                data: utxos.entries
+                data: entry
             }
         }
         const output = new PaymentOutput(to, amount);
@@ -341,6 +349,7 @@ export class Account {
             transaction: signedTx.toSubmittableJsonTx(),
             allowOrphan: false
         });
+        this.resetEntry()
         return signedTx.transaction.id.toString()
     }
 
