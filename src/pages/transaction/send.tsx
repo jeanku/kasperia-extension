@@ -175,7 +175,7 @@ const Send = () => {
                             icon={(payloadChecked) => (payloadChecked ? <SvgIcon iconName="IconCheckSelect" color="#74E6D8" /> : <SvgIcon iconName="IconCheck" />)}
                         >payload</Checkbox>
                     </Space>
-                    <p className="p-desc">{ formatBalance(fee, 8) } transaction fee</p>
+                    <p className="p-desc">≈ { formatBalance(fee, 8) } transaction fee</p>
                 </div>
                 {payloadChecked ? <div className="text-area">
                     <textarea placeholder="Please enter the payload" rows={3} value={payload}

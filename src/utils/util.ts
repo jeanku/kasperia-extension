@@ -36,9 +36,8 @@ export const formatBalance = (amount: string, dec: number | string): string => {
         return ""
     }
     let valueStr = ethers.formatUnits(amount, Number(dec))
-    const value = parseFloat(valueStr)
-    let fixed = formatFixed(value)
-    let result = value.toFixed(fixed).replace(/(\.\d*?[1-9])0+$/g, "$1")
+    let fixed = formatFixed(Number(valueStr))
+    let result = truncateDecimals(valueStr, fixed).replace(/(\.\d*?[1-9])0+$/g, "$1")
     return result.replace(/\.0+$/, "")
 };
 
@@ -50,9 +49,17 @@ export const formatBalanceFixed = (valueStr: string, round?: number): string => 
     if (!round) {
         round = formatFixed(value)
     }
-    let result = value.toFixed(round).replace(/(\.\d*?[1-9])0+$/g, "$1")
+    let result = truncateDecimals(valueStr, round).replace(/(\.\d*?[1-9])0+$/g, "$1")
     return result.replace(/\.0+$/, "")
 };
+
+function truncateDecimals(value: string, n: number): string {
+    const [intPart, fracPart = ""] = value.split(".");
+    if (n <= 0) return intPart;
+    return fracPart.length > 0
+        ? `${intPart}.${fracPart.slice(0, n)}`
+        : intPart;
+}
 
 
 export const formatFixed = (value: number): number => {

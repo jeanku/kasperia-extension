@@ -58,7 +58,7 @@ const Sign = () => {
                     <div className="sign-card-bg">
                         <strong>Spend amount</strong>
                         <h6>{ethers.formatUnits(submitTx.amount.toString(), 8)} KAS</h6>
-                        <p>{formatBalance(fee, 8)} transaction fee</p>
+                        <p>≈ {formatBalance(fee, 8)} transaction fee</p>
                     </div>
                 </div>
                 {submitTx.payload ?
