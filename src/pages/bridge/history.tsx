@@ -152,7 +152,9 @@ const History = () => {
                                 </div>
                             </div>
                         )) : ((
-                        !hasMore && <NoDataDom />
+                        !hasMore && <div className="contact-list mt60">
+                            <NoDataDom />
+                        </div>
                     ))
                     }
                 </List>

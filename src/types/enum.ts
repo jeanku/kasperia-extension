@@ -35,7 +35,7 @@ export enum EvmExplorerUrl {
 
 export enum ApiUrl {
     Mainnet = 'https://kasbridge-evm-api.kaspafoundation.org/',
-    Testnet = 'http://46.51.197.117:8091/',
+    Testnet = 'https://kasbridge-tn10evm-api.kaspafoundation.org/',
 }
 
 export const OrderApiKay = {
