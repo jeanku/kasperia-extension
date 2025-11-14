@@ -2078,8 +2078,10 @@ em {
         align-items: center;
         button {
             width: 130px;
-            height: 34px;
             font-size: 16px;
+        }
+        button.adm-button-default {
+            border: 1px solid $bg-color-f26;
         }
     }
 }
