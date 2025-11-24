@@ -26,6 +26,9 @@
             display: inline-block;
             padding-left: 6px;
             font-size: 16px;
+            word-wrap: break-word;
+            word-break: break-word;
+            white-space: pre-wrap;
             flex: 2;
             text-align: left;
         }
