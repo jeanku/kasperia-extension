@@ -409,6 +409,11 @@ const Home = () => {
                     {
                         homeTabValue === 'Tokens' ?
                             <div className="page-list-box">
+                                {
+                                    filteredTokenList.length === 0 && <div className="no-data-box flex-row cc ac">
+                                        <img src={NoDataIco} alt="No Data" className="no-data-img" />
+                                    </div>
+                                }
                                 {filteredTokenList.map((token, index) => (
                                     <div className="page-list-item" key={index} onClick={() => toKrc20(token)}>
                                         <Image
@@ -444,6 +449,14 @@ const Home = () => {
                                         }
                                     </div>
                                     <List>
+                                        {
+                                            activityTabValue === activityTabs[0] ? kaspaActList.list.length === 0 && <div className="no-data-box flex-row cc ac">
+                                                <img src={NoDataIco} alt="No Data" className="no-data-img" />
+                                            </div> :  krc20OpList.list.length === 0 && <div className="no-data-box flex-row cc ac">
+                                                <img src={NoDataIco} alt="No Data" className="no-data-img" />
+                                            </div>
+                                        }
+
                                         {activityTabValue === activityTabs[0] ?
                                             kaspaActList.list.map((item, index) =>
                                             (
