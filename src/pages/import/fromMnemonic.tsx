@@ -123,7 +123,7 @@ const FromMnemonic = () => {
 
     return (
         <div className="page-box">
-            <HeadNav title="Create a new HD Wallet" onBack={() => goBack()}></HeadNav>
+            <HeadNav title="Import HD Wallet" onBack={() => goBack()}></HeadNav>
             <article className={ mnemonicLength === 12 ? "page-mnemonic page-from-seed" : "page-mnemonic page-from-seed pb60" }>
                 <div className="page-btn-tab">
                     <div className={`btn-tab-item ${stepValue === 1 ? 'active' : ''}`} onClick={() => setStepValue(1)}>Step 1</div>

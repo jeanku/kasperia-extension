@@ -405,6 +405,10 @@ export class Account {
         return await (await this.get_provider()).getTransactionReceipt(hash)
     }
 
+    async eth_getTransactionByHash(hash: string) {
+        return await (await this.get_provider()).getTransactionByHash(hash)
+    }
+
     async createTransaction(from: string, to: string, amount: string): Promise<string> {
         return this.get_provider().then(provider => {
             return provider.createTransaction(from, to, amount)

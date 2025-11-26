@@ -185,7 +185,13 @@ class ProviderController {
         return await accountService.eth_getTransactionReceipt(request.data.params.hash)
     }
 
-    walletRequestPermissions = () => {}
+    eth_getTransactionByHash = async (request: RequestProps) => {
+        return await accountService.eth_getTransactionByHash(request.data.params.hash)
+    }
+
+    walletRequestPermissions = () => {
+
+    }
 }
 
 export default new ProviderController();

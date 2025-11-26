@@ -1,13 +1,15 @@
 import PortMessage from './message/portMessage';
 import BroadcastChannelMessage from './message/boardcastMessage';
+import { nanoid } from 'nanoid';
 
-let channelName = 'kasperiaChannel';
+const channelName = nanoid();
 
 function injectScript(): void {
     try {
         const container = document.head || document.documentElement;
         const scriptTag = document.createElement('script');
         scriptTag.setAttribute('async', 'false');
+        scriptTag.setAttribute('channel', channelName);
         scriptTag.src = chrome.runtime.getURL('injected.js');
         container.insertBefore(scriptTag, container.children[0]);
         container.removeChild(scriptTag);
@@ -19,7 +21,6 @@ function injectScript(): void {
             });
 
         pm.on('message', ({ _type_, data }: {_type_: string, data: any}) => {
-            console.log("pm message", _type_, data)
             if (_type_ === 'KASPERIA_WALLET_message') {
                 bcm.send('message', data);;
             }

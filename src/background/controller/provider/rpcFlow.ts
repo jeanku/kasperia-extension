@@ -11,6 +11,7 @@ const flowContext = flow
           ctx.flowContinue = true;
           await notificationService.requestApproval({}, { route: "/evokeBoost/notification/unlock" })
       }
+
       return next();
   })
   .use(async (ctx: any, next: any) => {
@@ -58,7 +59,7 @@ export default async (request: any) => {
         return (providerController as any)[method](ctx.request)
     }
 
-    if (method == "eth_chainId" || method == "net_version" || method == "eth_blockNumber" || method == "eth_getTransactionReceipt"
+    if (method == "eth_chainId" || method == "net_version" || method == "eth_blockNumber" || method == "eth_getTransactionReceipt" || method == "eth_getTransactionByHash"
         || method == "eth_getBlockByNumber" || method == "eth_getBalance" || method == "wallet_revokePermissions" || method == "eth_call") {
         return (providerController as any)[method](ctx.request)
     }

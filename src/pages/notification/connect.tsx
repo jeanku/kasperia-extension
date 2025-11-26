@@ -51,8 +51,8 @@ const Connect =  () => {
         setAccounts(addresses)
     }
 
-    const cancel = () => {
-        Notification.rejectApproval()
+    const cancel = async () => {
+        await Notification.rejectApproval()
     }
 
     const connect = async () => {
@@ -70,12 +70,14 @@ const Connect =  () => {
         <article className="page-box">
             <HeadNav title='Kasperia Wallet' showLeft={false}></HeadNav>
             <section className="content-main connect-box pb96">
-                <div className='source-box'>
-                    <div className='text-center wd100' >
-                        <strong>{session?.name}</strong>
-                        <p>{session?.origin}</p>
-                    </div>
-                </div>
+                {
+                    session ? <div className='source-box'>
+                        <div className='text-center wd100'>
+                            <strong>{session?.name}</strong>
+                            <p>{session?.origin}</p>
+                        </div>
+                    </div>: ""
+                }
                 <div className='contant-txt'>
                     <p className='txt-tit-1'>Connect with Kasperia Wallet</p>
                     <p className='txt-tit-2'>Select the account to use on this site</p>
@@ -110,7 +112,7 @@ const Connect =  () => {
                     <Button block size="large" onClick={ cancel }>
                         Cancel
                     </Button>
-                    <Button block size="large" color="primary" onClick={connect} disabled={!session}>
+                    <Button block size="large" color="primary" onClick={connect}>
                         Connect
                     </Button>
                 </div>

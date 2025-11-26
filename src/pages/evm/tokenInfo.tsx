@@ -73,7 +73,7 @@ const TokenInfo = () => {
         let resp = await new HttpClient().get<TransactionResponse>(url, nextPageParams)
         setHasMore(!!resp.next_page_params)
         if (resp.items.length > 0) {
-            let temp = resp.items.filter(r => r.transaction_types?.includes("coin_transfer"))
+            let temp = resp.items
             if (nextPageParams.size > 0) {
                 setDatalist([...datalist, ...temp])
             } else {
@@ -181,7 +181,7 @@ const TokenInfo = () => {
                                                             className="history-href">{formatHash(item.hash)}
                                                             <SvgIcon color="#74E6D8" offsetStyle={{marginRight: '6px'}} iconName="IconShare" /></em>
                                                         </span>
-                                                    <strong className='history-status'></strong>
+                                                    <strong className='history-status'>{item.transaction_types[0] || ""}</strong>
                                                 </div>
                                                 <div className="history-bottom">
                                                     <div className="history-left">

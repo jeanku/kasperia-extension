@@ -11,17 +11,17 @@ const Unlock = () => {
     const [password, setPassword] = useState('');
     const [visible, setVisible] = useState(false);
 
-    const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    const handleKeyDown = async (event: KeyboardEvent<HTMLInputElement>) => {
         if (event.key === 'Enter') {
             event.preventDefault();
-            handleSubmit();
+            await handleSubmit();
         }
     };
 
     const handleSubmit = async () => {
         try {
             await Keyring.unLock(password);
-            Notification.resolveApproval()
+            await Notification.resolveApproval()
         } catch (error) {
             noticeError(error);
         }

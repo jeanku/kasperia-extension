@@ -30,15 +30,17 @@ class NotificationService {
     notifiWindowId = 0;
     notifiRoute = null;
     isLocked = false;
-    private activeRoutes = new Map(); // route -> requestId
+    private activeRoutes = new Map();
 
     constructor() {
         chrome.windows.onFocusChanged.addListener((winId) => {
-            if (this.notifiWindowId && winId !== this.notifiWindowId) {
-                if (IS_CHROME && winId === chrome.windows.WINDOW_ID_NONE && IS_LINUX) {
-                    return;
+            if (this.notifiWindowId) {
+                if (winId !== this.notifiWindowId) {
+                    if (IS_CHROME && winId === chrome.windows.WINDOW_ID_NONE && IS_LINUX) {
+                        return;
+                    }
+                    this.rejectApproval();
                 }
-                // this.rejectApproval();
             }
         });
 
@@ -76,7 +78,6 @@ class NotificationService {
         while (this.isLocked) {
             await new Promise(resolve => setTimeout(resolve, 50));
         }
-
         this.isLocked = true;
         try {
             await this.openNotification(winProps);
@@ -108,7 +109,8 @@ class NotificationService {
 
     openNotification = async (winProps: any) => {
         if (this.notifiWindowId) {
-            return
+            winMgr.remove(this.notifiWindowId);
+            this.notifiWindowId = 0;
         }
         const winId = await winMgr.openNotification(winProps)
         this.notifiWindowId = winId!;

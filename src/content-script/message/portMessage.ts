@@ -44,9 +44,7 @@ class PortMessage extends Message {
     if (!this.port) return;
     try {
       this.port.postMessage({ _type_: `${this._EVENT_PRE}${type}`, data });
-    } catch (e) {
-      // DO NOTHING BUT CATCH THIS ERROR
-    }
+    } catch (e) { }
   };
 
   dispose = () => {

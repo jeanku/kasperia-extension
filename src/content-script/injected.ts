@@ -36,8 +36,9 @@ const handler: ProxyHandler<KasperiaProvider> = {
     }
 };
 
-// const script = document.currentScript;
-const channelName = 'kasperiaChannel';
+const script = document.currentScript;
+const channelName = script?.getAttribute('channel') || 'Kasperia';
+
 
 export class KasperiaProvider extends EventEmitter {
     _selectedAddress: string | null = null;
@@ -56,7 +57,6 @@ export class KasperiaProvider extends EventEmitter {
     };
 
     private _requestPromise = new ReadyPromise(0);
-
     private _bcm = new BroadcastChannelMessage(channelName);
 
     constructor({ maxListeners = 100 } = {}) {
@@ -67,17 +67,13 @@ export class KasperiaProvider extends EventEmitter {
 
     initialize = async () => {
         document.addEventListener('visibilitychange', this._requestPromiseCheckVisibility);
-        // window.addEventListener('focus', this._requestPromiseCheckVisibility);
-        // window.addEventListener('blur', this._requestPromiseCheckVisibility);
         this._bcm.connect().on('message', this._handleBackgroundMessage);
     };
 
     private _requestPromiseCheckVisibility = () => {
         if (document.visibilityState === 'visible') {
-            // console.log("_requestPromiseCheckVisibility", 'visible')
             this._requestPromise.check(1);
         } else {
-            // console.log("_requestPromiseCheckVisibility", 'not visible')
             this._requestPromise.uncheck(1);
         }
     };
@@ -90,7 +86,7 @@ export class KasperiaProvider extends EventEmitter {
         if (!data) {
             throw Error("data not find");
         }
-        // this._requestPromiseCheckVisibility();
+        this._requestPromiseCheckVisibility();
         return this._requestPromise.call(() => {
             return this._bcm.request(data).then((res) => res).catch((err: Error) => {
                 let resp = err.message.toString().split("::")
@@ -166,7 +162,7 @@ export class KasperiaProvider extends EventEmitter {
     };
 
     getVersion = async () => {
-        return "1.10.46";
+        return "1.10.48";
     };
 
     async request({ method, params }: RequestArguments): Promise<any> {
@@ -258,6 +254,16 @@ export class KasperiaProvider extends EventEmitter {
                     },
                 });
             }
+            case 'eth_getTransactionByHash': {
+                const hash = params?.[0];
+                if (!hash) throw new Error('hash missing');
+                return await this._request({
+                    method: 'eth_getTransactionByHash',
+                    params: {
+                        hash
+                    },
+                });
+            }
             case 'eth_call': {
                 const tx = params?.[0];
                 if (!tx) throw new Error('tx parameter missing');
@@ -339,7 +345,6 @@ function extensionIdToUUID(extensionId: string) {
 
 const existing = window.kasperia as KasperiaProvider | undefined;
 const baseProvider: KasperiaProvider = existing ?? new KasperiaProvider();
-// (baseProvider as any).isKasperia = true;
 const proxied = new Proxy(baseProvider, handler);
 
 const kasperiaProviderInfo = {
@@ -408,7 +413,3 @@ if (!existing) {
         window.dispatchEvent(new Event('kasperia#initialized'));
     }
 }
-
-
-
-console.log("init 123123")

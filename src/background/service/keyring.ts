@@ -87,7 +87,7 @@ export class KeyRing {
 
                 this.locked = false
                 this.expire = new Date().getTime() + locktime
-                this.store.updateState({password: password, account: accountMap, id: decryted.id})
+                await this.store.updateState({password: password, account: accountMap, id: decryted.id})
             }
         } catch (error) {
             throw error
