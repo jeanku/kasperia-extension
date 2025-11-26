@@ -31,6 +31,7 @@ import { KaspaClient, KaspaTransaction } from "@/utils/wallet/kaspa";
 import { Dispatch } from 'redux';
 import IconArrorRight from '@/assets/images/home-arrow-right.png'
 import { GetKrc20AddressTokenListResponse, Krc20Response } from "@/utils/wallet/krc20/types";
+import NoDataIco from '@/assets/images/no-data-3.png'
 
 
 export type TimedList<T> = {
@@ -527,6 +528,11 @@ const Home = () => {
                                                     </div>
                                                 </div>
                                             ))}
+                                            {
+                                                evmNetwork && evmTokenList.list.length === 0 && <div className="no-data-box flex-row cc ac">
+                                                <img src={NoDataIco} alt="No Data" className="no-data-img" />
+                                            </div>
+                                            }
                                         </div>
                                     ) : ""
                     }
