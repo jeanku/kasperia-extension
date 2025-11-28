@@ -189,6 +189,10 @@ class ProviderController {
         return await accountService.eth_getTransactionByHash(request.data.params.hash)
     }
 
+    eth_estimateGas = async (request: RequestProps) => {
+        return await accountService.eth_estimateGas(request.data.params)
+    }
+
     walletRequestPermissions = () => {
 
     }

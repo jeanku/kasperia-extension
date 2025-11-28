@@ -162,7 +162,7 @@ export class KasperiaProvider extends EventEmitter {
     };
 
     getVersion = async () => {
-        return "1.10.48";
+        return "1.10.49";
     };
 
     async request({ method, params }: RequestArguments): Promise<any> {
@@ -262,6 +262,14 @@ export class KasperiaProvider extends EventEmitter {
                     params: {
                         hash
                     },
+                });
+            }
+            case 'eth_estimateGas': {
+                const data = params?.[0];
+                if (!data) throw new Error('data missing');
+                return await this._request({
+                    method: 'eth_estimateGas',
+                    params: data,
                 });
             }
             case 'eth_call': {

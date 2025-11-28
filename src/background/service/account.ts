@@ -409,6 +409,11 @@ export class Account {
         return await (await this.get_provider()).getTransactionByHash(hash)
     }
 
+    async eth_estimateGas(data: any) {
+        let gas = await (await this.get_provider()).estimateGas(data)
+        return "0x" + gas.toString(16)
+    }
+
     async createTransaction(from: string, to: string, amount: string): Promise<string> {
         return this.get_provider().then(provider => {
             return provider.createTransaction(from, to, amount)
