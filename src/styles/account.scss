@@ -75,7 +75,7 @@
 }
 .account-popover {
     .adm-popover-inner-content {
-        background-color: rgb(38, 38, 38);
+        background-color: $color-rgb--38-38-38;
     }
     .adm-popover-menu-item-text {
         border-top: none;
@@ -92,7 +92,7 @@
     }
 }
 .adm-popover .adm-popover-arrow {
-    color: rgb(38, 38, 38);
+    color: $color-rgb--38-38-38;
 }
 
 .switch-account-main {

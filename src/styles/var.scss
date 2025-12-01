@@ -1,5 +1,5 @@
 $primary-color: #74E6D8;
-$success-color: #74E6D8;
+$success-color: $primary-color;
 $warning-color: #faad14;
 $error-color: #f5222d;
 $flide-color: #E64E4E;
@@ -9,7 +9,7 @@ $tip-error-bg: #3c2323;
 $tip-success: #2e3c24;
 $tip-test-color: rgb(255, 123, 33);
 
-$bg-color-theme: #74E6D8;
+$bg-color-theme: $primary-color;
 $bg-color: #171717;
 $bg-color-block: #262626;
 $bg-color-input: #333333;
@@ -39,6 +39,35 @@ $text-color-msg-success: #00b578;
 
 
 $border-radius: 6px;
+
+
+$color-hex-e7e9ee: #e7e9ee;
+$color-hex-9aa3ad: #9aa3ad;
+$color-rgb-a--0-0-0-0-55: rgba(0,0,0,.55);
+$color-hex-5e5e5e: #5e5e5e;
+$color-rgb-a--25-25-25-0-6: rgba(25, 25, 25, 0.6);
+$color-rgb-a--0-0-0-0-6: rgba(0, 0, 0, 0.6);
+$color-rgb-a--0-0-0-0-8: rgba(0,0,0,.8);
+$color-rgb-a--0-0-0-0-75: rgba(0, 0, 0, 0.75);
+$color-rgb-a--0-0-0-0-35: rgba(0, 0, 0, 0.35);
+$color-rgb-a--255-255-255-0-03: rgba(255, 255, 255, 0.03);
+$color-rgb-a--255-255-255-0: rgba(255, 255, 255, 0);
+$color-rgb-a--0-0-0-0-05: rgba(0,0,0,.05);
+$color-rgb-a--255-255-255-0-07: rgba(255,255,255,.07);
+$color-rgb-a--0-0-0-0-65: rgba(0,0,0,.65);
+$color-rgb-a--116-230-216-0-28: rgba(116,230,216,.28);
+$color-hex-001a16: #001a16;
+$color-rgb-a--116-230-216-0-12: rgba(116,230,216,.12);
+$color-rgb-a--116-230-216-0-35: rgba(116,230,216,.35);
+$color-rgb-a--116-230-216-0-6: rgba(116,230,216,.6);
+$color-rgb-a--0-255-200-0-05: rgba(0, 255, 200, 0.05);
+$color-hex-70c7ba: #70c7ba;
+$color-rgb-a--176-176-176-0-2: rgba(176, 176, 176, 0.2);
+$color-rgb-a--14-27-25-0-4: rgba(14, 27, 25, 0.4);
+$color-rgb-a--0-0-0-0-1: rgba(0, 0, 0, 0.1);
+$color-rgb--38-38-38: rgb(38, 38, 38);
+$color-rgb-a--116-230-216-0-1: rgba(116, 230, 216, 0.1);
+$color-rgb-a--116-230-216-0-06: rgba(116,230,216,0.06);
 
 %page-pd-20 {
     padding: 0 20px;

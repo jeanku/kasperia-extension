@@ -126,7 +126,7 @@
     }
     &.active {
         border-color: $primary-color;
-        background-color: rgba(116,230,216,0.06);
+        background-color: $color-rgb-a--116-230-216-0-06;
         color: $primary-color;
         span, em {
             color: $primary-color;

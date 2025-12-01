@@ -3,7 +3,7 @@ import App from './App'
 import { useEffect } from 'react';
 import 'antd-mobile/es/global'
 import 'lib-flexible'
-import './styles/index.scss'
+import './styles/main.scss'
 import { Provider } from "react-redux";
 import { store } from "./store";
 import { isExtensionPopup } from './utils/util'

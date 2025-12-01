@@ -113,10 +113,10 @@ em {
     height: 100vh;
     min-height: 100vh;
 
-    --sn-text: #e7e9ee;
-    --sn-subtle: #9aa3ad;
-    --sn-shadow-1: 0 10px 30px -12px rgba(0,0,0,.55);
-    --sn-shadow-2: 0 1px 0 0 rgba(255,255,255,.06) inset;
+    --sn-text: $color-hex-e7e9ee;
+    --sn-subtle: $color-hex-9aa3ad;
+    --sn-shadow-1: 0 10px 30px -12px $color-rgb-a--0-0-0-0-55;
+    --sn-shadow-2: 0 1px 0 0 $bg-color-fff-6 inset;
 }
 
 .one-line {
@@ -164,12 +164,12 @@ em {
     font-size: 26px;
     margin-top: 0;
     margin-bottom: 20px;
-    color: #fff;
+    color: $text-color;
 }
 
 .page-title p {
     font-size: 14px;
-    color: #5e5e5e;
+    color: $color-hex-5e5e5e;
 }
 
 .page-forget {
@@ -365,8 +365,8 @@ em {
     margin-bottom: 10px;
     width: 100%;
     box-sizing: border-box;
-    background: rgba(25, 25, 25, 0.6);
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.6);
+    background: $color-rgb-a--25-25-25-0-6;
+    box-shadow: 0 -4px 20px $color-rgb-a--0-0-0-0-6;
     transition: all 0.3s ease;
 
     .adm-button-primary {
@@ -440,7 +440,7 @@ em {
 
 .page-loading p {
     margin-top: 20px;
-    color: #fff;
+    color: $text-color;
 }
 
 .page-loading img {
@@ -498,7 +498,7 @@ em {
 }
 
 :root:root {
-    --adm-color-primary: #74E6D8;
+    --adm-color-primary: $primary-color;
 }
 
 .list-box {
@@ -971,7 +971,7 @@ em {
     background-color: $bg-color;
     padding-top: 0;
     box-sizing: border-box;
-    box-shadow: 0 2px 10px rgba(0,0,0,.8);
+    box-shadow: 0 2px 10px $color-rgb-a--0-0-0-0-8;
     transition: all .3s ease-in-out;
     z-index: 10;
 
@@ -1079,7 +1079,7 @@ em {
     box-sizing: border-box;
     background-color: $bg-color-input;
     border-radius: 12px 12px 0 0;
-    box-shadow: 0px 0px 30px 0px rgba(0, 0, 0, 0.75), inset 0px 1px 0px 0px rgba(255, 255, 255, 0.1);
+    box-shadow: 0px 0px 30px 0px $color-rgb-a--0-0-0-0-75, inset 0px 1px 0px 0px $bg-color-fff-10;
 
     .footer-nav-bar {
         width: 23px;
@@ -1393,7 +1393,7 @@ em {
 .password {
     display: flex;
     align-items: center;
-    background-color: #333333;
+    background-color: $bg-color-input;
     border-radius: 6px;
     height: 48px;
     padding-left: 16px;
@@ -2373,7 +2373,7 @@ em {
 .k-card {
     border-radius: $border-radius;
     padding: 10px 12px 16px;
-    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.55), 0 4px 10px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    box-shadow: 0 6px 10px $color-rgb-a--0-0-0-0-55, 0 4px 10px $color-rgb-a--0-0-0-0-35, inset 0 1px 0 $color-rgb-a--255-255-255-0-03;
     .hash-line {
         position: relative;
         padding-bottom: 10px;
@@ -2384,7 +2384,7 @@ em {
             bottom: 0;
             height: 1px;
             content: '';
-            background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0));
+            background: linear-gradient(90deg, $color-rgb-a--255-255-255-0, $bg-color-fff-6, $color-rgb-a--255-255-255-0);
             margin: 6px 0 2px;
         }
         .success {
@@ -2472,7 +2472,7 @@ em {
     gap: 16px;
     padding: 18px;
     border-radius: 18px;
-    background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(0,0,0,.05)),
+    background: linear-gradient(180deg, $color-rgb-a--255-255-255-0-03, $color-rgb-a--0-0-0-0-05),
                 $bg-color-fff-4;
     border: 1px solid $bg-color-fff-8;
     box-shadow: var(--sn-shadow-1);
@@ -2485,17 +2485,17 @@ em {
     border-radius:16px;
     text-align: center;
     background:
-        radial-gradient(120% 120% at 0% 0%, rgba(255,255,255,.07) 0%, transparent 55%),
+        radial-gradient(120% 120% at 0% 0%, $color-rgb-a--255-255-255-0-07 0%, transparent 55%),
         $bg-color-fff-6;
     border: 1px solid $bg-color-fff-10;
-    box-shadow: 0 12px 24px -14px rgba(0,0,0,.55), var(--sn-shadow-2);
+    box-shadow: 0 12px 24px -14px $color-rgb-a--0-0-0-0-55, var(--sn-shadow-2);
     color: var(--sn-text);
     transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
 }
 .sn-card:hover{
     transform: translateY(-2px);
-    box-shadow: 0 18px 32px -14px rgba(0,0,0,.65), var(--sn-shadow-2);
-    border-color: rgba(116,230,216,.28);
+    box-shadow: 0 18px 32px -14px $color-rgb-a--0-0-0-0-65, var(--sn-shadow-2);
+    border-color: $color-rgb-a--116-230-216-0-28;
 }
 
 .sn-badge{
@@ -2503,14 +2503,14 @@ em {
     font-size:12px;
     letter-spacing:.3px;
     color: var(--sn-subtle);
-    background: rgba(255,255,255,.06);
+    background: $bg-color-fff-6;
     padding:4px 8px;
     border-radius:999px;
-    border:1px solid rgba(255,255,255,.08);
+    border:1px solid $bg-color-fff-8;
     margin-bottom:8px;
 }
 .sn-badge--accent{
-    color:#001a16;
+    color:$color-hex-001a16;
     min-width: 56px;
     background: color-mix(in oklab, $primary-color 92%, white 0%);
     border-color: color-mix(in oklab, $primary-color 60%, black 0%);
@@ -2528,9 +2528,9 @@ em {
     display:grid; place-items:center;
     width:40px; height:40px;
     border-radius:999px;
-    background: rgba(116,230,216,.12);
-    border:1px solid rgba(116,230,216,.35);
-    box-shadow: 0 8px 16px -10px rgba(116,230,216,.6);
+    background: $color-rgb-a--116-230-216-0-12;
+    border:1px solid $color-rgb-a--116-230-216-0-35;
+    box-shadow: 0 8px 16px -10px $color-rgb-a--116-230-216-0-6;
     color: $primary-color;
     transition: transform .25s ease;
 }
@@ -2569,7 +2569,7 @@ em {
     position: relative;
     background-color:$bg-color-f26;
     border-radius: $border-radius;
-    box-shadow: inset 0 0 10px rgba(0, 255, 200, 0.05);
+    box-shadow: inset 0 0 10px $color-rgb-a--0-255-200-0-05;
     padding: 15px;
     box-sizing: border-box;
     .card-title {
@@ -2619,9 +2619,9 @@ em {
             transform: rotate(90deg);
         }
         &:hover {
-            background-color: #70c7ba;
-            border-color: #70c7ba;
-            box-shadow: rgba(176, 176, 176, 0.2) 0px 10px 15px -3px, rgba(14, 27, 25, 0.4) 0px 4px 6px -2px;
+            background-color: $color-hex-70c7ba;
+            border-color: $color-hex-70c7ba;
+            box-shadow: $color-rgb-a--176-176-176-0-2 0px 10px 15px -3px, $color-rgb-a--14-27-25-0-4 0px 4px 6px -2px;
         }
     }
 }
@@ -2632,7 +2632,7 @@ em {
 }
 .token-popup-body {
     background-color: $bg-color-f1A;
-    box-shadow: 0 0 3px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0 3px $color-rgb-a--0-0-0-0-1;
 }
 .visable-top-img {
     > img {
