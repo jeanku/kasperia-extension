@@ -2,7 +2,6 @@ import { EventEmitter } from 'events';
 import BroadcastChannelMessage from './message/boardcastMessage';
 import { ReadyPromise } from './message/readyPromise';
 import {NetworkType} from "@/utils/wallet/consensus";
-import {AddEthereumChainParameter} from "@/model/evm";
 import KasperiaIcon from '@/assets/images/icon128.png'
 import { ethErrors, serializeError } from 'eth-rpc-errors';
 
@@ -42,6 +41,7 @@ const channelName = script?.getAttribute('channel') || 'Kasperia';
 
 export class KasperiaProvider extends EventEmitter {
     _selectedAddress: string | null = null;
+    public isKasperia = true;
     _network: string | null = null;
     _chainId: string | null = null;
     _isConnected = false;
@@ -83,10 +83,7 @@ export class KasperiaProvider extends EventEmitter {
     };
 
     _request = async (data: any) => {
-        if (!data) {
-            throw Error("data not find");
-        }
-        this._requestPromiseCheckVisibility();
+        // this._requestPromiseCheckVisibility();
         return this._requestPromise.call(() => {
             return this._bcm.request(data).then((res) => res).catch((err: Error) => {
                 let resp = err.message.toString().split("::")
@@ -169,166 +166,31 @@ export class KasperiaProvider extends EventEmitter {
         console.log("【injected call:】method: is calling ....", method, JSON.stringify(params))
         switch (method) {
             case 'eth_requestAccounts':
-                return await this._request({ method: 'eth_requestAccounts' });
             case 'eth_accounts':
-                return await this._request({ method: 'eth_accounts' });
-            case 'eth_chainId': {
-                let chainHex = await this._request({ method: 'eth_chainId' });
-                return '0x' + Number(chainHex).toString(16)
-            }
-            case 'net_version': {
-                return await this._request({ method: 'eth_chainId' });
-            }
-            case 'personal_sign': {
-                const [message, address] = params || [];
-                if (!message) throw new Error('message parameter missing');
-                return this._request({
-                    method: 'signMessage',
-                    params: {
-                        message,
-                        address
-                    }
-                });
-            }
-
-            case 'eth_getBalance': {
-                const [address, tag] = params || [];
-                let balance: any = await this._request({
-                    method: 'eth_getBalance',
-                    params: {
-                        address,
-                        tag
-                    }
-                })
-                if (balance) {
-                    const value = BigInt(balance);
-                    return '0x' + value.toString(16);
-                }
-                return '0x0'
-            }
-            case 'eth_blockNumber': {
-                let block = await this._request({method: 'eth_blockNumber', params: {}})
-                return '0x' + Number(block).toString(16)
-            }
-            case 'eth_getBlockByNumber': {
-                const [block_number, flag] = params || [];
-                return await this._request({
-                    method: 'eth_getBlockByNumber',
-                    params: {
-                        block_number,
-                        flag: flag || false
-                    }
-                })
-            }
+            case 'eth_chainId':
+            case 'net_version':
+            case 'personal_sign':
+            case 'eth_getBalance':
+            case 'eth_estimateGas':
+            case 'eth_blockNumber':
+            case 'eth_getBlockByNumber':
+            case 'eth_sendTransaction':
+            case 'eth_getTransactionReceipt':
+            case 'eth_getTransactionByHash':
+            case 'eth_getCode':
+            case 'eth_call':
+            case 'wallet_watchAsset':
+            case 'wallet_requestPermissions':
+            case 'wallet_getPermissions':
+            case 'wallet_revokePermissions':
+            case 'wallet_addEthereumChain':
             case 'wallet_switchEthereumChain': {
-                const chainHex = params?.[0].chainId;
-                if (!chainHex) return { code: 4902, message: 'Unrecognized chain ID' }
-                const chainId = parseInt(chainHex, 16);
-                const result: any = await this._request({
-                    method: 'walletSwitchEthereumChain',
-                    params: {
-                        chainId: chainId.toString(),
-                    },
-                })
-                this.emit('chainChanged', chainHex);
-                return result
-            }
-            case 'eth_sendTransaction': {
-                const tx = params?.[0];
-                if (!tx) throw new Error('tx parameter missing');
-                let resp = await this._request({
-                    method: 'sendTransaction',
-                    params: {
-                        tx
-                    },
-                });
-                return resp
-            }
-            case 'eth_getTransactionReceipt': {
-                const hash = params?.[0];
-                if (!hash) throw new Error('hash missing');
-                return await this._request({
-                    method: 'eth_getTransactionReceipt',
-                    params: {
-                        hash
-                    },
-                });
-            }
-            case 'eth_getTransactionByHash': {
-                const hash = params?.[0];
-                if (!hash) throw new Error('hash missing');
-                return await this._request({
-                    method: 'eth_getTransactionByHash',
-                    params: {
-                        hash
-                    },
-                });
-            }
-            case 'eth_estimateGas': {
-                const data = params?.[0];
-                if (!data) throw new Error('data missing');
-                return await this._request({
-                    method: 'eth_estimateGas',
-                    params: data,
-                });
-            }
-            case 'eth_call': {
-                const tx = params?.[0];
-                if (!tx) throw new Error('tx parameter missing');
-                return await this._request({
-                    method: 'eth_call',
-                    params: {
-                        tx
-                    },
-                });
-            }
-            case 'wallet_watchAsset': {
-                if (params.type != "ERC20") throw new Error("invalid ERC20 config")
-                let resp = await this._request({
-                    method: 'walletWatchAsset',
-                    params: {
-                        options: params.options
-                    },
-                });
-                return resp
-            }
-
-            case 'wallet_addEthereumChain': {
-                const chainParams = params?.[0] as AddEthereumChainParameter;
-                if (!chainParams) throw new Error('chainParams missing');
-                return this._request({
-                    method: 'addEthereumChain',
-                    params: {
-                        chainParams: {
-                            chainId: parseInt(chainParams.chainId).toString(),
-                            symbol: chainParams.nativeCurrency.symbol,
-                            name: chainParams.chainName,
-                            rpcUrl: chainParams.rpcUrls,
-                            explorer: chainParams.blockExplorerUrls?.[0] || "",
-                            decimals: chainParams.nativeCurrency.decimals
-                        }
-                    },
-                });
-            }
-            case 'wallet_revokePermissions': {
-                const eth_accounts = params?.[0];
-                return this._request({
-                    method: 'wallet_revokePermissions',
-                    params: {
-                        eth_accounts
-                    },
-                });
-            }
-            case "wallet_requestPermissions": {
-                await this._request({
-                    method: 'walletRequestPermissions',
-                    params: {},
-                });
-                // return [{ parentCapability: "eth_accounts" }];
-                return []
+                return this._request({ method, params });
             }
             default:
-                throw new Error(`Unsupported method: ${method}`);
+                throw serializeError(ethErrors.rpc.methodNotFound({
+                    message: `${method} is not supported`
+                }))
         }
     }
 }
@@ -353,6 +215,8 @@ function extensionIdToUUID(extensionId: string) {
 
 const existing = window.kasperia as KasperiaProvider | undefined;
 const baseProvider: KasperiaProvider = existing ?? new KasperiaProvider();
+(baseProvider as any).isKasperia = true;
+(baseProvider as any).isMetamask = true;
 const proxied = new Proxy(baseProvider, handler);
 
 const kasperiaProviderInfo = {
@@ -391,6 +255,7 @@ function enhancedAnnounceProvider() {
         })
     );
 }
+
 
 if (!existing) {
     safeDefineGlobal('kasperia', proxied, true);

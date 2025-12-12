@@ -225,16 +225,24 @@ export function capitalizeFirstLetter(str: string): string {
     return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-export function formatSignMessage(message: string): string {
-    if (message.startsWith('0x')) {
-        try {
-            return ethers.toUtf8String(message);
-        } catch {
-            return message;
+export function formatSignMessage(message: string): Uint8Array {
+    if (ethers.isHexString(message)) {
+        if (message.length % 2 === 0) {
+            return ethers.getBytes(message)
         }
+        return ethers.getBytes('0x0' + message.slice(2))
     }
-    return message;
+    const hexRegex = /^[0-9a-fA-F]+$/;
+    if (hexRegex.test(message)) {
+        if (message.length % 2 === 0) {
+            return ethers.getBytes('0x' + message)
+        }
+        return ethers.getBytes('0x0' + message)
+    } else {
+        return ethers.getBytes(message)
+    }
 }
+
 export function withSignedParams<T extends PlainObject>(params: T, apiKey: AppKey): T & { sign: string } {
     const signBase = {
         ...getSignData(apiKey),

@@ -6,7 +6,7 @@ import {EvmTokenList} from "@/model/evm";
 
 export class Account extends Chrome {
 
-    static signMessage(message: string): Promise<string> {
+    static signMessage(message: number[]): Promise<string> {
         return Chrome.request({ action: "Account.signMessage", message })
     }
 

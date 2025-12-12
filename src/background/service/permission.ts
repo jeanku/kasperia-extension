@@ -189,9 +189,9 @@ class PermissionService {
             return;
         }
         sessionService.broadcastEvent('disconnect', {
-            code: 4900,
-            message: 'User manually disconnected',
-        });
+            code: 1011,
+            message: "User disconnected from Kasperia"
+        }, origin);
         await this.setSite({
             ...site!,
             isConnected: false

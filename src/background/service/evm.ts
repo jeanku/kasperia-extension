@@ -73,10 +73,8 @@ export class EVM {
     async addNetwork(network: EvmNetwork) {
         await this.load();
         const state = this.store!.getState();
+        state.selected = network.chainId
         if (!state.networks[network.chainId]) {
-            if (!state.selected) {
-                state.selected = network.chainId
-            }
             this.store!.updateState({
                 ...state,
                 networks: {...state.networks, [network.chainId]: network},

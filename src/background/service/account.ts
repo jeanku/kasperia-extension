@@ -91,10 +91,11 @@ export class Account {
         // this.client.connect()
     }
 
-    async signMessage(message: string) {
+    async signMessage(message: number[]) {
         let account = await keyringService.getActiveWalletPrivateKeyForEvm()
         let wallet = Wallet.fromPrivateKey(account.priKey)
-        return wallet.wallet.signMessage(message)
+        const bytes = new Uint8Array(message);
+        return wallet.wallet.signMessage(bytes)
     }
 
     async transferKrc20(tick: string | undefined, ca: string | undefined, amount: string, to: string) {
@@ -412,6 +413,10 @@ export class Account {
     async eth_estimateGas(data: any) {
         let gas = await (await this.get_provider()).estimateGas(data)
         return "0x" + gas.toString(16)
+    } 
+    
+    async eth_getCode(address: any, blockTag?: BlockTag) {
+        return await (await this.get_provider()).getCode(address, blockTag)
     }
 
     async createTransaction(from: string, to: string, amount: string): Promise<string> {

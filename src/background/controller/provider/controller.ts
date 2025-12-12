@@ -4,8 +4,12 @@ import {
     keyringService,
     accountService,
     permissionService,
+    sessionService,
     evmService
 } from '@/background/service';
+import { ethErrors } from 'eth-rpc-errors';
+import { ethers } from "ethers";
+import {AddEthereumChainParameter} from "@/model/evm";
 
 interface RequestProps {
     data: {
@@ -100,45 +104,140 @@ class ProviderController {
     };
 
     walletSwitchEthereumChain  = async (request: RequestProps) => {
-        const exist = await evmService.checkChainIdExist(request.data.params.chainId)
+        const chainHex = request.data.params?.[0].chainId;
+        if (!chainHex) {
+            throw ethErrors.rpc.invalidParams('chainId params must be a hex string');
+        }
+        const chainId = parseInt(chainHex, 16);
+        if (chainId == 0) {
+            throw ethErrors.rpc.invalidParams('chainId params must be a valid hex string');
+        }
+        const exist = await evmService.checkChainIdExist(chainId.toString())
         if (!exist) {
             throw new Error("4902::Unrecognized chain ID")
         }
         
-        const chainId = await evmService.getSelectedChainId()
-        if (chainId === request.data.params.chainId) {
+        const selectChainId = await evmService.getSelectedChainId()
+        if (chainId.toString() === selectChainId) {
             return
         }
 
         const requestId = crypto.randomUUID();
-        return await notificationService.requestApproval(
+        let resp = await notificationService.requestApproval(
             {
                 data: {
-                    chainId: chainId,
-                    targetChainId:  request.data.params.chainId,
+                    chainId: selectChainId,
+                    targetChainId: chainId,
                     requestId,
                 },
                 session: request.session
             },
             { route: "/evokeBoost/notification/switchChain" }
         )
+        sessionService.broadcastEvent('chainChanged', chainHex, origin);
+        return resp
     }
 
-    sendTransaction = async (request: RequestProps) => {
-        request.data.params.network = await evmService.getSelectedNetwork()
+    ethSendTransaction = async (request: RequestProps) => {
+        const tx = request.data.params?.[0];
+        const network = await evmService.getSelectedNetwork()
         return await notificationService.requestApproval(
             {
-                data: request.data.params,
+                data: { tx, network },
                 session: request.session
             },
             { route: "/evokeBoost/notification/sendTransaction" }
         )
     }
 
-    addEthereumChain = async (request: RequestProps) => {
+    walletAddEthereumChain = async (request: RequestProps) => {
+        const params = request.data.params;
+        if (!Array.isArray(params) || params.length === 0) {
+            throw ethErrors.rpc.invalidParams('addEthereumChain requires a parameter object');
+        }
+
+        const chainParams = params[0] as AddEthereumChainParameter;
+        if (!chainParams || typeof chainParams !== 'object') {
+            throw ethErrors.rpc.invalidParams('Invalid chain parameter object');
+        }
+
+        const {
+            chainId,
+            chainName,
+            rpcUrls,
+            iconUrls,
+            nativeCurrency,
+            blockExplorerUrls
+        } = chainParams;
+
+        if (!chainId || typeof chainId !== 'string') {
+            throw ethErrors.rpc.invalidParams('chainId must be a hex string');
+        }
+
+        if (!/^0x[0-9a-fA-F]+$/.test(chainId)) {
+            throw ethErrors.rpc.invalidParams('chainId must be a valid 0x-prefixed hex string');
+        }
+
+        if (!chainName || typeof chainName !== 'string') {
+            throw ethErrors.rpc.invalidParams('chainName is required and must be a string');
+        }
+
+        if (!Array.isArray(rpcUrls) || rpcUrls.length === 0) {
+            throw ethErrors.rpc.invalidParams('rpcUrls must be a non-empty array of URLs');
+        }
+
+        if (!rpcUrls.every(url => typeof url === 'string')) {
+            throw ethErrors.rpc.invalidParams('rpcUrls must contain only strings');
+        }
+
+        if (!nativeCurrency || typeof nativeCurrency !== 'object') {
+            throw ethErrors.rpc.invalidParams('nativeCurrency must be provided');
+        }
+
+        if (
+            typeof nativeCurrency.symbol !== 'string' ||
+            !nativeCurrency.symbol.length
+        ) {
+            throw ethErrors.rpc.invalidParams('nativeCurrency.symbol must be a non-empty string');
+        }
+
+        if (
+            typeof nativeCurrency.decimals !== 'number' ||
+            nativeCurrency.decimals <= 0 ||
+            nativeCurrency.decimals > 18
+        ) {
+            throw ethErrors.rpc.invalidParams('nativeCurrency.decimals must be a number between 1 and 18');
+        }
+
+        let explorer = '';
+        if (Array.isArray(blockExplorerUrls) && blockExplorerUrls.length > 0) {
+            if (!blockExplorerUrls.every(url => typeof url === 'string')) {
+                throw ethErrors.rpc.invalidParams('blockExplorerUrls must contain only strings');
+            }
+            explorer = blockExplorerUrls[0];
+        }
+
+        const formattedChain = {
+            chainId: parseInt(chainId, 16).toString(),   // 转为 decimal 方便管理
+            symbol: nativeCurrency.symbol,
+            name: chainName,
+            rpcUrl: rpcUrls,
+            explorer,
+            decimals: nativeCurrency.decimals
+        };
+
         return await notificationService.requestApproval(
             {
-                data: request.data.params,
+                data: {
+                    chainParams: {
+                        chainId: parseInt(chainParams.chainId).toString(),
+                        symbol: chainParams.nativeCurrency.symbol,
+                        name: chainParams.chainName,
+                        rpcUrl: chainParams.rpcUrls,
+                        explorer: chainParams.blockExplorerUrls?.[0] || "",
+                        decimals: chainParams.nativeCurrency.decimals
+                    }
+                },
                 session: request.session
             },
             { route: "/evokeBoost/notification/addEthereumChain" }
@@ -150,11 +249,83 @@ class ProviderController {
         return await permissionService.removeConnectedSite(origin)
     };
 
+    wallet_getPermissions = async (request: RequestProps) => {
+        const {origin} = request.session
+        let hasPermisson = await permissionService.hasPermission(origin)
+        return hasPermisson ? [{"parentCapability" : "eth_accounts"}] : []
+    };
+
     walletWatchAsset = async (request: RequestProps) => {
-        request.data.params.network = await evmService.getSelectedNetwork()
+        let network = await evmService.getSelectedNetwork()
+        const params = request.data?.params;
+        if (!params) {
+            throw ethErrors.rpc.invalidParams("params is required");
+        }
+
+        const { type, options } = params;
+
+        if (typeof type !== "string") {
+            throw ethErrors.rpc.invalidParams("type must be a string");
+        }
+
+        const SUPPORT_TYPES = ["ERC20", "ERC721", "ERC1155"];
+        if (!SUPPORT_TYPES.includes(type)) {
+            throw ethErrors.rpc.invalidParams(
+                `type must be one of ${SUPPORT_TYPES.join(", ")}`
+            );
+        }
+
+        if (!options || typeof options !== "object") {
+            throw ethErrors.rpc.invalidParams("options must be an object");
+        }
+
+        if (typeof options.address !== "string") {
+            throw ethErrors.rpc.invalidParams("options.address must be a string");
+        }
+        if (!/^0x[0-9a-fA-F]{40}$/.test(options.address)) {
+            throw ethErrors.rpc.invalidParams("options.address must be a valid eth address");
+        }
+
+        if (type === "ERC20") {
+            if (typeof options.symbol !== "string" || options.symbol.length === 0) {
+                throw ethErrors.rpc.invalidParams("ERC20 symbol must be a non-empty string");
+            }
+
+            if (
+                typeof options.decimals !== "number" ||
+                options.decimals < 0 ||
+                options.decimals > 255
+            ) {
+                throw ethErrors.rpc.invalidParams("ERC20 decimals must be a number 0~255");
+            }
+
+            if (options.image && typeof options.image !== "string") {
+                throw ethErrors.rpc.invalidParams("image must be a string URL");
+            }
+        }
+
+        if (type === "ERC721") {
+            if (!options.tokenId) {
+                throw ethErrors.rpc.invalidParams("ERC721 tokenId is required");
+            }
+            if (typeof options.tokenId !== "string") {
+                throw ethErrors.rpc.invalidParams("tokenId must be a string");
+            }
+        }
+
+        if (type === "ERC1155") {
+            if (!options.tokenId) {
+                throw ethErrors.rpc.invalidParams("ERC1155 tokenId is required");
+            }
+            if (typeof options.tokenId !== "string") {
+                throw ethErrors.rpc.invalidParams("tokenId must be a string");
+            }
+        }
+
+
         return await notificationService.requestApproval(
             {
-                data: request.data.params,
+                data: { network, options },
                 session: request.session
             },
             { route: "/evokeBoost/notification/addErc20Token" }
@@ -162,39 +333,202 @@ class ProviderController {
     }
 
     eth_chainId = async () => {
+        let chainHex = await evmService.getSelectedChainId()
+        return '0x' + Number(chainHex).toString(16)
+    }
+
+    personalSign = async (request: RequestProps) => {
+        if (!Array.isArray(request.data.params) || request.data.params.length < 2) {
+            throw ethErrors.rpc.invalidParams(
+                'personal_sign requires params like: [message, address]'
+            );
+        }
+        let [message, address] = request.data.params;
+        if (address && typeof address === "string" && !address.startsWith("0x") && message && message.startsWith("0x")) {
+            [address, message] = [message, address];
+        }
+        if (!address || typeof address !== "string" || !address.startsWith("0x") || address.length !== 42) {
+            throw ethErrors.rpc.invalidParams('Invalid address for personal_sign');
+        }
+        if (typeof message !== "string") {
+            throw ethErrors.rpc.invalidParams('Message must be a string');
+        }
+        request.data.params = { message, address }
+        return this.signMessage(request)
+    }
+
+    net_version = async () => {
         return await evmService.getSelectedChainId()
-    };
+    }
 
     eth_getBlockByNumber = async (request: RequestProps) => {
-        return await accountService.eth_getBlockByNumber(request.data.params.block_number, request.data.params.flag)
+        let [blockNumber, includeTx] = request.data.params || [];
+
+        const validTags = ['latest', 'earliest', 'pending'];
+
+        const isHexBlock =
+            typeof blockNumber === 'string' &&
+            /^0x[0-9a-fA-F]+$/.test(blockNumber);
+
+        const isTag =
+            typeof blockNumber === 'string' &&
+            validTags.includes(blockNumber);
+
+        if (!isHexBlock && !isTag) {
+            throw ethErrors.rpc.invalidParams(
+                'blockNumber must be a hex string or one of: latest | earliest | pending'
+            );
+        }
+        if (typeof includeTx !== 'boolean') {
+            throw ethErrors.rpc.invalidParams(
+                'second param includeTransactions must be a boolean'
+            );
+        }
+        return await accountService.eth_getBlockByNumber(blockNumber, includeTx)
     }
 
     eth_getBalance = async (request: RequestProps) => {
-        return await accountService.eth_getBalance(request.data.params.address, request.data.params.tag)
+        const [address, tag] = request.data.params || [];
+
+        if (!ethers.isAddress(address)) {
+            throw ethErrors.rpc.invalidParams(
+                "eth_getBalance address params invalid"
+            )
+        }
+        let formattedTag = 'latest'
+        if (tag !== undefined && tag !== null) {
+            if (typeof tag === 'string') {
+                const predefinedTags = ['latest', 'earliest', 'pending'];
+                const lowerTag = tag.toLowerCase();
+
+                if (predefinedTags.includes(lowerTag)) {
+                    formattedTag = lowerTag;
+                } else {
+                    try {
+                        formattedTag = ethers.toQuantity(tag);
+                    } catch {
+                        throw ethErrors.rpc.invalidParams(`Invalid blockTag: ${tag}. Must be 'latest', 'earliest', 'pending', or a valid hex number.`);
+                    }
+                }
+            } else if (typeof tag === 'number' || typeof tag === 'bigint') {
+                try {
+                    const num = typeof tag === 'bigint' ? tag : BigInt(Math.floor(Number(tag)));
+                    if (num < 0n) {
+                        throw new Error(`BlockTag cannot be negative: ${tag}`);
+                    }
+                    formattedTag = ethers.toQuantity(num);
+                } catch {
+                    throw new Error(`Invalid blockTag number: ${tag}`);
+                }
+            } else {
+                throw new Error(`Invalid blockTag type: ${typeof tag}. Must be string, number, or bigint.`);
+            }
+        }
+        let balance = await accountService.eth_getBalance(address, formattedTag)
+        return '0x' + BigInt(balance).toString(16);
     }
 
     eth_call = async (request: RequestProps) => {
-        return await accountService.eth_call(request.data.params.tx)
+        const params = request?.data?.params;
+        const [ tx ] = params;
+        if (typeof tx !== "object" || !tx) {
+            throw ethErrors.rpc.invalidParams('eth_estimateGas must be a object');
+        }
+        return await accountService.eth_call(tx)
     }
 
     eth_blockNumber = async () => {
-        return await accountService.eth_blockNumber()
+        const block = await accountService.eth_blockNumber();
+        return ethers.toBeHex(BigInt(block));
     }
 
     eth_getTransactionReceipt = async (request: RequestProps) => {
-        return await accountService.eth_getTransactionReceipt(request.data.params.hash)
+        const params = request?.data?.params;
+        const [ hash ] = params;
+        if (typeof hash !== 'string' || !hash) {
+            throw ethErrors.rpc.invalidParams('transaction hash must be a string');
+        }
+        if (!/^0x([0-9a-fA-F]{64})$/.test(hash)) {
+            throw ethErrors.rpc.invalidParams(
+                'transaction hash must be 0x-prefixed 32-byte hex string'
+            );
+        }
+        return await accountService.eth_getTransactionReceipt(hash)
     }
 
     eth_getTransactionByHash = async (request: RequestProps) => {
-        return await accountService.eth_getTransactionByHash(request.data.params.hash)
+        const params = request?.data?.params;
+        const [ hash ] = params;
+        if (typeof hash !== 'string' || !hash) {
+            throw ethErrors.rpc.invalidParams('transaction hash must be a string');
+        }
+        if (!/^0x([0-9a-fA-F]{64})$/.test(hash)) {
+            throw ethErrors.rpc.invalidParams(
+                'transaction hash must be 0x-prefixed 32-byte hex string'
+            );
+        }
+        return await accountService.eth_getTransactionByHash(hash)
     }
 
     eth_estimateGas = async (request: RequestProps) => {
-        return await accountService.eth_estimateGas(request.data.params)
+        const params = request?.data?.params;
+        const [ tx ] = params;
+        if (typeof tx !== "object" || !tx) {
+            throw ethErrors.rpc.invalidParams('eth_estimateGas must be a object');
+        }
+        return await accountService.eth_estimateGas(tx)
     }
 
-    walletRequestPermissions = () => {
+    eth_getCode = async (request: RequestProps) => {
+        const params = request?.data?.params;
 
+        if (!Array.isArray(params) || params.length < 2) {
+            throw ethErrors.rpc.invalidParams(
+                'expected params: [address, blockNumber | blockTag]'
+            );
+        }
+
+        const [address, blockTag] = params;
+
+        if (!ethers.isAddress(address)) {
+            throw ethErrors.rpc.invalidParams(
+                'address must be a valid 20-byte hex string (0x-prefixed)'
+            );
+        }
+
+        const validTags = ['latest', 'earliest', 'pending'];
+
+        const isHexBlock =
+            typeof blockTag === 'string' &&
+            /^0x[0-9a-fA-F]+$/.test(blockTag);
+
+        const isTag =
+            typeof blockTag === 'string' &&
+            validTags.includes(blockTag);
+
+        if (!isHexBlock && !isTag) {
+            throw ethErrors.rpc.invalidParams(
+                'blockTag must be a hex string or one of: latest | earliest | pending'
+            );
+        }
+        return await accountService.eth_getCode(address, blockTag) || "0x"
+    };
+
+
+    walletRequestPermissions = (request: RequestProps) => {
+        let params = request.data.params
+        if (!params || !Array.isArray(params) || params.length === 0) {
+            throw ethErrors.rpc.invalidParams(
+                "wallet_requestPermissions requires params like: [{ eth_accounts: {} }]"
+            );
+        }
+        const perm = params[0];
+        if (!perm || typeof perm !== "object" || !("eth_accounts" in perm)) {
+            throw ethErrors.rpc.methodNotFound(
+                "wallet_requestPermissions expects { eth_accounts: {} }"
+            );
+        }
+        return [{ parentCapability: "eth_accounts" }]
     }
 }
 

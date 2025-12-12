@@ -39,7 +39,8 @@ const SignMessage = () => {
         if (!data?.message) {
             return
         }
-        let signature = await Account.signMessage(formatSignMessage(data?.message))
+        let signMessage = formatSignMessage(data?.message)
+        let signature = await Account.signMessage(Array.from(signMessage))
         Notification.resolveApproval(signature)
     }
 

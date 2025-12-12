@@ -6,12 +6,14 @@ const flow = new PromiseFlow();
 
 const flowContext = flow
   .use(async (ctx: any, next: any) => {
+      if (notificationService.notifiRoute == "/evokeBoost/notification/unlock") {
+          return 
+      }
       let isLocked = await keyringService.isLocked()
       if (isLocked) {
           ctx.flowContinue = true;
           await notificationService.requestApproval({}, { route: "/evokeBoost/notification/unlock" })
       }
-
       return next();
   })
   .use(async (ctx: any, next: any) => {
@@ -20,6 +22,7 @@ const flowContext = flow
               session: { origin, name, icon }
           },
       } = ctx;
+      if (notificationService.notifiRoute == "/evokeBoost/notification/connect" ) return
       if (!await permissionService.hasPermission(origin)) {
           ctx.flowContinue = true;
           await notificationService.requestApproval(
@@ -60,7 +63,8 @@ export default async (request: any) => {
     }
 
     if (method == "eth_chainId" || method == "net_version" || method == "eth_blockNumber" || method == "eth_getTransactionReceipt" || method == "eth_getTransactionByHash"
-        || method == "eth_getBlockByNumber" || method == "eth_getBalance" || method == "wallet_revokePermissions" || method == "eth_call" || method == "eth_estimateGas") {
+        || method == "eth_getBlockByNumber" || method == "eth_getBalance" || method == "wallet_revokePermissions" || method == "eth_call"
+        || method == "eth_estimateGas" || method == "eth_getCode" || method == "wallet_getPermissions") {
         return (providerController as any)[method](ctx.request)
     }
 
