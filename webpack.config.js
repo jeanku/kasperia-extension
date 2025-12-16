@@ -13,7 +13,8 @@ module.exports = (env, argv) => {
             main: './src/index.tsx',
             background: './src/background/index.ts',
             content: './src/content-script/index.ts',
-            injected: './src/content-script/injected.ts'
+            // injected: './src/content-script/injected.ts'
+            injected: './src/content-script/pageProvider/index.ts'
         },
         output: {
             path: path.resolve(__dirname, 'build'),
@@ -151,9 +152,9 @@ module.exports = (env, argv) => {
                 new TerserPlugin({
                     terserOptions: {
                         mangle: false,
-                        // compress: {
-                        //     drop_console: true
-                        // }
+                        compress: {
+                            drop_console: true
+                        }
                     },
                     extractComments: false,
                 })

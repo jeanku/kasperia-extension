@@ -7,7 +7,7 @@ const flow = new PromiseFlow();
 const flowContext = flow
   .use(async (ctx: any, next: any) => {
       if (notificationService.notifiRoute == "/evokeBoost/notification/unlock") {
-          return 
+          return
       }
       let isLocked = await keyringService.isLocked()
       if (isLocked) {
