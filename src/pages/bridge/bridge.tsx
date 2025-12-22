@@ -394,7 +394,7 @@ const Bridge = () => {
                 <div className="global-loading-content">
                     <SpinLoading className="cost-loading" style={{ '--size': '32px', color: '#3dd6c6' }} />
                     <div className="cost-text">
-                        Cost calculation in progress
+                        Computing proof of work…
                         <div className="cost-sub">Please wait a moment</div>
                         </div>
                 </div>

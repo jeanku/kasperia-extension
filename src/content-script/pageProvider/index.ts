@@ -4,6 +4,7 @@ import BroadcastChannelMessage from '@/content-script/message/boardcastMessage';
 import KasperiaIcon from '@/assets/images/icon128.png'
 import PushEventHandlers from './pushEventHandlers';
 import ReadyPromise from './readyPromise';
+import {NetworkType} from "@/utils/wallet/consensus";
 import { $, domReadyCall } from './utils';
 
 
@@ -29,7 +30,7 @@ interface RequestArguments {
 }
 
 
-const _unisatPrividerPrivate: {
+const _kasperiaPrividerPrivate: {
   _selectedAddress: string | null;
   _network: string | null;
   _isConnected: boolean;
@@ -63,12 +64,12 @@ const _unisatPrividerPrivate: {
 
 let cache_origin = '';
 
-export class UnisatProvider extends EventEmitter {
+export class KasperiaProvider extends EventEmitter {
   constructor({ maxListeners = 100 } = {}) {
     super();
     this.setMaxListeners(maxListeners);
     this.initialize();
-    _unisatPrividerPrivate._pushEventHandlers = new PushEventHandlers(this, _unisatPrividerPrivate);
+    _kasperiaPrividerPrivate._pushEventHandlers = new PushEventHandlers(this, _kasperiaPrividerPrivate);
   }
 
   tryDetectTab = async () => {
@@ -80,7 +81,7 @@ export class UnisatProvider extends EventEmitter {
         ($('head > meta[itemprop="image"]') as HTMLMetaElement)?.content;
 
       const name = document.title || ($('head > meta[name="title"]') as HTMLMetaElement)?.content || origin;
-      _unisatPrividerPrivate._bcm.request({
+      _kasperiaPrividerPrivate._bcm.request({
         method: 'tabCheckin',
         params: { icon, name, origin }
       });
@@ -89,36 +90,7 @@ export class UnisatProvider extends EventEmitter {
 
   initialize = async () => {
     document.addEventListener('visibilitychange', this._requestPromiseCheckVisibility);
-    _unisatPrividerPrivate._bcm.connect().on('message', this._handleBackgroundMessage);
-    //
-    // this.tryDetectTab();
-    // domReadyCall(() => {
-    //   this.tryDetectTab();
-    // });
-    //
-    // try {
-    //   const { network, accounts, isUnlocked }: any = await this._request({
-    //     method: 'getProviderState'
-    //   });
-    //   if (isUnlocked) {
-    //     _unisatPrividerPrivate._isUnlocked = true;
-    //     _unisatPrividerPrivate._state.isUnlocked = true;
-    //   }
-    //   this.emit('connect', {});
-    //   _unisatPrividerPrivate._pushEventHandlers?.networkChanged({
-    //     network
-    //   });
-    //
-    //   _unisatPrividerPrivate._pushEventHandlers?.accountsChanged(accounts);
-    // } catch {
-    //   //
-    // } finally {
-    //   _unisatPrividerPrivate._initialized = true;
-    //   _unisatPrividerPrivate._state.initialized = true;
-    //   this.emit('_initialized');
-    // }
-
-    // this.keepAlive();
+    _kasperiaPrividerPrivate._bcm.connect().on('message', this._handleBackgroundMessage);
   };
 
   /**
@@ -137,25 +109,15 @@ export class UnisatProvider extends EventEmitter {
 
   private _requestPromiseCheckVisibility = () => {
     if (document.visibilityState === 'visible') {
-      _unisatPrividerPrivate._requestPromise.check(1);
+      _kasperiaPrividerPrivate._requestPromise.check(1);
     } else {
-      _unisatPrividerPrivate._requestPromise.uncheck(1);
+      _kasperiaPrividerPrivate._requestPromise.uncheck(1);
     }
   };
 
   private _handleBackgroundMessage = ({ event, data }: {event: string, data: any}) => {
-    console.log('[push event]', event, data);
-
-    // if (_unisatPrividerPrivate._pushEventHandlers?.[event]) {
-    //   return _unisatPrividerPrivate._pushEventHandlers[event](data);
-    // }
-
     this.emit(event, data);
   };
-  // TODO: support multi request!
-  // request = async (data) => {
-  //   return this._request(data);
-  // };
 
   _request = async (data: any) => {
     if (!data) {
@@ -164,12 +126,11 @@ export class UnisatProvider extends EventEmitter {
 
     this._requestPromiseCheckVisibility();
 
-    return _unisatPrividerPrivate._requestPromise.call(() => {
+    return _kasperiaPrividerPrivate._requestPromise.call(() => {
       console.log('[request]', JSON.stringify(data, null, 2));
-      return _unisatPrividerPrivate._bcm
+      return _kasperiaPrividerPrivate._bcm
         .request(data)
         .then((res: any) => {
-          console.log('[request: success]', data.method, res);
           return res;
         })
         .catch((err: any) => {
@@ -181,6 +142,73 @@ export class UnisatProvider extends EventEmitter {
         });
     });
   };
+
+    getNetwork = async () => {
+        return this._request({
+            method: 'getNetwork'
+        });
+    };
+
+    switchNetwork = async (networkType: NetworkType) => {
+        if (networkType !== NetworkType.Mainnet && networkType !== NetworkType.Testnet) {
+            throw Error("networkId invalid, networkId must be mainnet or testnet");
+        }
+        return this._request({
+            method: 'switchNetwork',
+            params: {
+                networkType
+            }
+        });
+    };
+
+    getAccounts = async () => {
+        return this._request({
+            method: 'getAccounts'
+        });
+    };
+
+    getPublicKey = async () => {
+        return this._request({
+            method: 'getPublicKey'
+        });
+    };
+
+    getBalance = async () => {
+        return this._request({
+            method: 'getBalance'
+        });
+    };
+
+    sendKaspa = async (toAddress: string, amount: string, options: any) => {
+        if (toAddress == undefined || toAddress.trim()  == '') {
+            throw Error("toAddress must be a valid kaspa address")
+        }
+        const num = Number(amount);
+        if (amount == undefined || !( Number.isInteger(num) && num > 0)) {
+            throw Error("amount invalid")
+        }
+        return this._request({
+            method: 'sendKaspa',
+            params: {
+                toAddress,
+                amount,
+                options
+            }
+        });
+    };
+
+    disconnect = async (origin: string) => {
+        return this._request({
+            method: 'disconnect',
+            params: {
+                origin,
+            }
+        });
+    };
+
+    getVersion = async () => {
+        return "1.10.50";
+    };
 
   async request({ method, params }: RequestArguments): Promise<any> {
     console.log("【injected call:】method: is calling ....", method, JSON.stringify(params))
@@ -213,82 +241,12 @@ export class UnisatProvider extends EventEmitter {
         }))
     }
   }
-
-
-
-
 }
-
-// class CosmJSOfflineSigner {
-//   constructor(
-//     protected readonly chainId: string,
-//     protected readonly provider: UnisatProvider,
-//     protected readonly signOptions?: any
-//   ) {}
-//
-//   async getAccounts() {
-//     const key: any = await this.provider.keplr.getKey(this.chainId);
-//     return [
-//       {
-//         address: key.bech32Address,
-//         algo: key.algo,
-//         pubkey: key.pubKey
-//       }
-//     ];
-//   }
-//
-//   async signDirect(signerAddress: string, signDoc: any) {
-//     const response: any = await this.provider._request({
-//       method: 'cosmos_signDirect',
-//       params: {
-//         signerAddress,
-//         signDoc: {
-//           bodyBytes: signDoc.bodyBytes,
-//           authInfoBytes: signDoc.authInfoBytes,
-//           chainId: signDoc.chainId,
-//           accountNumber: signDoc.accountNumber.toString()
-//         }
-//       }
-//     });
-//     return {
-//       signed: {
-//         bodyBytes: objToUint8Array(response.signed.bodyBytes),
-//         authInfoBytes: objToUint8Array(response.signed.authInfoBytes),
-//         chainId: response.signed.chainId.toString(),
-//         accountNumber: response.signed.accountNumber.toString()
-//       },
-//       signature: response.signature
-//     };
-//   }
-// }
-
-// declare global {
-//   interface Window {
-//     kasperia: UnisatProvider;
-//   }
-// }
-
-// const provider = new UnisatProvider();
-
-// if (!window.kasperia) {
-//   window.kasperia = new Proxy(provider, {
-//     deleteProperty: () => true
-//   });
-// }
-//
-// Object.defineProperty(window, 'kasperia', {
-//   value: new Proxy(provider, {
-//     deleteProperty: () => true
-//   }),
-//   writable: false
-// });
-//
-// window.dispatchEvent(new Event('kasperia#initialized'));
 
 declare global {
     interface Window {
-        kasperia?: UnisatProvider;
-        ethereum?: UnisatProvider;
+        kasperia?: KasperiaProvider;
+        ethereum?: KasperiaProvider;
     }
 }
 
@@ -302,7 +260,7 @@ function extensionIdToUUID(extensionId: string) {
     ].join("-");
 }
 
-const handler: ProxyHandler<UnisatProvider> = {
+const handler: ProxyHandler<KasperiaProvider> = {
     get(target, prop, receiver) {
         const value = Reflect.get(target, prop, receiver);
         if (typeof value === 'function') return (value as Function).bind(target);
@@ -319,8 +277,8 @@ const handler: ProxyHandler<UnisatProvider> = {
     }
 };
 
-const existing = window.kasperia as UnisatProvider | undefined;
-const baseProvider: UnisatProvider = existing ?? new UnisatProvider();
+const existing = window.kasperia as KasperiaProvider | undefined;
+const baseProvider: KasperiaProvider = existing ?? new KasperiaProvider();
 (baseProvider as any).isKasperia = true;
 (baseProvider as any).isMetamask = true;
 const proxied = new Proxy(baseProvider, handler);

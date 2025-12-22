@@ -1,14 +1,14 @@
 import { ethErrors } from 'eth-rpc-errors';
 
-import { UnisatProvider } from './index';
+import { KasperiaProvider } from './index';
 import ReadyPromise from '@/content-script/pageProvider/readyPromise';
 import BroadcastChannelMessage from '@/content-script/message/boardcastMessage';
 
 class PushEventHandlers {
-  provider: UnisatProvider;
-  _unisatProviderPrivate:any;
+  provider: KasperiaProvider;
+  _kasperiaProviderPrivate:any;
 
-  constructor(provider: UnisatProvider, _unisatProviderPrivate: {
+  constructor(provider: KasperiaProvider, _kasperiaProviderPrivate: {
     _selectedAddress: string | null;
     _network: string | null;
     _isConnected: boolean;
@@ -19,37 +19,37 @@ class PushEventHandlers {
     _bcm: BroadcastChannelMessage
   }) {
     this.provider = provider;
-    this._unisatProviderPrivate = _unisatProviderPrivate;
+    this._kasperiaProviderPrivate = _kasperiaProviderPrivate;
   }
 
   _emit(event: string| symbol, data: any) {
-    if (this._unisatProviderPrivate._initialized) {
+    if (this._kasperiaProviderPrivate._initialized) {
       this.provider.emit(event, data);
     }
   }
 
   connect = (data: any) => {
-    if (!this._unisatProviderPrivate._isConnected) {
-      this._unisatProviderPrivate._isConnected = true;
-      this._unisatProviderPrivate._state.isConnected = true;
+    if (!this._kasperiaProviderPrivate._isConnected) {
+      this._kasperiaProviderPrivate._isConnected = true;
+      this._kasperiaProviderPrivate._state.isConnected = true;
       this._emit('connect', data);
     }
   };
 
   unlock = () => {
-    this._unisatProviderPrivate._isUnlocked = true;
-    this._unisatProviderPrivate._state.isUnlocked = true;
+    this._kasperiaProviderPrivate._isUnlocked = true;
+    this._kasperiaProviderPrivate._state.isUnlocked = true;
   };
 
   lock = () => {
-    this._unisatProviderPrivate._isUnlocked = false;
+    this._kasperiaProviderPrivate._isUnlocked = false;
   };
 
   disconnect = () => {
-    this._unisatProviderPrivate._isConnected = false;
-    this._unisatProviderPrivate._state.isConnected = false;
-    this._unisatProviderPrivate._state.accounts = null;
-    this._unisatProviderPrivate._selectedAddress = null;
+    this._kasperiaProviderPrivate._isConnected = false;
+    this._kasperiaProviderPrivate._state.isConnected = false;
+    this._kasperiaProviderPrivate._state.accounts = null;
+    this._kasperiaProviderPrivate._selectedAddress = null;
     const disconnectError = ethErrors.provider.disconnected();
 
     this._emit('accountsChanged', []);
@@ -58,20 +58,20 @@ class PushEventHandlers {
   };
 
   accountsChanged = (accounts: string[]) => {
-    if (accounts?.[0] === this._unisatProviderPrivate._selectedAddress) {
+    if (accounts?.[0] === this._kasperiaProviderPrivate._selectedAddress) {
       return;
     }
 
-    this._unisatProviderPrivate._selectedAddress = accounts?.[0];
-    this._unisatProviderPrivate._state.accounts = accounts;
+    this._kasperiaProviderPrivate._selectedAddress = accounts?.[0];
+    this._kasperiaProviderPrivate._state.accounts = accounts;
     this._emit('accountsChanged', accounts);
   };
 
   networkChanged = ({ network } : {network: any}) => {
     this.connect({});
 
-    if (network !== this._unisatProviderPrivate._network) {
-      this._unisatProviderPrivate._network = network;
+    if (network !== this._kasperiaProviderPrivate._network) {
+      this._kasperiaProviderPrivate._network = network;
       this._emit('networkChanged', network);
     }
   };
