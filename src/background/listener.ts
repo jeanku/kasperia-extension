@@ -106,6 +106,7 @@ const handlers: Record<string, (message: any) => Promise<any> | any> = {
     "Account.estimateFee": (msg) => accountService.estimateFee(msg.from, msg.to, msg.sompi, msg.payload),
     "Account.transferKas": (msg) => accountService.transferKas(msg.to, msg.amount, msg.payload),
     "Account.getBalanceFormatEther": (msg) => accountService.getBalanceFormatEther(msg.address),
+    "Account.bridgeForIgra": (msg) => accountService.bridgeForIgra(msg.receiver, msg.address, msg.amount),
 };
 
 const handleError = (error: unknown, sendResponse: (response: any) => void) => {

@@ -23,6 +23,7 @@ import {EvmTokenList} from '@/model/evm'
 import {NetworkId, ScriptPublicKey} from '@/utils/wallet/consensus';
 import {Krc20DeployOptions, Krc20DeployScript, Krc20MintScript, Krc20TransferScript} from '@/utils/wallet/krc20';
 import {stringToUint8Array} from "@/utils/util";
+import { buildEntryPayload } from "@/background/utils";
 import {Provider} from "@/utils/wallet/provider";
 import {BlockTag, TransactionRequest} from "ethers/src.ts/providers/provider";
 import { ethers } from "ethers";
@@ -443,6 +444,110 @@ export class Account {
         return this.get_provider().then(provider => {
             return provider.sendTransaction(privateKey.priKey, tx)
         })
+    }
+
+    async bridgeForIgra(receiveAddress: string, toAddress: string, amount: string): Promise<string> {
+        let account = keyringService.currentAccount()
+        let networkId = await preferenceService.getNetworkId()
+        const senderAddress = Keypair.fromPrivateKeyHex(account.priKey).toAddress(networkId.networkType);
+
+        let utxos = await this.client?.getUtxosByAddresses([senderAddress.toString()])
+        if (!utxos) {
+            throw new Error("fetch utxo fail")
+        }
+        let value = ethers.parseUnits(amount, 8)
+
+        const output0 = new PaymentOutput(receiveAddress, value);
+        const baseSetting = new GeneratorSettings(
+            [output0],
+            senderAddress,
+            utxos.entries,
+            NetworkId.Testnet10,
+            0n,
+            undefined,
+            undefined,
+            undefined,
+            new Uint8Array()
+        );
+
+        const abortController = new AbortController();
+        const signal = abortController.signal;
+
+        const worker = async (workerId: number, start: number, end: number): Promise<{
+            nonce: number,
+        }> => {
+            for (let i = start; i <= end; i++) {
+                if (i % 100 === 0 && signal.aborted) {
+                    throw new DOMException('Aborted', 'AbortError');
+                }
+
+                let bufferData = buildEntryPayload(toAddress, value, i);
+                baseSetting.payload = new Uint8Array(bufferData)
+                const generator = new Generator(baseSetting);
+                const id = generator.generateTransactionId();
+                const idBytes = id?.toBytes();
+                if (idBytes && idBytes[0] === 151 && idBytes[1] === 177) {
+                    return { nonce: i };
+                }
+            }
+            throw new Error('No match found');
+        };
+        const startRange = 1;
+        const endRange = 200000;
+
+        const availableCores = navigator.hardwareConcurrency || 4;
+        const workerCount = Math.min(availableCores - 1, 16);
+
+        const chunkSize = Math.ceil((endRange - startRange + 1) / workerCount);
+
+        const workerPromises: Promise<{
+            nonce: number,
+        }>[] = [];
+
+        for (let w = 0; w < workerCount; w++) {
+            const start = startRange + w * chunkSize;
+            const end = Math.min(start + chunkSize - 1, endRange);
+
+            const promise = Promise.resolve().then(async () => {
+                try {
+                    return await worker(w, start, end);
+                } catch (error) {
+                    throw new Error(`Worker ${w}: ${error}`);
+                }
+            });
+            workerPromises.push(promise);
+        }
+
+        try {
+            const timeoutPromise = new Promise<never>((_, reject) => {
+                setTimeout(() => reject(new Error('timeout')), 30000); // 30秒超时
+            });
+
+            const result = await Promise.any([...workerPromises, timeoutPromise]);
+
+            abortController.abort();
+
+            let bufferData = buildEntryPayload(toAddress, value, result.nonce);
+
+            baseSetting.payload = new Uint8Array(bufferData)
+            const generator = new Generator(baseSetting);
+            let tx = generator.generateTransaction()
+
+            if (!tx) {
+                throw new Error("tx generateTransaction fail")
+            }
+            
+            const signedTx = await tx!.sign([account.priKey]);
+            await this.client?.submitTransaction({
+                transaction: signedTx.toSubmittableJsonTx(),
+                allowOrphan: false
+            });
+            this.resetEntry()
+            return signedTx.transaction.id.toString()
+        } catch (error) {
+            abortController.abort();
+        }
+        return ""
     }
 }
 

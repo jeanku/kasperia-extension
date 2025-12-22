@@ -152,9 +152,9 @@ module.exports = (env, argv) => {
                 new TerserPlugin({
                     terserOptions: {
                         mangle: false,
-                        compress: {
-                            drop_console: true
-                        }
+                        // compress: {
+                            // drop_console: true
+                        // }
                     },
                     extractComments: false,
                 })

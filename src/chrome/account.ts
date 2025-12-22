@@ -60,7 +60,11 @@ export class Account extends Chrome {
         return Chrome.request({ action: "Account.sendTransaction", tx })
     }
 
-    static getERC20Tokens(address: string): Promise<EvmTokenList[]> {
+    static async getERC20Tokens(address: string): Promise<EvmTokenList[]> {
         return Chrome.request({ action: "Account.getERC20Tokens", address })
+    }
+
+    static async bridgeForIgra(receiver: string, address: string, amount: string): Promise<string> {
+        return Chrome.request({ action: "Account.bridgeForIgra", receiver, address, amount })
     }
 }

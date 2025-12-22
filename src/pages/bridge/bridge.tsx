@@ -16,11 +16,13 @@ import { NetworkType } from "@/utils/wallet/consensus";
 import { formatAddress, formatBalanceFixed } from '@/utils/util'
 import {
     KasplexL2TestnetChainId,
+    IGRAL2TestnetChainId,
     KasplexL2MainnetChainId,
     KasplexL1ToL2BridgeAddressForMainnet,
     KasplexL2ToL1BridgeAddressForMainnet,
     KasplexL2ToL1BridgeAddressForTestnet,
-    KasplexL1ToL2BridgeAddressForTestnet
+    KasplexL1ToL2BridgeAddressForTestnet,
+    IGRAL1ToL2BridgeAddressForTestnet,
 } from '@/types/constant'
 
 import { AccountsSubListDisplay } from '@/model/account'
@@ -92,13 +94,14 @@ const Bridge = () => {
             [KasplexL2MainnetChainId]: true
         },
         testnet: {
-            [KasplexL2TestnetChainId]: true
+            [KasplexL2TestnetChainId]: true,
+            [IGRAL2TestnetChainId]: true
         },
     }
 
     const syncBalance = async () => {
         Account.getBalance(fromData.address).then(r => {
-            let bal = ethers.formatUnits(r, 8)
+            let bal = ethers.formatUnits(r.balance, 8)
             if (fromData.balance != bal) {
                 fromData.balance = bal
                 setFromData(fromData)
@@ -170,6 +173,9 @@ const Bridge = () => {
     }
 
     const switchInfo = async () => {
+        if (Number(evmNetwork.chainId) == IGRAL2TestnetChainId) {
+            return noticeError("not support for igra")
+        }
         let temp = fromData
         if (!toData.isKaspa && Number(toData.balance) == 0) {
             let balance = await Account.getEvmBalanceFormatEther(toData.address)
@@ -208,10 +214,34 @@ const Bridge = () => {
                     await bridgeL2ToKasplexL1(isKaspaMain)
                 }
             }
+            if (Number(evmNetwork.chainId) == IGRAL2TestnetChainId) {
+                if (fromData.isKaspa) {
+                    await bridgeL1ToIgraL2(isKaspaMain)
+                } else {
+                    //
+                }
+            }
         } catch (error) {
             noticeError(error)
         }
         setBridgeLoading(false)
+    }
+
+    const bridgeL1ToIgraL2 = async (isKaspaMainnet: boolean) => {
+        if (isKaspaMainnet) {
+            return  noticeError("mainnet not support")
+        }
+        let hash = await Account.bridgeForIgra(IGRAL1ToL2BridgeAddressForTestnet, toData.changeAddress || toData.address, amount.toString())
+        navigate('/bridge/sendResult', {
+            state: {
+                hash,
+                evmNetwork,
+                sendTo: {
+                    address: IGRAL1ToL2BridgeAddressForTestnet,
+                    amount: amount,
+                },
+            }
+        })
     }
 
     const bridgeL1ToKasplexL2 = async (isKaspaMainnet: boolean) => {
@@ -223,6 +253,7 @@ const Bridge = () => {
             payload: payload,
         }}})
     }
+
 
     const bridgeL2ToKasplexL1 = async (isKaspaMainnet: boolean) => {
         let bridgeAddr = isKaspaMainnet ? KasplexL2ToL1BridgeAddressForMainnet : KasplexL2ToL1BridgeAddressForTestnet
@@ -258,18 +289,17 @@ const Bridge = () => {
         if (fromData.isKaspa) {
             switch (Number(evmNetwork.chainId)) {
                 case KasplexL2TestnetChainId:
-                    setToAmount(caluL1ToL2ReceiveAmount())
-                    break
                 case KasplexL2MainnetChainId:
                     setToAmount(caluL1ToL2ReceiveAmount())
+                    break
+                case IGRAL2TestnetChainId:
+                    setToAmount(amount)
                     break
                 default:
             }
         } else {
             switch (Number(evmNetwork.chainId)) {
                 case KasplexL2TestnetChainId:
-                    setToAmount(caluL2ToL1ReceiveAmout())
-                    break
                 case KasplexL2MainnetChainId:
                     setToAmount(caluL2ToL1ReceiveAmout())
                     break
