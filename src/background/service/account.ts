@@ -492,8 +492,9 @@ export class Account {
             }
             throw new Error('No match found');
         };
-        const startRange = 1;
-        const endRange = 200000;
+        const timestampMs = Date.now();
+        const startRange = timestampMs;
+        const endRange = timestampMs + 200000;
 
         const availableCores = navigator.hardwareConcurrency || 4;
         const workerCount = Math.min(availableCores - 1, 16);
@@ -520,7 +521,7 @@ export class Account {
 
         try {
             const timeoutPromise = new Promise<never>((_, reject) => {
-                setTimeout(() => reject(new Error('timeout')), 30000); // 30秒超时
+                setTimeout(() => reject(new Error('timeout')), 30000);
             });
 
             const result = await Promise.any([...workerPromises, timeoutPromise]);

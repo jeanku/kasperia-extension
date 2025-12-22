@@ -229,19 +229,19 @@ const Bridge = () => {
 
     const bridgeL1ToIgraL2 = async (isKaspaMainnet: boolean) => {
         if (isKaspaMainnet) {
-            return  noticeError("mainnet not support")
+            return noticeError("mainnet not support")
         }
-        let hash = await Account.bridgeForIgra(IGRAL1ToL2BridgeAddressForTestnet, toData.changeAddress || toData.address, amount.toString())
-        navigate('/bridge/sendResult', {
-            state: {
-                hash,
-                evmNetwork,
-                sendTo: {
-                    address: IGRAL1ToL2BridgeAddressForTestnet,
-                    amount: amount,
-                },
-            }
-        })
+        let txid = await Account.bridgeForIgra(IGRAL1ToL2BridgeAddressForTestnet, toData.changeAddress || toData.address, amount.toString())
+        if (!txid) {
+            return noticeError("No valid nonce found in the specified range. Please try again")
+        }
+        let tx =  {
+            address: IGRAL1ToL2BridgeAddressForTestnet,
+            amount: ethers.parseUnits(amount.toString(), 8),
+            payload: undefined,
+            token: {}
+        }
+        navigate('/tx/result', { state:{submitTx: tx, txid} })
     }
 
     const bridgeL1ToKasplexL2 = async (isKaspaMainnet: boolean) => {

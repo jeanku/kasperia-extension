@@ -110,9 +110,33 @@ export const formatDate = (mts: string) => {
 };
 
 export const hexToString = (hex: string): string => {
-    if (hex == "") return ""
-    const bytes = new Uint8Array(hex.match(/.{1,2}/g)!.map(byte => parseInt(byte, 16)));
-    return new TextDecoder().decode(bytes);
+    if (!hex) return "";
+
+    if (hex.startsWith("0x")) {
+        hex = hex.slice(2);
+    }
+
+    if (hex.length % 2 !== 0) {
+        throw new Error("Invalid hex string");
+    }
+
+    const bytes = new Uint8Array(
+        hex.match(/.{1,2}/g)!.map(b => parseInt(b, 16))
+    );
+
+    const decoded = new TextDecoder("utf-8", { fatal: false }).decode(bytes);
+
+    for (let i = 0; i < decoded.length; i++) {
+        const c = decoded.charCodeAt(i);
+        if (
+            c === 0 ||          // null byte
+            c < 0x20 ||         // control chars
+            c > 0x7e            // non-ascii
+        ) {
+            return hex;
+        }
+    }
+    return decoded;
 }
 
 export const stringToUint8Array = (str: string): Uint8Array => {
