@@ -24,6 +24,8 @@ module.exports = (env, argv) => {
         },
         resolve: {
             extensions: ['.tsx', '.ts', '.js', '.css', '.scss'],
+            mainFields: ['browser', 'module', 'main'],
+            conditionNames: ['browser', 'import', 'default'],
             alias: {
                 '@': path.resolve(__dirname, 'src/'),
                 '@kasplex': path.resolve(__dirname, 'node_modules/@kasplex')
@@ -37,8 +39,13 @@ module.exports = (env, argv) => {
             rules: [
                 {
                     test: /\.tsx?$/,
-                    use: 'ts-loader',
-                    exclude: /node_modules/
+                    include: path.resolve(__dirname, 'src'),
+                    use: {
+                        loader: 'ts-loader',
+                        options: {
+                            transpileOnly: true,
+                        },
+                    },
                 },
                 {
                     test: /\.css$/,
@@ -153,7 +160,7 @@ module.exports = (env, argv) => {
                     terserOptions: {
                         mangle: false,
                         // compress: {
-                            // drop_console: true
+                        // drop_console: true
                         // }
                     },
                     extractComments: false,
@@ -165,6 +172,11 @@ module.exports = (env, argv) => {
         },
         performance: {
             hints: false
-        }
+        },
+        ignoreWarnings: [
+            warning =>
+                typeof warning.message === "string" &&
+                warning.message.includes("conflicting star exports for the name '__esModule'"),
+        ],
     }
 }
