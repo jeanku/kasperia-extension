@@ -392,10 +392,11 @@ const Bridge = () => {
             </div>
             <Mask visible={calcLoading} className="global-loading-mask">
                 <div className="global-loading-content">
-                    <SpinLoading style={{ '--size': '32px' }} />
-                    <div className="global-loading-text">
-                        Cost calculation in progress, please wait
-                    </div>
+                    <SpinLoading className="cost-loading" style={{ '--size': '32px', color: '#3dd6c6' }} />
+                    <div className="cost-text">
+                        Cost calculation in progress
+                        <div className="cost-sub">Please wait a moment</div>
+                        </div>
                 </div>
             </Mask>
             <Popup

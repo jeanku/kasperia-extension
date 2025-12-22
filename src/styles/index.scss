@@ -2732,6 +2732,9 @@ em {
     align-items: center;
     justify-content: center;
 }
+.cost-loading {
+  --color: #3dd6c6;
+}
 
 .global-loading-content {
     min-width: 220px;
@@ -2743,20 +2746,27 @@ em {
     align-items: center;
     gap: 14px;
 
-    background: #333333;
+    background: #1f1f1f;
     backdrop-filter: blur(8px);
 
     border-radius: 16px;
     box-shadow:
-        0 12px 32px rgba(0, 0, 0, 0.15);
+        0 12px 32px rgba(0, 0, 0, 0.45);
 
     text-align: center;
 }
 
-.global-loading-text {
-    font-size: 14px;
-    line-height: 1.4;
-    color: $text-color;
+.cost-text {
+  font-size: 15px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.88);
+  line-height: 1.4;
+
+  .cost-sub {
+    margin-top: 4px;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.6);
+  }
 }
 
 @keyframes ellipsis {
