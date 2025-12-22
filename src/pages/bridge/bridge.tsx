@@ -1,7 +1,7 @@
 import { useMemo, useState, useEffect } from 'react';
 import { useNavigate, useLocation } from "react-router-dom";
 
-import { Button, Popup, Tabs } from 'antd-mobile'
+import { Button, Popup, Tabs, Mask, SpinLoading } from 'antd-mobile'
 import { AddressType } from '@/types/enum'
 import { useNotice } from '@/components/NoticeBar/NoticeBar'
 
@@ -56,6 +56,7 @@ const Bridge = () => {
     const { preference } = useSelector((state: RootState) => state.preference);
 
     const [evmNetwork, setEvmNetwork] = useState<EvmNetwork>(state?.evmNetwork)
+    const [calcLoading, setCalcLoading] = useState(false)
 
     const [bridgeLoading, setBridgeLoading] = useState(false)
     const [popupVisible, setPopupVisible] = useState(false)
@@ -66,10 +67,10 @@ const Bridge = () => {
     const [contactValue, setContactValue] = useState<Address[] | null>(null)
 
     const isKasplex = useMemo(() => {
-        if(!evmNetwork || !evmNetwork.chainId) return false
+        if (!evmNetwork || !evmNetwork.chainId) return false
         const chainId = Number(evmNetwork.chainId)
         return chainId === KasplexL2TestnetChainId || chainId === KasplexL2MainnetChainId
-    }, [evmNetwork ]);
+    }, [evmNetwork]);
 
     const [fromData, setFromData] = useState<SwitchItem>({
         address: preference.currentAccount?.address!,
@@ -89,7 +90,7 @@ const Bridge = () => {
         network: evmNetwork?.name || "",
     })
 
-    const bridgeConfig:  BridgeConfig = {
+    const bridgeConfig: BridgeConfig = {
         mainnet: {
             [KasplexL2MainnetChainId]: true
         },
@@ -114,7 +115,7 @@ const Bridge = () => {
     }
 
     const setMax = () => {
-        setAmount(fromData.balance) 
+        setAmount(fromData.balance)
     }
 
     const setAddress = (address: string) => {
@@ -204,7 +205,7 @@ const Bridge = () => {
     const bridgeSubmit = async () => {
         try {
             if (bridgeLoading) return
-            setBridgeLoading(true)
+            setCalcLoading(true)
             checkChainValid()
             let isKaspaMain = preference.network.networkType == NetworkType.Mainnet
             if (isKasplex) {
@@ -223,8 +224,10 @@ const Bridge = () => {
             }
         } catch (error) {
             noticeError(error)
+        } finally {
+            setBridgeLoading(false)
+            setCalcLoading(false)
         }
-        setBridgeLoading(false)
     }
 
     const bridgeL1ToIgraL2 = async (isKaspaMainnet: boolean) => {
@@ -247,11 +250,15 @@ const Bridge = () => {
     const bridgeL1ToKasplexL2 = async (isKaspaMainnet: boolean) => {
         let bridgeAddr = isKaspaMainnet ? KasplexL1ToL2BridgeAddressForMainnet : KasplexL1ToL2BridgeAddressForTestnet
         let payload = toData.changeAddress || toData.address
-        navigate('/tx/sign', { state: { submitTx: {
-            address: bridgeAddr,
-            amount: ethers.parseUnits(amount.toString(), 8),
-            payload: payload,
-        }}})
+        navigate('/tx/sign', {
+            state: {
+                submitTx: {
+                    address: bridgeAddr,
+                    amount: ethers.parseUnits(amount.toString(), 8),
+                    payload: payload,
+                }
+            }
+        })
     }
 
 
@@ -266,7 +273,7 @@ const Bridge = () => {
             data,
             value: ethers.parseUnits(amount.toString(), evmNetwork.decimals).toString()
         })
-        navigate('/bridge/sendTx', { state: { unSignedTx: unSignedTx, evmNetwork, toAddress: toData.changeAddress || toData.address, amount: amount.toString() }})
+        navigate('/bridge/sendTx', { state: { unSignedTx: unSignedTx, evmNetwork, toAddress: toData.changeAddress || toData.address, amount: amount.toString() } })
     }
 
     const caluL1ToL2ReceiveAmount = () => {
@@ -310,7 +317,7 @@ const Bridge = () => {
 
     return (
         <div className="page-box">
-            <HeadNav title='Bridge' rightType={ isKasplex ? "history" : ""} url={ isKasplex ? "/bridge/bridgeHistory" : ""} onBack={() => navigate('/home')}></HeadNav>
+            <HeadNav title='Bridge' rightType={isKasplex ? "history" : ""} url={isKasplex ? "/bridge/bridgeHistory" : ""} onBack={() => navigate('/home')}></HeadNav>
             <div className="content-main page-bridge">
                 <div className='card-box'>
                     <div className='card-title flex-row cb as'>
@@ -360,7 +367,7 @@ const Bridge = () => {
                     <div className='flex-row cb ac mb12 mt20'>
                         <NumberInput
                             value={Number(toAmount)}
-                            onChange={(e) => {}}
+                            onChange={(e) => { }}
                             decimalPlaces={Number(toData.desc)}
                             allowNegative={true}
                             placeholder=""
@@ -383,6 +390,15 @@ const Bridge = () => {
                     </Button>
                 </div>
             </div>
+            <Mask visible={calcLoading} className="global-loading-mask">
+                <div className="global-loading-content">
+                    <SpinLoading className="cost-loading" style={{ '--size': '32px', color: '#3dd6c6' }} />
+                    <div className="cost-text">
+                        Cost calculation in progress
+                        <div className="cost-sub">Please wait a moment</div>
+                        </div>
+                </div>
+            </Mask>
             <Popup
                 visible={popupVisible}
                 className="wallet-popup"
