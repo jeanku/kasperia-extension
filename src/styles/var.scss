@@ -224,6 +224,10 @@ $color-rgb-a--116-230-216-0-06: rgba(116,230,216,0.06);
             font-size: 14px;
             font-weight: 500;
         }
+        span.break-word {
+            overflow-wrap: break-word;
+            width: 200px;
+        }
     }
     .coin-item-price,
     .coin-item-network  {

@@ -821,6 +821,11 @@ em {
     li.active {
         color: $primary-color;
     }
+    .remove-icon-right {
+        position: absolute;
+        right: 0;
+        top: 8px;
+    }
 
     .tab-underline {
         position: absolute;
@@ -955,6 +960,16 @@ em {
 
         .adm-image {
             flex-shrink: 0;
+        }
+        .list-item-img-star {
+            position: relative;
+            .check-icon-sm {
+                font-size: 12px;
+                position: absolute;
+                right: 13px;
+                top: 0;
+                color: $add-color;
+            }
         }
 
         .list-item-content {

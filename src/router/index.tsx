@@ -98,6 +98,9 @@ import {
   SendResult as BridgeSendResult,
 } from "@/pages/bridge/index";
 
+import KnsAsset from "@/pages/kns/asset";
+import KnsTransfer from '@/pages/kns/transfer'
+
 const AppRouter: React.FC = () => {
   return (
     <HashRouter>
@@ -185,6 +188,11 @@ const AppRouter: React.FC = () => {
             <Route path="bridgeHistory" element={ <BridgeHistory /> } />
             <Route path="sendTx" element={ <BridgeSendTransaction /> } />
             <Route path="sendResult" element={ <BridgeSendResult /> } />
+          </Route>
+
+          <Route path="/kns"> 
+            <Route path="knsAsset" element={ <KnsAsset /> } />
+            <Route path="transfer" element={ <KnsTransfer /> } />
           </Route>
 
           <Route path="*" element={<Nopage />} />

@@ -6,6 +6,8 @@ const tokensImages = require.context('../assets/images/tokens', false, /\.(png|j
 const chainsImages = require.context('../assets/images/chains', false, /\.(png|jpe?g|svg)$/);
 const imageMap: Record<string, any> = { tokens: {}, chains: {} };
 
+export type ImgType = 'tokens' | 'chains' | 'kns';
+
 // 初始化 tokens 图片映射
 tokensImages.keys().forEach((key: string) => {
     const name = key.replace('./', '').replace(/\.(png|jpe?g|svg)$/, '');
@@ -17,12 +19,18 @@ chainsImages.keys().forEach((key: string) => {
     const name = key.replace('./', '').replace(/\.(png|jpe?g|svg)$/, '');
     imageMap.chains[name] = chainsImages(key);
 });
-function handleTokenImage(url: string, urlPath: 'tokens' | 'chains'): {
+function handleTokenImage(url: string, urlPath: ImgType): {
     src: string;
     exists: boolean;
 } {
     if (!url) {
         return { src: DEFAULT_TOKEN_IMAGE, exists: false };
+    }
+    if (urlPath === 'kns') {
+        if (!url) {
+            return { src: DEFAULT_TOKEN_IMAGE, exists: false };
+        }
+        return { src: url, exists: true };
     }
 
     const images = imageMap[urlPath];
@@ -38,7 +46,7 @@ function handleTokenImage(url: string, urlPath: 'tokens' | 'chains'): {
 interface TokenImgProps {
     name: string;
     url: string;
-    urlPath?: 'tokens' | 'chains';
+    urlPath?: ImgType;
     width?: number;
     height?: number;
     className?: string;

@@ -1,7 +1,9 @@
 import React, {useEffect, useState} from "react"
 import HeadNav from '@/components/HeadNav'
 import { AddressType } from '@/types/enum'
-import { InfiniteScroll, List, Image } from 'antd-mobile'
+import { Evm } from '@/chrome/evm'
+import { useNotice } from '@/components/NoticeBar/NoticeBar'
+import { InfiniteScroll, List, Image, Modal } from 'antd-mobile'
 import { useClipboard } from '@/components/useClipboard'
 import {
     formatAddress,
@@ -32,8 +34,8 @@ import error = Simulate.error;
 const TokenInfo = () => {
     const { state } = useLocation()
     const navigate = useNavigate();
-
-
+    const { noticeSuccess, noticeError } = useNotice();
+    
     const { handleCopy } = useClipboard()
     const currentAccount = useSelector((state: RootState) => state.preference.preference?.currentAccount);
 
@@ -128,6 +130,16 @@ const TokenInfo = () => {
         window.open(`${network.explorer}/tx/${hash}`);
     }
 
+    const delToken = async () => {
+        try {
+            // await Evm.removeNetwork(network.chainId)
+            // noticeSuccess('Delete network successfully')
+            navigate("/home")
+        } catch (error) {
+            noticeError(error)
+        }
+    }
+
     useEffect(() => {
         handleTab(0)
         fetchBalance()
@@ -167,6 +179,18 @@ const TokenInfo = () => {
                     <ul className="page-tabs mb20">
                         <li className={currentTab === 0 ? "active" : ""} onClick={() => handleTab(0)}>Token info</li>
                         <li className={currentTab === 1 ? "active" : ""} onClick={() => handleTab(1)}>History</li>
+                        <SvgIcon className="remove-icon-right cursor-pointer" size={22} iconName="IconDel" onClick={() =>
+                            Modal.alert({
+                                title: 'Message',
+                                bodyClassName: 'modal-alert-body',
+                                content: 'If you delete this token, you need to add it again to view your assets in it',
+                                showCloseButton: true,
+                                confirmText: "Delete",
+                                onConfirm: async () => {
+                                    delToken()
+                                },
+                            })
+                        }  />
                     </ul>
                     <div className="history-box">
                         {currentTab === 1 ? (
@@ -233,8 +257,7 @@ const TokenInfo = () => {
                                             <div className="history-token-item">
                                                 <span>Contract Address</span>
                                                 <em onClick={() => handleCopy(token.address)}>{formatAddress(token.address)}
-                                                    <SvgIcon iconName="IconCopy"
-                                                             offsetStyle={{marginLeft: '5px', marginRight: '-12px'}}/></em>
+                                                    <SvgIcon iconName="IconCopy" offsetStyle={{marginLeft: '5px', marginRight: '-12px'}}/></em>
                                             </div>
                                         </>
                                     )

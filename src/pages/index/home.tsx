@@ -4,7 +4,7 @@ import { useSelector } from "react-redux";
 import CountUp from 'react-countup';
 
 import { SearchBar, DotLoading, List, Image, Popover } from 'antd-mobile'
-import { UserOutline, DownOutline, AddOutline, UndoOutline } from 'antd-mobile-icons'
+import { UserOutline, DownOutline, AddOutline, UndoOutline, CheckCircleFill } from 'antd-mobile-icons'
 import { Action } from 'antd-mobile/es/components/popover'
 import Footer from '@/components/Footer'
 import { SvgIcon } from '@/components/Icon/index'
@@ -31,7 +31,10 @@ import { KaspaClient, KaspaTransaction } from "@/utils/wallet/kaspa";
 import { Dispatch } from 'redux';
 import IconArrorRight from '@/assets/images/home-arrow-right.png'
 import { GetKrc20AddressTokenListResponse, Krc20Response } from "@/utils/wallet/krc20/types";
+import type { KnsItem } from '@/types/type'
 import NoDataIco from '@/assets/images/no-data-3.png'
+import IconKNS from '@/assets/icons/icon-kns.jpg'
+import IconKnsText from '@/assets/icons/icon-kns-text.jpg'
 
 
 export type TimedList<T> = {
@@ -55,6 +58,32 @@ const Home = () => {
     const [evmNetwork, setEvmNetwork] = useState<EvmNetwork | undefined>(undefined);
     const [contractAddressMap] = useState<Record<string, string>>(preference?.contractAddress || {});
     const [listLoadingType, setListLoadingType] = useState<LoadingType>(1);
+    const [knsList, setKNSList] = useState<KnsItem[]>([
+        {
+            "id": "14789",
+            "assetId": "3435d7ad879bfa8443802388a1f5a66491cad63e513ce5d038d6aff6eea5f826i0",
+            "mimeType": "",
+            "asset": "yeren.kas",
+            "owner": "kaspatest:qpul45k8lvgwdd50f2k8gku5lc5dqc3d2xnvxchkz4csylwy8dl9kwdseejfz",
+            "creationBlockTime": "2025-12-24T08:57:00.962Z",
+            "isDomain": true,
+            "isVerifiedDomain": true,
+            "status": "default",
+            "transactionId": "3435d7ad879bfa8443802388a1f5a66491cad63e513ce5d038d6aff6eea5f826"
+        },
+        {
+            "id": "14794",
+            "assetId": "31e69238d3b4657204bacbb332441606ccc9042e934d09a65b6325b46fa221e0i0",
+            "mimeType": "",
+            "asset": "wefwfew",
+            "owner": "kaspatest:qpul45k8lvgwdd50f2k8gku5lc5dqc3d2xnvxchkz4csylwy8dl9kwdseejfz",
+            "creationBlockTime": "2025-12-26T02:35:40.329Z",
+            "isDomain": false,
+            "isVerifiedDomain": true,
+            "status": "default",
+            "transactionId": "31e69238d3b4657204bacbb332441606ccc9042e934d09a65b6325b46fa221e0"
+        },
+    ]);
     const [filteredValue, setfilteredValue] = useState('');
 
     const [krc20TokenList, setKrc20TokenList] = useState<TimedList<TokenList>>({
@@ -73,7 +102,7 @@ const Home = () => {
         time: 0, list: [],
     });
 
-    const homeTabs = ['Tokens', "EVM", 'Activity']
+    const homeTabs = ['Tokens', "EVM", 'KNS','Activity']
     const activityTabs = ['KAS', 'KRC20']
 
     const underlineRef = useRef(null);
@@ -323,6 +352,10 @@ const Home = () => {
         navigate("/evm/tokenInfo", { state: { token: item, network: evmNetwork } })
     }
 
+    const toKnsInfo = (knsItem:KnsItem) => {
+        navigate("/kns/knsAsset", { state: { address: knsItem!.id } })
+    }
+
     function isEqualByNameAndBalance(a: any[], b: any[]): boolean {
         if (a.length !== b.length) return false;
         return a.every((item, index) =>
@@ -547,7 +580,31 @@ const Home = () => {
                                             </div>
                                             }
                                         </div>
-                                    ) : ""
+                                    ) : homeTabValue === 'KNS' ? 
+                                        knsList && (
+                                        <div className="page-list-box">
+                                            {knsList.map((item, index) => (
+                                                <div className="page-list-item" key={item.id} onClick={() => toKnsInfo(item)}>
+                                                    <div className="list-item-img-star">
+                                                        {
+                                                            item.isVerifiedDomain &&  <CheckCircleFill className="check-icon-sm" />
+                                                        }
+                                                        <TokenImg url={ item.isDomain ? IconKNS : IconKnsText} name="KNS" urlPath="kns" />
+                                                    </div>
+                                                    <div className="list-item-content">
+                                                        <strong>{item.asset}</strong>
+                                                        <span className="one-line"> {formatAddress(item.owner || item.asset)} </span>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                            {
+                                                knsList && knsList.length === 0 && <div className="no-data-box flex-row cc ac">
+                                                <img src={NoDataIco} alt="No Data" className="no-data-img" />
+                                            </div>
+                                            }
+                                        </div>
+                                    ) 
+                                    :""
                     }
                     {
                         listLoadingType ? (

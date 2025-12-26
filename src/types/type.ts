@@ -52,3 +52,17 @@ export interface AppKey {
     appsecret: string;
 }
 export type NetworkNameType = 'Mainnet' | 'Testnet'
+
+
+export interface KnsItem {
+    id: string;
+    assetId: string;
+    mimeType: string;
+    asset: string;
+    owner: string;
+    creationBlockTime: string;
+    isDomain: boolean;
+    isVerifiedDomain: boolean;
+    status: string;
+    transactionId: string;
+}
