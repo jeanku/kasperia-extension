@@ -26,10 +26,10 @@ import {
 import {ethers} from "ethers";
 import {Provider} from "@/utils/wallet/provider";
 import { HttpClient } from "@/utils/http";
+import { KasplexL2MainnetChainId } from "@/types/constant";
 import {useSelector} from "react-redux";
 import {RootState} from "@/store";
-import {Simulate} from "react-dom/test-utils";
-import error = Simulate.error;
+
 
 const TokenInfo = () => {
     const { state } = useLocation()
@@ -68,7 +68,7 @@ const TokenInfo = () => {
         if (!network.explorer || isFetching) return
         isFetching = true
         let domain = network.explorer
-        if (network.chainId == "202555") {
+        if (network.chainId == KasplexL2MainnetChainId.toString()) {
             domain = "https://api-explorer.kasplex.org"
         }
         let url = `${domain}/api/v2/addresses/${currentAccount?.ethAddress!}/transactions`
@@ -89,7 +89,7 @@ const TokenInfo = () => {
         if (!network.explorer || isFetching) return
         isFetching = true
         let domain = network.explorer
-        if (network.chainId == "202555") {
+        if (network.chainId == KasplexL2MainnetChainId.toString()) {
             domain = "https://api-explorer.kasplex.org"
         }
         let url = `${domain}/api/v2/addresses/${currentAccount?.ethAddress!}/token-transfers`
@@ -132,8 +132,9 @@ const TokenInfo = () => {
 
     const delToken = async () => {
         try {
-            // await Evm.removeNetwork(network.chainId)
-            // noticeSuccess('Delete network successfully')
+            console.log("token.address", token.address)
+            await Evm.removeContract(network.chainId, token.address)
+            noticeSuccess(`Delete ${token.name} successfully`)
             navigate("/home")
         } catch (error) {
             noticeError(error)
@@ -274,4 +275,5 @@ const TokenInfo = () => {
         </article>
     )
 }
+
 export default TokenInfo

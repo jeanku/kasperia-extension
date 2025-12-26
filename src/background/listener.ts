@@ -107,6 +107,7 @@ const handlers: Record<string, (message: any) => Promise<any> | any> = {
     "Account.transferKas": (msg) => accountService.transferKas(msg.to, msg.amount, msg.payload),
     "Account.getBalanceFormatEther": (msg) => accountService.getBalanceFormatEther(msg.address),
     "Account.bridgeForIgra": (msg) => accountService.bridgeForIgra(msg.receiver, msg.address, msg.amount),
+    "Account.transferKns": (msg) => accountService.transferKns(msg.assetId, msg.to, msg.isDomain),
 };
 
 const handleError = (error: unknown, sendResponse: (response: any) => void) => {

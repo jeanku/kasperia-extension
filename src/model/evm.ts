@@ -209,3 +209,31 @@ export interface AddEthereumChainParameter {
 }
 
 
+export interface KnsAsset {
+    id: string;
+    assetId: string;
+    mimeType: string;
+    asset: string;
+    owner: string;
+    creationBlockTime: string;
+    isDomain: boolean;
+    isVerifiedDomain?: boolean; // 可选，因为非域名资产没有这个字段
+    status: string;
+    transactionId: string;
+}
+
+export interface KnsPagination {
+    currentPage: number;
+    pageSize: number;
+    totalItems: number;
+    totalPages: number;
+}
+
+export interface KnsAssetsResponse {
+    success: boolean;
+    data: {
+        assets: KnsAsset[];
+        pagination: KnsPagination;
+    };
+}
+

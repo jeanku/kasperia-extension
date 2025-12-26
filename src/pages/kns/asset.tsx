@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from "react"
+import React, { useState } from "react"
 import { useLocation, useNavigate } from 'react-router-dom'
-import { SearchBar, DotLoading, List, Image, Button } from 'antd-mobile'
+import { Image, Button } from 'antd-mobile'
 
 import { SvgIcon } from '@/components/Icon/index'
 import { useClipboard } from '@/components/useClipboard';
 import HeadNav from '@/components/HeadNav'
+import { KnsAsset } from '@/model/evm';
 
 import { formatAddress } from '@/utils/util'
 
@@ -16,23 +17,12 @@ const KnsAsset = () => {
     const navigate = useNavigate();
     const { handleCopy } = useClipboard();
 
-    const [knsData, setKnsData] = useState({
-        "id": "14789",
-        "assetId": "3435d7ad879bfa8443802388a1f5a66491cad63e513ce5d038d6aff6eea5f826i0",
-        "mimeType": "",
-        "asset": "yeren.kas",
-        "owner": "kaspatest:qpul45k8lvgwdd50f2k8gku5lc5dqc3d2xnvxchkz4csylwy8dl9kwdseejfz",
-        "creationBlockTime": "2025-12-24T08:57:00.962Z",
-        "isDomain": true,
-        "isVerifiedDomain": true,
-        "status": "default",
-        "transactionId": "3435d7ad879bfa8443802388a1f5a66491cad63e513ce5d038d6aff6eea5f826"
-    })
+    const [knsData] = useState<KnsAsset>(state?.knsAsset)
 
     const transfer = () => {
         navigate('/kns/transfer', {
             state: {
-                asset: knsData.asset
+                knsAsset: knsData
             }
         })
     }

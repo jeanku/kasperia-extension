@@ -31,8 +31,13 @@ const SendResult = () => {
                 <div className='send-result-txt'>
                     <img className='result-img' src={IconSuccess} alt="success" />
                     <h6>Sent</h6>
-                    <p className='send-result-p'>{formatBalance(submitTx.amount.toString(), submitTx.token.dec)} {submitTx.token.name} was successfully sent to</p>
-                    <p className='send-result-p'>{formatAddress(submitTx.address, 8)}</p>
+                    {
+                        submitTx && <>
+                            <p className='send-result-p'>{formatBalance(submitTx.amount.toString(), submitTx.token.dec)} {submitTx.token.name} was
+                                successfully sent to</p>
+                            <p className='send-result-p'>{formatAddress(submitTx.address, 8)}</p>
+                        </>
+                    }
                     <p className='send-result-share' onClick={() => openTxExplorer()}><SvgIcon color="#74E6D8" offsetStyle={{marginRight: '6px'}} iconName="IconShare" />View transaction</p>
                 </div>
                 <div className="btn-pos-two">

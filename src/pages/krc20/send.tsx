@@ -132,9 +132,6 @@ const Send = () => {
                             allowNegative={true}
                             placeholder="amount"
                         />
-                        <div className="input-box-icon">
-                            <strong onClick={() => setAmount(ethers.formatUnits(token.balance, Number(token.dec)))}>MAX</strong>
-                        </div>
                     </div>
                 </div>
 

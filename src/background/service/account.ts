@@ -21,12 +21,14 @@ import {
 import {Keypair, Wallet} from '@/utils/wallet/wallet'
 import {EvmTokenList} from '@/model/evm'
 import {NetworkId, ScriptPublicKey} from '@/utils/wallet/consensus';
-import {Krc20DeployOptions, Krc20DeployScript, Krc20MintScript, Krc20TransferScript} from '@/utils/wallet/krc20';
+import {Krc20DeployOptions, Krc20DeployScript, Krc20MintScript, Krc20TransferScript, KnsTransferScript, KnsTransferOptions} from '@/utils/wallet/krc20';
 import {stringToUint8Array} from "@/utils/util";
 import { buildEntryPayload } from "@/background/utils";
 import {Provider} from "@/utils/wallet/provider";
 import {BlockTag, TransactionRequest} from "ethers/src.ts/providers/provider";
 import { ethers } from "ethers";
+import { OpCodes, ScriptBuilder } from '@/utils/wallet/tx/script';
+
 
 export class Account {
     private client: RpcClient | undefined = undefined
@@ -549,6 +551,72 @@ export class Account {
             abortController.abort();
         }
         return ""
+    }
+
+    async transferKns(assetId: string, to: string, isDomain: boolean) {
+        let options: KnsTransferOptions = {
+            op: "transfer",
+            id: assetId,
+            to: to,
+        };
+        if (isDomain) {
+            options.p = "domain"
+        }
+        let account = keyringService.currentAccount()
+        let networkId = await preferenceService.getNetworkId()
+
+        const senderAddress = Keypair.fromPrivateKeyHex(account.priKey).toAddress(networkId.networkType);
+
+        const script = new KnsTransferScript(senderAddress, networkId, options);
+        let p2shAddress = script.p2shAddress
+        let scriptPublicKey = script.payToScriptPublicKey()
+
+        let utxos = await this.client?.getUtxosByAddresses([senderAddress.toString()])
+        if (!utxos) {
+            throw Error("fetch utxo fail")
+        }
+        const output = new PaymentOutput(p2shAddress.toString(), KRC20_TRANSFER_TOTAL_FEES);
+
+        let setting = new GeneratorSettings([output], senderAddress, utxos.entries, networkId, 0n);
+        const generator = new Generator(setting);
+
+        let transaction = generator.generateTransaction()
+
+        const signedTx = await transaction!.sign([account.priKey]);
+
+        await this.client?.submitTransaction({
+            transaction: signedTx.toSubmittableJsonTx(),
+            allowOrphan: false
+        });
+        const priorityEntries = [
+            new UtxoEntryReference(
+                p2shAddress,
+                new TransactionOutpoint(signedTx.transaction.id, 0),
+                KRC20_TRANSFER_TOTAL_FEES,
+                scriptPublicKey,
+                U64_MAX_VALUE,
+                false
+            )
+        ];
+
+        let revealSetting = new GeneratorSettings([
+            new PaymentOutput(senderAddress, KRC20_TRANSFER_TOTAL_FEES - 10000n)
+        ], senderAddress, priorityEntries, NetworkId.Testnet10, 0n);
+
+        const revealGenerator = new Generator(revealSetting);
+        let revealTransaction = revealGenerator.generateTransaction()
+
+        const revealInputIndex = revealTransaction!.tx.inputs.findIndex((input) => input.signatureScript.length === 0);
+        if (revealInputIndex !== -1) {
+            const signature = revealTransaction!.createInputSignature(revealInputIndex, account.priKey);
+            revealTransaction!.fillInputSignature(revealInputIndex, script.script.encodePayToScriptHashSignatureScript(signature));
+        }
+
+        await this.client?.submitTransaction({
+            transaction: revealTransaction!.toSubmittableJsonTx(),
+            allowOrphan: false
+        });
+        return revealTransaction!.tx.id.toHex()
     }
 }
 

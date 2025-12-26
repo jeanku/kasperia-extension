@@ -67,4 +67,8 @@ export class Account extends Chrome {
     static async bridgeForIgra(receiver: string, address: string, amount: string): Promise<string> {
         return Chrome.request({ action: "Account.bridgeForIgra", receiver, address, amount })
     }
+    
+    static transferKns(assetId: string, to: string, isDomain: boolean): Promise<string> {
+        return Chrome.request({ action: "Account.transferKns", assetId, to, isDomain })
+    }
 }
