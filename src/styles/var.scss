@@ -226,7 +226,9 @@ $color-rgb-a--116-230-216-0-06: rgba(116,230,216,0.06);
         }
         span.break-word {
             overflow-wrap: break-word;
-            width: 200px;
+            line-height: 22px;
+            padding: 10px 0;
+            width: 288px;
         }
     }
     .coin-item-price,

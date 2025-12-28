@@ -8,7 +8,7 @@ import { Account } from '@/chrome/account'
 import { useNotice } from '@/components/NoticeBar/NoticeBar'
 import { formatAddress } from "@/utils/util"
 import IconKNS from '@/assets/icons/icon-kns.jpg'
-import IconKnsText from '@/assets/icons/icon-kns-text.jpg'
+import IconKnsText from '@/assets/icons/icon-kns-text.png'
 import { Address } from '@/model/contact'
 import { AccountsSubListDisplay } from '@/model/account'
 import { Contact } from '@/chrome/contact'

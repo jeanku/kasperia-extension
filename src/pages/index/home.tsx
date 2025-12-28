@@ -36,7 +36,8 @@ import { GetKrc20AddressTokenListResponse, Krc20Response } from "@/utils/wallet/
 import { KNSDomain } from '@/types/constant'
 import NoDataIco from '@/assets/images/no-data-3.png'
 import IconKNS from '@/assets/icons/icon-kns.jpg'
-import IconKnsText from '@/assets/icons/icon-kns-text.jpg'
+import IconKnsText from '@/assets/icons/icon-kns-text.png'
+import IconKnsSel from '@/assets/icons/icon-kns-sel.svg'
 
 
 export type TimedList<T> = {
@@ -586,7 +587,7 @@ const Home = () => {
                                                 <div className="page-list-item" key={item.id} onClick={() => toKnsInfo(index)}>
                                                     <div className="list-item-img-star">
                                                         {
-                                                            item.isVerifiedDomain &&  <CheckCircleFill className="check-icon-sm" />
+                                                            item.isVerifiedDomain &&  <img src={IconKnsSel } alt="" className="check-icon-sm" />
                                                         }
                                                         <TokenImg url={ item.isDomain ? IconKNS : IconKnsText} name="KNS" urlPath="kns" />
                                                     </div>

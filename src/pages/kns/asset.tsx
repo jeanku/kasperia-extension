@@ -10,9 +10,10 @@ import { KnsAsset } from '@/model/evm';
 import { formatAddress } from '@/utils/util'
 
 import IconKNS from '@/assets/icons/icon-kns.jpg'
-import IconKnsText from '@/assets/icons/icon-kns-text.jpg'
+import IconKnsText from '@/assets/icons/icon-kns-text.png'
+import IconKnsSel from '@/assets/icons/icon-kns-sel.svg'
 
-const KnsAsset = () => {
+const KnsAssetPage = () => {
     const { state } = useLocation()
     const navigate = useNavigate();
     const { handleCopy } = useClipboard();
@@ -31,6 +32,10 @@ const KnsAsset = () => {
         <article className="page-box">
             <HeadNav title={'KNS Asset'}></HeadNav>
             <div className="page-content assets-details">
+                <div className="kns-sel-box">
+                {
+                    knsData.isVerifiedDomain &&  <img src={IconKnsSel } alt="" className="check-icon-sm" />
+                }
                 <Image
                     src={knsData.isDomain ? IconKNS : IconKnsText}
                     width={54}
@@ -43,6 +48,7 @@ const KnsAsset = () => {
                     alt='kns'
                     style={{ borderRadius: '50%' }}
                 />
+                </div>
                 <div className="home-account mb30">
                     <section className="continer-box">
                         <div className="account-info">
@@ -86,4 +92,4 @@ const KnsAsset = () => {
 
 }
 
-export default KnsAsset
+export default KnsAssetPage
