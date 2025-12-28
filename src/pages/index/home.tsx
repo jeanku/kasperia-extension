@@ -597,7 +597,9 @@ const Home = () => {
                                                 </div>
                                             ))}
                                             {
-                                                <InfiniteScroll loadMore={ getKnslist } hasMore={knsHasMore} />
+                                                knsList.length > 0 && (
+                                                    <InfiniteScroll loadMore={ getKnslist } hasMore={knsHasMore} />
+                                                )
                                             }
                                             {
                                                 knsList && knsList.length === 0 && <div className="no-data-box flex-row cc ac">
