@@ -98,7 +98,7 @@ import {
   SendResult as BridgeSendResult,
 } from "@/pages/bridge/index";
 
-import KnsAsset from "@/pages/kns/asset";
+import KnsAssetPage from "@/pages/kns/asset";
 import KnsTransfer from '@/pages/kns/transfer'
 
 const AppRouter: React.FC = () => {
@@ -191,7 +191,7 @@ const AppRouter: React.FC = () => {
           </Route>
 
           <Route path="/kns"> 
-            <Route path="knsAsset" element={ <KnsAsset /> } />
+            <Route path="knsAsset" element={ <KnsAssetPage /> } />
             <Route path="transfer" element={ <KnsTransfer /> } />
           </Route>
 
