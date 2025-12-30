@@ -143,7 +143,7 @@ export class Account {
 
         let revealSetting = new GeneratorSettings([
             new PaymentOutput(senderAddress, KRC20_MINT_RETURN_FEES)
-        ], senderAddress, priorityEntries, NetworkId.Testnet10, KRC20_MINT_FEES);
+        ], senderAddress, priorityEntries, networkId, KRC20_MINT_FEES);
 
         const revealGenerator = new Generator(revealSetting);
         let revealTransaction = revealGenerator.generateTransaction()
@@ -198,7 +198,7 @@ export class Account {
 
         let revealSetting = new GeneratorSettings([
             new PaymentOutput(senderAddress, KRC20_MINT_RETURN_FEES)
-        ], senderAddress, priorityEntries, NetworkId.Testnet10, KRC20_DEPLOY_FEES);
+        ], senderAddress, priorityEntries, networkId, KRC20_DEPLOY_FEES);
 
         const revealGenerator = new Generator(revealSetting);
         let revealTransaction = revealGenerator.generateTransaction()
@@ -264,7 +264,7 @@ export class Account {
         let outputAddress = output < KRC20_MINT_FEES ? senderAddress : p2shAddress
         let revealSetting = new GeneratorSettings([
             new PaymentOutput(outputAddress, output)
-        ], senderAddress, inputEntries, NetworkId.Testnet10, KRC20_MINT_FEES);
+        ], senderAddress, inputEntries, networkId, KRC20_MINT_FEES);
 
         const revealGenerator = new Generator(revealSetting);
         let revealTransaction = revealGenerator.generateTransaction()
@@ -601,7 +601,7 @@ export class Account {
 
         let revealSetting = new GeneratorSettings([
             new PaymentOutput(senderAddress, KRC20_TRANSFER_TOTAL_FEES - 10000n)
-        ], senderAddress, priorityEntries, NetworkId.Testnet10, 0n);
+        ], senderAddress, priorityEntries, networkId, 0n);
 
         const revealGenerator = new Generator(revealSetting);
         let revealTransaction = revealGenerator.generateTransaction()

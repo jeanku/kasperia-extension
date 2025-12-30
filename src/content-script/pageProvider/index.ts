@@ -207,7 +207,7 @@ export class KasperiaProvider extends EventEmitter {
     };
 
     getVersion = async () => {
-        return "1.10.50";
+        return "1.10.52";
     };
 
   async request({ method, params }: RequestArguments): Promise<any> {
