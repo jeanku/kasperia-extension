@@ -1,14 +1,14 @@
 import { useState, useMemo, useEffect } from "react"
 import HeadNav from '@/components/HeadNav'
-import { Button, Image, Popup, Tabs } from 'antd-mobile'
+import { Button, Image } from 'antd-mobile'
 import { SvgIcon } from '@/components/Icon/index'
 import { useNavigate } from "react-router-dom";
-import {formatAddress, formatBalanceFixed} from '@/utils/util'
+import {formatBalanceFixed} from '@/utils/util'
 import {ethers} from "ethers";
 import { AccountsSubListDisplay } from '@/model/account'
 import { Address } from '@/model/contact'
 import NumberInput from '@/components/NumberInput';
-import NoDataDom from "@/components/NoDataDom";
+import AddressSelectPopup from '@/components/AddressSelectPopup'
 import { AddressType } from '@/types/enum'
 import { Keyring } from '@/chrome/keyring'
 import { Contact } from '@/chrome/contact'
@@ -118,69 +118,13 @@ const SendKas = () => {
                     </Button>
                 </div>
             </div>
-            <Popup
+            <AddressSelectPopup
                 visible={popupVisible}
-                className="wallet-popup"
-                bodyClassName="wallet-popup-body"
-                onMaskClick={() => {
-                    setPopupVisible(false)
+                onClose={() => setPopupVisible(false)}
+                onSelect={(res) => {
+                    setAddress(res.address)
                 }}
-                onClose={() => {
-                    setPopupVisible(false)
-                }}
-                bodyStyle={{ height: '46vh', borderTopLeftRadius: '8px',
-                    borderTopRightRadius: '8px', overflowY: 'scroll' }}
-            >
-                <Tabs activeKey={contactTabValue} onChange={key => {
-                    switchContactTab(key)
-                }}>
-                    <Tabs.Tab title="Contacts" key="Contacts" />
-                    <Tabs.Tab title="My Account" key="Accounts" />
-                </Tabs>
-
-                <div className="contact-list">
-                    {
-                        contactTabValue == "Contacts" ? (
-                            contactValue && contactValue.length > 0 ? (
-                                contactValue.map((item: Address, index) => (
-                                    <div className="contact-list-box" key={index}>
-                                        <div className="contact-list-item" key={address} onClick={() => {
-                                            setAddress(item.address)
-                                            setPopupVisible(false)
-                                        }}>
-                                            <span>{item.name}</span>
-                                            <em>{formatAddress(item.address, 8)}</em>
-                                        </div>
-                                    </div>
-                                ))
-                            ) : <NoDataDom />
-                        ) : null
-                    }
-
-                    {
-                        contactTabValue == "Accounts" ? (
-                            accountsValue && accountsValue.length > 0 ? (
-                                accountsValue.map((item, index) => (
-                                    <div className="contact-list-box mb20" key={index}>
-                                        <strong>{item.name}</strong>
-                                        {
-                                            item.drive!.map((dr, index) => (
-                                                <div className="contact-list-item" key={dr.address} onClick={() => {
-                                                    setAddress(dr.address)
-                                                    setPopupVisible(false)
-                                                }}>
-                                                    <span>{dr.name}</span>
-                                                    <em>{formatAddress(dr.address, 8)}</em>
-                                                </div>
-                                            ))
-                                        }
-                                    </div>
-                                ))
-                            ) :  <NoDataDom />
-                        ) : null
-                    }
-                </div>
-            </Popup>
+            />
         </article>
     )
 }
