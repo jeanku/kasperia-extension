@@ -18,6 +18,7 @@ import {
     UtxoEntryReference,
     FeeSource, Fees,
 } from '@/utils/wallet/tx'
+import { SubmitSetting } from '@/model/account'
 import {Keypair, Wallet} from '@/utils/wallet/wallet'
 import {EvmTokenList} from '@/model/evm'
 import {NetworkId, ScriptPublicKey} from '@/utils/wallet/consensus';
@@ -357,6 +358,29 @@ export class Account {
         return signedTx.transaction.id.toString()
     }
 
+    async commit(data: SubmitSetting) {
+        let account = keyringService.currentAccount()
+        let networkId = await preferenceService.getNetworkId()
+        const senderAddress = Keypair.fromPrivateKeyHex(account.priKey).toAddress(networkId.networkType);
+
+        let utxos = await this.client?.getUtxosByAddresses([senderAddress.toString()])
+        if (!utxos) {
+            throw new Error("fetch utxo fail")
+        }
+        let payloadArray = data.payload ? stringToUint8Array(data.payload) : undefined
+        let fee = new Fees(data.priorityFee == 0 ? 0n : BigInt(data.priorityFee!))
+        let setting = new GeneratorSettings(data.outputs, senderAddress, utxos?.entries!, networkId, fee, undefined, undefined, undefined, payloadArray);
+        const generator = new Generator(setting);
+        let transaction = generator.generateTransaction()
+        const signedTx = await transaction!.sign([account.priKey]);
+        await this.client?.submitTransaction({
+            transaction: signedTx.toSubmittableJsonTx(),
+            allowOrphan: false
+        });
+        this.resetEntry()
+        return signedTx.transaction.id.toString()
+    }
+
     async getERC20Tokens(address: string): Promise<EvmTokenList[]> {
         let provider = await this.get_provider()
         let network = await evmService.getSelectedNetwork()
@@ -617,6 +641,10 @@ export class Account {
             allowOrphan: false
         });
         return revealTransaction!.tx.id.toHex()
+    }
+
+    async parseERC20Meta(tx: any) {
+        return (await this.get_provider()).parseERC20Meta(tx)
     }
 }
 

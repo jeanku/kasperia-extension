@@ -4,6 +4,8 @@ import { Account, AccountDisplay } from '@/model/wallet'
 import { AccountType } from '@/types/enum';
 import { EvmTokenList } from "@/model/evm";
 import { NetworkType } from "@/utils/wallet/consensus";
+import { NetworkId, ScriptPublicKey } from '../utils/wallet/consensus';
+import { Fees, PaymentOutput, TransactionOutpoint, UtxoEntryReference } from '../utils/wallet/tx/model';
 
 export type KeyRingAccess = {
     isBooted: boolean,
@@ -64,4 +66,10 @@ export type AccountsSubListDisplay = {
     id: string,
     name: string,
     drive: Array<{name: string, address: string, active: boolean, path: number}>,
+}
+
+export type SubmitSetting = {
+    outputs: PaymentOutput[];
+    priorityFee?: number;
+    payload?: string;
 }

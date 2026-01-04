@@ -24,31 +24,22 @@ interface RequestProps {
 
 class ProviderController {
 
+    // kaspa api
     getAccounts = async () => {
         const address = await keyringService._getActiveAddress();
         return [address]
     };
 
-    eth_accounts = async () => {
-        console.log("[background eth_accounts]....")
-        try {
-            const address = await keyringService._getActiveEvmAddress();
-            return [address]
-        } catch (error) {
-            console.log("[background eth_accounts] error:", error)
-        }
-        return []
-    };
-
-    ethRequestAccounts = async () => {
-        const address = await keyringService._getActiveEvmAddress();
+    requestAccounts = async () => {
+        const address = await keyringService._getActiveAddress();
         return [address]
     };
 
     getNetwork = async () => {
-        return await preferenceService.getNetwork()
+        let network = await preferenceService.getNetwork()
+        return network.networkType
     };
-    
+
     getPublicKey = async () => {
         return await keyringService.getActivePublicKey() || ""
     };
@@ -78,11 +69,21 @@ class ProviderController {
     sendKaspa = async (request: RequestProps) => {
         return await notificationService.requestApproval(
             {
-              data: request.data.params,
-              session: request.session
+                data: request.data.params,
+                session: request.session
             },
-          { route: "/evokeBoost/notification/sendkaspa" }
-         )
+            { route: "/evokeBoost/notification/sendkaspa" }
+        )
+    }
+
+    sendCommit = async (request: RequestProps) => {
+        return await notificationService.requestApproval(
+            {
+                data: request.data.params,
+                session: request.session
+            },
+            { route: "/evokeBoost/notification/sendkaspa" }
+        )
     }
 
     signMessage = async (request: RequestProps) => {
@@ -101,6 +102,22 @@ class ProviderController {
             permissionService.removeConnectedSite(origin)
         }
         return
+    };
+
+
+    eth_accounts = async () => {
+        try {
+            const address = await keyringService._getActiveEvmAddress();
+            return [address]
+        } catch (error) {
+            console.log("[background eth_accounts] error:", error)
+        }
+        return []
+    };
+
+    ethRequestAccounts = async () => {
+        const address = await keyringService._getActiveEvmAddress();
+        return [address]
     };
 
     walletSwitchEthereumChain  = async (request: RequestProps) => {
@@ -140,10 +157,11 @@ class ProviderController {
 
     ethSendTransaction = async (request: RequestProps) => {
         const tx = request.data.params?.[0];
+        let contractData = await accountService.parseERC20Meta(tx)
         const network = await evmService.getSelectedNetwork()
         return await notificationService.requestApproval(
             {
-                data: { tx, network },
+                data: { tx, network, data: contractData },
                 session: request.session
             },
             { route: "/evokeBoost/notification/sendTransaction" }

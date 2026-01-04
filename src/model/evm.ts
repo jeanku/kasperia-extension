@@ -237,3 +237,52 @@ export interface KnsAssetsResponse {
     };
 }
 
+
+
+export interface ERC20TokenMeta {
+    address: string;
+    decimals: number;
+    symbol: string;
+    name: string;
+}
+
+export interface ERC20ApproveMeta {
+    type: "ERC20";
+    method: "approve";
+    signature: string;
+    args: {
+        spender: string;
+        amount: string;
+    };
+    token: ERC20TokenMeta;
+}
+
+export interface ERC20TransferMeta {
+    type: "ERC20";
+    method: "transfer";
+    signature: string;
+    args: {
+        to: string;
+        amount: string;
+    };
+    token: ERC20TokenMeta;
+}
+
+export interface ERC20TransferFromMeta {
+    type: "ERC20";
+    method: "transferFrom";
+    signature: string;
+    args: {
+        from: string;
+        to: string;
+        amount: string;
+    };
+    token: ERC20TokenMeta;
+}
+
+export type ERC20Meta =
+    | ERC20ApproveMeta
+    | ERC20TransferMeta
+    | ERC20TransferFromMeta;
+
+

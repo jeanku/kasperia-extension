@@ -161,6 +161,12 @@ export class KasperiaProvider extends EventEmitter {
         });
     };
 
+    requestAccounts = async () => {
+        return this._request({
+            method: 'requestAccounts'
+        });
+    };
+
     getAccounts = async () => {
         return this._request({
             method: 'getAccounts'
