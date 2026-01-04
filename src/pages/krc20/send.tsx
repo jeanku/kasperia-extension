@@ -1,22 +1,17 @@
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo } from "react"
 import { useNavigate, useLocation } from "react-router-dom";
-import { Button, Image, Popup, Tabs } from 'antd-mobile'
+import { Button, Image, } from 'antd-mobile'
 import { ethers } from "ethers";
 
 import HeadNav from '@/components/HeadNav'
 import NumberInput from '@/components/NumberInput';
-import NoDataDom from "@/components/NoDataDom";
 import { SvgIcon } from '@/components/Icon/index'
 import { useNotice } from '@/components/NoticeBar/NoticeBar'
+import AddressSelectPopup from '@/components/AddressSelectPopup'
 
-import { formatBalance, formatAddress } from '@/utils/util'
+import { formatBalance } from '@/utils/util'
 import { Address as AddressHelper } from '@/utils/wallet/address'
-import { AccountsSubListDisplay } from '@/model/account'
 import { TokenList } from '@/model/krc20'
-import { Address } from '@/model/contact'
-
-import { Keyring } from '@/chrome/keyring'
-import { Contact } from '@/chrome/contact'
 
 import '@/styles/transaction.scss'
 import { useSelector } from "react-redux";
@@ -35,9 +30,6 @@ const Send = () => {
     const [amount, setAmount] = useState<string>("")
     const [popupVisible, setPopupVisible] = useState(false)
 
-    const [contactTabValue, setContactTabValue] = useState<string>("")
-    const [contactValue, setContactValue] = useState<Address[] | null>(null)
-    const [accountsValue, setAccountsValue] = useState<AccountsSubListDisplay[] | null>(null)
     const [kasTips, setKasTips] = useState<string>('')
 
     const submitDisabled = useMemo(() => {
@@ -57,31 +49,6 @@ const Send = () => {
             amount: ethers.parseUnits(amount, Number(token.dec)),
             token
         }}})
-    }
-
-    useEffect(() => {
-        switchContactTab("Contacts")
-    }, [])
-
-    const switchContactTab = async (key: string) => {
-        if (key === contactTabValue) return
-        setContactTabValue(key)
-        switch (key) {
-            case "Contacts":
-                if (!contactValue) {
-                    let contacts: Address[] = await Contact.get()
-                    setContactValue(contacts)
-                }
-                break
-            case "Accounts":
-                if (!accountsValue) {
-                    let accounts = await Keyring.getAccountsSubListDisplay()
-                    setAccountsValue(accounts);
-                }
-                break;
-            default:
-                break;
-        }
     }
 
     return (
@@ -144,69 +111,13 @@ const Send = () => {
                     </Button>
                 </div>
             </div>
-            <Popup
+            <AddressSelectPopup
                 visible={popupVisible}
-                className="wallet-popup"
-                bodyClassName="wallet-popup-body"
-                onMaskClick={() => {
-                    setPopupVisible(false)
+                onClose={() => setPopupVisible(false)}
+                onSelect={(res) => {
+                    setAddress(res.address)
                 }}
-                onClose={() => {
-                    setPopupVisible(false)
-                }}
-                bodyStyle={{ height: '46vh', borderTopLeftRadius: '8px',
-                    borderTopRightRadius: '8px', overflowY: 'scroll' }}
-            >
-                <Tabs activeKey={contactTabValue} onChange={key => {
-                    switchContactTab(key)
-                }}>
-                    <Tabs.Tab title="Contacts" key="Contacts" />
-                    <Tabs.Tab title="My Account" key="Accounts" />
-                </Tabs>
-
-                <div className="contact-list">
-                    {
-                        contactTabValue == "Contacts" ? (
-                            contactValue && contactValue.length > 0 ? (
-                                contactValue.map((item: Address, index) => (
-                                    <div className="contact-list-box" key={index}>
-                                        <div className="contact-list-item" key={address} onClick={() => {
-                                            setAddress(item.address)
-                                            setPopupVisible(false)
-                                        }}>
-                                            <span>{item.name}</span>
-                                            <em>{formatAddress(item.address, 8)}</em>
-                                        </div>
-                                    </div>
-                                ))
-                            ) : <NoDataDom />
-                        ) : null
-                    }
-
-                    {
-                        contactTabValue == "Accounts" ? (
-                            accountsValue && accountsValue.length > 0 ? (
-                                accountsValue.map((item, index) => (
-                                    <div className="contact-list-box mb20" key={index}>
-                                        <strong>{item.name}</strong>
-                                        {
-                                            item.drive!.map((dr) => (
-                                                <div className="contact-list-item" key={dr.address} onClick={() => {
-                                                    setAddress(dr.address)
-                                                    setPopupVisible(false)
-                                                }}>
-                                                    <span>{dr.name}</span>
-                                                    <em>{formatAddress(dr.address, 8)}</em>
-                                                </div>
-                                            ))
-                                        }
-                                    </div>
-                                ))
-                            ) :  <NoDataDom />
-                        ) : null
-                    }
-                </div>
-            </Popup>
+            />
         </article>
     )
 }

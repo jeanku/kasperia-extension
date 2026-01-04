@@ -1,18 +1,18 @@
 import { useState, useEffect, useCallback } from "react"
 import { useNavigate, useLocation } from "react-router-dom";
-import { Button, Popup, Tabs  } from 'antd-mobile'
+import { Button  } from 'antd-mobile'
 import { SvgIcon } from '@/components/Icon'
 import { useNotice } from '@/components/NoticeBar/NoticeBar'
 import HeadNav from '@/components/HeadNav'
-import NoDataDom from "@/components/NoDataDom";
 import NumberInput from '@/components/NumberInput';
+import AddressSelectPopup from '@/components/AddressSelectPopup'
 
 import { AccountsSubListDisplay } from '@/model/account'
 import { Address } from '@/model/contact'
 import { Keyring } from '@/chrome/keyring'
 import { Contact } from '@/chrome/contact'
 
-import { formatAddress, formatNumber, isValidTickString } from '@/utils/util'
+import { formatNumber, isValidTickString } from '@/utils/util'
 import { Address as AddressHelper } from '@/utils/wallet/address';
 import {NetworkTypeHelper} from "@/utils/wallet/consensus";
 import {useSelector} from "react-redux";
@@ -214,72 +214,13 @@ const Deploy = () => {
                     </Button>
                 </div>
             </div>
-
-            <Popup
+            <AddressSelectPopup
                 visible={popupVisible}
-                className="wallet-popup"
-                bodyClassName="wallet-popup-body"
-                onMaskClick={() => {
-                    setPopupVisible(false)
+                onClose={() => setPopupVisible(false)}
+                onSelect={(res) => {
+                    setAddress(res.address)
                 }}
-                onClose={() => {
-                    setPopupVisible(false)
-                }}
-                bodyStyle={{ height: '46vh', borderTopLeftRadius: '8px',
-                    borderTopRightRadius: '8px', overflowY: 'scroll' }}
-            >
-                <Tabs activeKey={contactTabValue} onChange={key => {
-                    switchContactTab(key)
-                }}>
-                    <Tabs.Tab title="Contacts" key="Contacts"/>
-                    <Tabs.Tab title="My Account" key="Accounts"/>
-                </Tabs>
-
-                <div className="contact-list">
-                    <div className="contact-list-box">
-                    {
-                        contactTabValue == "Contacts" ? (
-                            contactValue && contactValue.length > 0 ? (
-                                contactValue.map((item: Address, index) => (
-                                    <div className="contact-list-box" key={index}>
-                                        <div className="contact-list-item" key={address} onClick={() => {
-                                            setPreAddress(item.address)
-                                            setPopupVisible(false)
-                                        }}>
-                                            <span>{item.name}</span>
-                                            <em>{formatAddress(item.address, 8)}</em>
-                                        </div>
-                                    </div>
-                                ))
-                            ) : <NoDataDom />
-                        ) : null
-                    }
-
-                    {
-                        contactTabValue == "Accounts" ? (
-                            accountsValue && accountsValue.length > 0 ? (
-                                accountsValue.map((item, index) => (
-                                    <div className="contact-list-box mb20" key={index}>
-                                        <strong>{item.name}</strong>
-                                        {
-                                            item.drive!.map((dr, index) => (
-                                                <div className="contact-list-item" key={dr.address} onClick={() => {
-                                                    setPreAddress(dr.address)
-                                                    setPopupVisible(false)
-                                                }}>
-                                                    <span>{dr.name}</span>
-                                                    <em>{formatAddress(dr.address, 8)}</em>
-                                                </div>
-                                            ))
-                                        }
-                                    </div>
-                                ))
-                            ) :  <NoDataDom />
-                        ) : null
-                    }
-                    </div>
-                </div>
-            </Popup>
+            />
         </article>
     )
 }

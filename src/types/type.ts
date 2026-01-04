@@ -52,3 +52,25 @@ export interface AppKey {
     appsecret: string;
 }
 export type NetworkNameType = 'Mainnet' | 'Testnet'
+
+export interface ContactAddress {
+    name: string
+    address: string
+}
+
+export interface AccountDrive {
+    name: string
+    address: string
+}
+
+export interface AccountGroup {
+    name: string
+    drive: AccountDrive[]
+}
+
+export type AddressSelectResult = {
+    source: 'Contacts' | 'Accounts'
+    name: string
+    address: string
+    groupName?: string
+}
