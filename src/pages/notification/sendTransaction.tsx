@@ -1,15 +1,15 @@
-import React, {useEffect, useState} from "react"
+import React, { useEffect, useState } from "react"
 import HeadNav from '@/components/HeadNav'
-import {Button, Mask } from 'antd-mobile'
+import { Button, Mask } from 'antd-mobile'
 import { formatAddress } from '@/utils/util'
 import { ethers } from "ethers";
 import '@/styles/transaction.scss'
 import { EvmNetwork, ERC20Meta, ERC20ApproveMeta } from "@/model/evm";
-import {Notification} from "@/chrome/notification";
-import {useNotice} from "@/components/NoticeBar/NoticeBar";
-import {Account} from "@/chrome/account";
+import { Notification } from "@/chrome/notification";
+import { useNotice } from "@/components/NoticeBar/NoticeBar";
+import { Account } from "@/chrome/account";
 import { Keyring } from "@/chrome/keyring";
-import {TransactionRequest} from "ethers/src.ts/providers/provider";
+import { TransactionRequest } from "ethers/src.ts/providers/provider";
 import { SvgIcon } from '@/components/Icon/index'
 import { useClipboard } from '@/components/useClipboard'
 import NumberInput from '@/components/NumberInput';
@@ -44,7 +44,7 @@ const SendTransaction = () => {
 
     const [data, setData] = useState<ERC20Meta>()
 
-    const [approveAmount, setApproveAmount] = useState<number | undefined>(undefined)
+    const [approveAmount, setApproveAmount] = useState<number | ''>('')
     const [visibleMask, setVisibleMask] = useState<boolean>(false)
 
     const getApproval = async () => {
@@ -52,7 +52,7 @@ const SendTransaction = () => {
         let param = approval.data
         let from = await Keyring.getActiveAddressForEvm()
         param.tx.from = from.address
-        setParams({from, ...param.tx})
+        setParams({ from, ...param.tx })
         setNetwork(param.network)
         if (param.data) {
             setData(param.data)
@@ -62,6 +62,11 @@ const SendTransaction = () => {
     useEffect(() => {
         getApproval()
     }, []);
+
+    useEffect(() => {
+        if (!data || !data.args?.amount) return;
+        resetNonce()
+    }, [data]);
 
     const reject = () => {
         Notification.rejectApproval()
@@ -79,10 +84,15 @@ const SendTransaction = () => {
     }
 
     const submitApproveAmount = async (nonce?: number) => {
-        setVisibleMask(false)
         if (!approveAmount) {
             return
         }
+        if (approveAmount > Number(data!.token.balance)) {
+            noticeError(`The amount is too large, max ${data!.token.balance}`)
+            return
+        }
+        setVisibleMask(false)
+
         let newAmount = ethers.parseUnits(approveAmount.toString(), data!.token.decimals)
         if (newAmount > ethers.MaxUint256) {
             newAmount = ethers.MaxUint256
@@ -126,7 +136,7 @@ const SendTransaction = () => {
                             <div className="history-box">
                                 <div className="history-token-item">
                                     <span>Method </span>
-                                    <em>{ data.method }</em>
+                                    <em>{data.method}</em>
                                 </div>
                             </div>
 
@@ -140,7 +150,7 @@ const SendTransaction = () => {
                             <div className="history-box">
                                 <div className="history-token-item">
                                     <span>Token Address</span>
-                                    <em onClick={() => handleCopy(data.token.address)}>{formatAddress(data.token.address)} <SvgIcon iconName="IconCopy" offsetStyle={{marginLeft: '5px', marginRight: '-12px'}}/></em>
+                                    <em onClick={() => handleCopy(data.token.address)}>{formatAddress(data.token.address)} <SvgIcon iconName="IconCopy" offsetStyle={{ marginLeft: '5px', marginRight: '-12px' }} /></em>
                                 </div>
                             </div>
                         </>
@@ -153,7 +163,7 @@ const SendTransaction = () => {
                             <div className="history-box">
                                 <div className="history-token-item">
                                     <span>Approve To</span>
-                                    <em onClick={() => handleCopy(data.token.address)}>{formatAddress(data.args.spender)} <SvgIcon iconName="IconCopy" offsetStyle={{marginLeft: '5px', marginRight: '-12px'}}/></em>
+                                    <em onClick={() => handleCopy(data.token.address)}>{formatAddress(data.args.spender)} <SvgIcon iconName="IconCopy" offsetStyle={{ marginLeft: '5px', marginRight: '-12px' }} /></em>
                                 </div>
                             </div>
 
@@ -161,8 +171,8 @@ const SendTransaction = () => {
                                 <div className="history-token-item">
                                     <span>Approve Amount</span>
                                     <em>{ethers.formatUnits(data.args.amount, data.token.decimals)} <SvgIcon iconName="IconEdit" className="cursor-pointer"
-                                                                                                             onClick={() => setVisibleMask(true)}
-                                                                                                             size={20}/></em>
+                                        onClick={() => setVisibleMask(true)}
+                                        size={20} /></em>
                                 </div>
                             </div>
                         </>
@@ -231,9 +241,9 @@ const SendTransaction = () => {
                     </Button>
 
                     <Button block size="large" color="primary"
-                            loading={btnLoading}
-                            loadingText={'Submitting'}
-                            onClick={() => submitTransaction()}>
+                        loading={btnLoading}
+                        loadingText={'Submitting'}
+                        onClick={() => submitTransaction()}>
                         Sign & Pay
                     </Button>
                 </div>
@@ -242,38 +252,37 @@ const SendTransaction = () => {
             {
                 data && data.method == "approve" && (
                     <Mask visible={visibleMask} onMaskClick={() => setVisibleMask(false)}>
-                <article className="remove-box">
-                    <div className="remove-bg">
-                        <SvgIcon className="remove-close" onClick={() => setVisibleMask(false)} iconName="IconClose"
-                                 color="#7F7F7F"/>
-                        <div className="remove-nox-content">
-                            <section className="dialog-content">
-                                <p className="remove-tip-strong">Approve amount</p>
-                                <div className="amount-box mt15 mb12">
-                                    <h6 className="sub-tit">
-                                        <span>Edit nonce</span>
-                                        <strong onClick={() => resetNonce()}>Reset</strong>
-                                    </h6>
-                                    <div className="input-box mask-input-box">
-                                        <NumberInput
-                                            value={Number(ethers.formatUnits(data.args.amount.toString(), data.token.decimals))}
-                                            onChange={(e) => setApproveAmount(Number(e))}
-                                            max={Number(data.token.balance || "0")}
-                                            decimalPlaces={0}
-                                            placeholder="amount"
-                                        />
-                                    </div>
-                                    <span>Balance: {data.token.balance || "0"}</span>
+                        <article className="remove-box">
+                            <div className="remove-bg">
+                                <SvgIcon className="remove-close" onClick={() => setVisibleMask(false)} iconName="IconClose"
+                                    color="#7F7F7F" />
+                                <div className="remove-nox-content">
+                                    <section className="dialog-content">
+                                        <p className="remove-tip-strong">Approve amount</p>
+                                        <div className="amount-box mt15">
+                                            <h6 className="sub-tit">
+                                                <span>Edit nonce</span>
+                                                <strong onClick={() => resetNonce()}>Reset</strong>
+                                            </h6>
+                                            <div className="input-box mask-input-box">
+                                                <NumberInput
+                                                    value={approveAmount}
+                                                    onChange={setApproveAmount}
+                                                    decimalPlaces={0}
+                                                    placeholder="amount"
+                                                />
+                                            </div>
+                                            <span className="span-amount">Balance: {data.token.balance || "0"}</span>
+                                        </div>
+                                    </section>
                                 </div>
-                            </section>
-                        </div>
-                        <div className="remove-btns">
-                            <Button size="middle" onClick={() => setVisibleMask(false)}>Cancel</Button>
-                            <Button color='primary' size="middle" onClick={() => submitApproveAmount()}>Save</Button>
-                        </div>
-                    </div>
-                </article>
-            </Mask>
+                                <div className="remove-btns">
+                                    <Button size="middle" onClick={() => setVisibleMask(false)}>Cancel</Button>
+                                    <Button color='primary' size="middle" onClick={() => submitApproveAmount()}>Save</Button>
+                                </div>
+                            </div>
+                        </article>
+                    </Mask>
                 )
             }
         </article>
@@ -282,4 +291,4 @@ const SendTransaction = () => {
     )
 }
 
-export {SendTransaction}
+export { SendTransaction }

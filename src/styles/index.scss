@@ -2082,6 +2082,11 @@ em {
         >img {
             width: 107px;
         }
+        .span-amount {
+            display: block;
+            margin-top: 10px;
+            text-align: right;
+        }
     }
 
     .remove-address {
@@ -2125,6 +2130,7 @@ em {
     .remove-btns {
         margin-top: 30px;
         display: flex;
+        gap: 10px;
         justify-content: space-between;
         align-items: center;
 
