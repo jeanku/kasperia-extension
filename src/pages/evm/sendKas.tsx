@@ -43,10 +43,6 @@ const SendKas = () => {
         switchContactTab("Contacts")
     }, [])
 
-    const isKaspa = useCallback(() => {
-        return Number(network?.chainId) === 167012 || Number(network?.chainId) === 202555
-    }, [network?.chainId])
-
     const switchContactTab = async (key: string) => {
         if (key === contactTabValue) return
         setContactTabValue(key)
@@ -124,9 +120,9 @@ const SendKas = () => {
             </div>
             <AddressSelectPopup
                 visible={popupVisible}
-                isKaspa={ isKaspa() }
+                isKaspa={ false }
                 onClose={() => setPopupVisible(false)}
-                onSelect={(res) => {
+                onSelect={(res: any) => {
                     setAddress(res.address)
                 }}
             />

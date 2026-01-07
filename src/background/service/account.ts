@@ -626,7 +626,15 @@ export class Account {
     }
 
     async parseERC20Meta(tx: any) {
-        return (await this.get_provider()).parseERC20Meta(tx)
+        let resp = await (await this.get_provider()).parseERC20Meta(tx)
+        if (resp && resp.type == "ERC20" && resp.method == "approve") {
+            let provider = await this.get_provider()
+            let account = keyringService.currentAccount()
+            let address = Wallet.fromPrivateKey(account.priKey).toEthAddress()
+            let tokenBalance = await provider.getTokenBalance(address, resp.token.address,resp.token.decimals)
+            resp.token.balance = tokenBalance
+        }
+        return resp
     }
 
     // async commit(data: SubmitSetting) {

@@ -172,7 +172,6 @@ const Bridge = () => {
     const bridgeSubmit = async () => {
         try {
             if (bridgeLoading) return
-            setCalcLoading(true)
             checkChainValid()
             let isKaspaMain = preference.network.networkType == NetworkType.Mainnet
             if (isKasplex) {
@@ -183,6 +182,7 @@ const Bridge = () => {
                 }
             }
             if (Number(evmNetwork.chainId) == IGRAL2TestnetChainId) {
+                setCalcLoading(true)
                 if (fromData.isKaspa) {
                     await bridgeL1ToIgraL2(isKaspaMain)
                 } else {
@@ -353,10 +353,11 @@ const Bridge = () => {
                 </div>
                 <div className="btn-pos-two flexd-row post-bottom">
                     <Button block size="large" color="primary" loading={bridgeLoading} disabled={submitDisabled()} onClick={() => bridgeSubmit()}>
-                        Bridge { toData.isKaspa }
+                        Bridge
                     </Button>
                 </div>
             </div>
+
             <Mask visible={calcLoading} className="global-loading-mask">
                 <div className="global-loading-content">
                     <SpinLoading className="cost-loading" style={{ '--size': '32px', color: '#3dd6c6' }} />
@@ -366,12 +367,13 @@ const Bridge = () => {
                         </div>
                 </div>
             </Mask>
+
             <AddressSelectPopup
                 visible={popupVisible}
                 isKaspa={ toData.isKaspa }
                 isUpdata={ true }
                 onClose={() => setPopupVisible(false)}
-                onSelect={(res) => {
+                onSelect={(res: any) => {
                     setAddress(res.address)
                 }}
             />

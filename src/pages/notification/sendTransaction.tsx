@@ -57,7 +57,6 @@ const SendTransaction = () => {
         if (param.data) {
             setData(param.data)
         }
-        // if (param.data.args)
     }
 
     useEffect(() => {
@@ -84,25 +83,29 @@ const SendTransaction = () => {
         if (!approveAmount) {
             return
         }
-        console.log("submitApproveAmount")
         let newAmount = ethers.parseUnits(approveAmount.toString(), data!.token.decimals)
+        if (newAmount > ethers.MaxUint256) {
+            newAmount = ethers.MaxUint256
+        }
 
         data!.args.amount = newAmount.toString()
         setData(data)
-        // if (data.args.amount )
-        // setApproveAmount(nonce)
+
+        const iface = new ethers.Interface([
+            "function approve(address spender, uint256 amount)",
+        ]);
+
+        params.data = iface.encodeFunctionData("approve", [
+            data!.args.spender,
+            newAmount,
+        ]);
+        setParams(params)
     }
 
     const resetNonce = async () => {
-        setApproveAmount(undefined)
+        let orgAmount = ethers.formatUnits(data!.args.amount, data!.token.decimals)
+        setApproveAmount(Number(orgAmount))
     }
-
-    const showApproveAmount = async () => {
-        // Account.
-        // setVisibleMask(true)
-    }
-
-
 
     return (
         <article className="page-box">
@@ -157,7 +160,7 @@ const SendTransaction = () => {
                                 <div className="history-token-item">
                                     <span>Approve Amount</span>
                                     <em>{ethers.formatUnits(data.args.amount, data.token.decimals)} <SvgIcon iconName="IconEdit" className="cursor-pointer"
-                                                                                                             onClick={() => showApproveAmount()}
+                                                                                                             onClick={() => setVisibleMask(true)}
                                                                                                              size={20}/></em>
                                 </div>
                             </div>
@@ -254,10 +257,12 @@ const SendTransaction = () => {
                                         <NumberInput
                                             value={Number(ethers.formatUnits(data.args.amount.toString(), data.token.decimals))}
                                             onChange={(e) => setApproveAmount(Number(e))}
+                                            max={Number(data.token.balance || "0")}
                                             decimalPlaces={0}
                                             placeholder="amount"
                                         />
                                     </div>
+                                    <span>Balance: {data.token.balance || "0"}</span>
                                 </div>
                             </section>
                         </div>

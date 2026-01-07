@@ -244,6 +244,7 @@ export interface ERC20TokenMeta {
     decimals: number;
     symbol: string;
     name: string;
+    balance?: string;
 }
 
 export interface ERC20ApproveMeta {
