@@ -107,19 +107,19 @@ export class KasperiaProvider extends EventEmitter {
     });
   };
 
-  private _requestPromiseCheckVisibility = () => {
-    if (document.visibilityState === 'visible') {
-      _kasperiaPrividerPrivate._requestPromise.check(1);
-    } else {
-      _kasperiaPrividerPrivate._requestPromise.uncheck(1);
-    }
-  };
+    private _requestPromiseCheckVisibility = () => {
+        if (document.visibilityState === 'visible') {
+            _kasperiaPrividerPrivate._requestPromise.check(1);
+        } else {
+            _kasperiaPrividerPrivate._requestPromise.uncheck(1);
+        }
+    };
 
-  private _handleBackgroundMessage = ({ event, data }: {event: string, data: any}) => {
-    this.emit(event, data);
-  };
+    private _handleBackgroundMessage = ({ event, data }: {event: string, data: any}) => {
+        this.emit(event, data);
+    };
 
-  _request = async (data: any) => {
+    _request = async (data: any) => {
     if (!data) {
       throw ethErrors.rpc.invalidRequest();
     }
@@ -142,6 +142,10 @@ export class KasperiaProvider extends EventEmitter {
         });
     });
   };
+
+    getScriptBuilder = async () => {
+        return
+    };
 
     getNetwork = async () => {
         return this._request({

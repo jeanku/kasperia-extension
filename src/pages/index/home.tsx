@@ -375,49 +375,57 @@ const Home = () => {
             <div className="nav-bar">
                 <div className="nav-left no-cursor">
                     {isConnect ? (<><span>{preference.network.networkType}</span></>) :
-                        (<><span>Connecting</span><DotLoading color='#74E6D8' /></>)
+                        (<><span>Connecting</span><DotLoading color='#74E6D8'/></>)
                     }
                 </div>
                 <div className="nav-right">
                     <div className="nav-bar-right" onClick={() => navigate('/account')}>
                         <span>{preference?.currentAccount?.name}</span>
-                        <img className="arrow-right" src={IconArrorRight} alt="" />
+                        <img className="arrow-right" src={IconArrorRight} alt=""/>
                     </div>
                 </div>
             </div>
             <article className="content-main page-home pb50">
                 <div className="home-account">
                     <section className="continer-box">
-                        <UserOutline fontSize={24} />
+                        <UserOutline fontSize={24}/>
                         <div className="account-info">
                             <strong>{preference?.currentAccount?.subName}</strong>
-                            <p className="cursor-pointer" onClick={() => handleCopy(currentAccount?.address || "")} ><em className="one-line">{formatAddress(currentAccount?.address, 6)}</em><SvgIcon iconName="IconCopy" color="#7F7F7F" offsetStyle={{ marginLeft: '5px' }} /></p>
-                            <p className="cursor-pointer" onClick={() => handleCopy(currentAccount?.ethAddress || "")} ><em className="one-line">{formatAddress(currentAccount?.ethAddress, 6)}</em><SvgIcon iconName="IconCopy" color="#7F7F7F" offsetStyle={{ marginLeft: '5px' }} /></p>
+                            <p className="cursor-pointer" onClick={() => handleCopy(currentAccount?.address || "")}><em
+                                className="one-line">{formatAddress(currentAccount?.address, 6)}</em><SvgIcon
+                                iconName="IconCopy" color="#7F7F7F" offsetStyle={{marginLeft: '5px'}}/></p>
+                            <p className="cursor-pointer" onClick={() => handleCopy(currentAccount?.ethAddress || "")}>
+                                <em className="one-line">{formatAddress(currentAccount?.ethAddress, 6)}</em><SvgIcon
+                                iconName="IconCopy" color="#7F7F7F" offsetStyle={{marginLeft: '5px'}}/></p>
                         </div>
-                        <SvgIcon className="cursor-pointer" iconName="arrowRight" onClick={() => navigate('/account/switch',
-                            { state: { id: preference.currentAccount?.id } })} />
+                        <SvgIcon className="cursor-pointer" iconName="arrowRight"
+                                 onClick={() => navigate('/account/switch',
+                                     {state: {id: preference.currentAccount?.id}})}/>
                     </section>
                     <div className="account-balance">
-                        <p className="account-text-amount font-Inter-black"><CountUp key={balance} start={0.00} decimal={'.'}
-                            decimals={formatDecimal(balance, 8)}
-                            end={Number(formatBalance(balance, 8))} duration={0.2} /> KAS</p>
+                        <p className="account-text-amount font-Inter-black"><CountUp key={balance} start={0.00}
+                                                                                     decimal={'.'}
+                                                                                     decimals={formatDecimal(balance, 8)}
+                                                                                     end={Number(formatBalance(balance, 8))}
+                                                                                     duration={0.2}/> KAS</p>
                     </div>
                 </div>
                 <div className="page-btn">
                     <div className="btn-icon" onClick={() => navigate('/account/receive')}>
-                        <SvgIcon iconName="IconReceive" offsetStyle={{ marginRight: '3px' }} color="#171717" />
+                        <SvgIcon iconName="IconReceive" offsetStyle={{marginRight: '3px'}} color="#171717"/>
                         Receive
                     </div>
                     <div className="btn-icon" onClick={() => navigate('/bridge/bridgeIndex', {
-                        state: { from: { tick: "KAS", balance, dec: 8 }, evmNetwork }
+                        state: {from: {tick: "KAS", balance, dec: 8}, evmNetwork}
                     })}>
-                        <SvgIcon iconName="IconBridge" offsetStyle={{ marginRight: '3px', width: '26px', height: '26px' }} color="#171717" />
+                        <SvgIcon iconName="IconBridge" offsetStyle={{marginRight: '3px', width: '26px', height: '26px'}}
+                                 color="#171717"/>
                         Bridge
                     </div>
                     <div className="btn-icon" onClick={() => navigate('/tx/send', {
-                        state: { token: { tick: "KAS", balance, dec: 8 } }
+                        state: {token: {tick: "KAS", balance, dec: 8}}
                     })}>
-                        <SvgIcon iconName="IconSend" offsetStyle={{ marginRight: '3px' }} color="#171717" />
+                        <SvgIcon iconName="IconSend" offsetStyle={{marginRight: '3px'}} color="#171717"/>
                         Send
                     </div>
                 </div>
@@ -425,17 +433,17 @@ const Home = () => {
                     {
                         homeTabs.map((key, index) => {
                             return <li key={index} className={homeTabValue === key ? 'active' : ''}
-                                onClick={() => handleHomeTab(key)}>{key}</li>
+                                       onClick={() => handleHomeTab(key)}>{key}</li>
                         })
                     }
-                    <div className="tab-underline" ref={underlineRef} />
+                    <div className="tab-underline" ref={underlineRef}/>
                 </ul>
                 {
 
                     homeTabValue === 'Tokens' ?
                         <div className="search-box">
-                            <SearchBar icon={<SvgIcon iconName="IconSearch" offsetStyle={{ marginRight: '2px' }} />}
-                                placeholder='Search tokens...' onChange={setfilteredValue} />
+                            <SearchBar icon={<SvgIcon iconName="IconSearch" offsetStyle={{marginRight: '2px'}}/>}
+                                       placeholder='Search tokens...' onChange={setfilteredValue}/>
                         </div> : ""
                 }
                 <div className="page-list">
@@ -444,7 +452,7 @@ const Home = () => {
                             <div className="page-list-box">
                                 {
                                     filteredTokenList.length === 0 && <div className="no-data-box flex-row cc ac">
-                                        <img src={NoDataIco} alt="No Data" className="no-data-img" />
+                                        <img src={NoDataIco} alt="No Data" className="no-data-img"/>
                                     </div>
                                 }
                                 {filteredTokenList.map((token, index) => (
@@ -454,10 +462,10 @@ const Home = () => {
                                             width={44}
                                             height={44}
                                             lazy={true}
-                                            placeholder={<SvgIcon iconName="PngCoinDef" size={44} color="" />}
-                                            fallback={<SvgIcon iconName="PngCoinDef" size={44} color="" />}
+                                            placeholder={<SvgIcon iconName="PngCoinDef" size={44} color=""/>}
+                                            fallback={<SvgIcon iconName="PngCoinDef" size={44} color=""/>}
                                             fit='cover'
-                                            style={{ borderRadius: '50%', marginRight: '16px' }}
+                                            style={{borderRadius: '50%', marginRight: '16px'}}
                                         />
                                         <div className="list-item-content">
                                             <strong>{token.name}</strong>
@@ -476,44 +484,46 @@ const Home = () => {
                                         {
                                             activityTabs.map((key, index) => {
                                                 return <span key={index}
-                                                    className={activityTabValue === key ? 'active' : ''}
-                                                    onClick={() => handleActivityTab(key)}>{key}</span>
+                                                             className={activityTabValue === key ? 'active' : ''}
+                                                             onClick={() => handleActivityTab(key)}>{key}</span>
                                             })
                                         }
                                     </div>
                                     <List>
                                         {
-                                            activityTabValue === activityTabs[0] ? kaspaActList.list.length === 0 && <div className="no-data-box flex-row cc ac">
-                                                <img src={NoDataIco} alt="No Data" className="no-data-img" />
-                                            </div> :  krc20OpList.list.length === 0 && <div className="no-data-box flex-row cc ac">
-                                                <img src={NoDataIco} alt="No Data" className="no-data-img" />
-                                            </div>
+                                            activityTabValue === activityTabs[0] ? kaspaActList.list.length === 0 &&
+                                                <div className="no-data-box flex-row cc ac">
+                                                    <img src={NoDataIco} alt="No Data" className="no-data-img"/>
+                                                </div> : krc20OpList.list.length === 0 &&
+                                                <div className="no-data-box flex-row cc ac">
+                                                    <img src={NoDataIco} alt="No Data" className="no-data-img"/>
+                                                </div>
                                         }
 
                                         {activityTabValue === activityTabs[0] ?
                                             kaspaActList.list.map((item, index) =>
-                                            (
-                                                <div className="history-item" onClick={() => showKaspaTxinfo(index)}
-                                                    key={index}>
-                                                    <div className="history-top">
-                                                        <span>{formatHash(item.transaction_id)}{item.payload ? "(payload)" : null}</span>
-                                                        <strong
-                                                            className={item.is_accepted ? 'history-status' : 'history-status failed'}>{item.is_accepted ? "Success" : "Failed"}</strong>
-                                                    </div>
-                                                    <div className="history-bottom">
-                                                        <div className="history-left">
-                                                            <em className={item.amount < 0 ? 'history-icon sub' : 'history-icon'}>{item.amount < 0 ? "-" : "+"}</em>
+                                                (
+                                                    <div className="history-item" onClick={() => showKaspaTxinfo(index)}
+                                                         key={index}>
+                                                        <div className="history-top">
+                                                            <span>{formatHash(item.transaction_id)}{item.payload ? "(payload)" : null}</span>
                                                             <strong
-                                                                className="history-amount">{formatBalance(`${Math.abs(item.amount)}`, 8)} Kas</strong>
+                                                                className={item.is_accepted ? 'history-status' : 'history-status failed'}>{item.is_accepted ? "Success" : "Failed"}</strong>
                                                         </div>
-                                                        <span
-                                                            className="history-time">{formatDate(item.block_time.toString())}</span>
+                                                        <div className="history-bottom">
+                                                            <div className="history-left">
+                                                                <em className={item.amount < 0 ? 'history-icon sub' : 'history-icon'}>{item.amount < 0 ? "-" : "+"}</em>
+                                                                <strong
+                                                                    className="history-amount">{formatBalance(`${Math.abs(item.amount)}`, 8)} Kas</strong>
+                                                            </div>
+                                                            <span
+                                                                className="history-time">{formatDate(item.block_time.toString())}</span>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            )) :
+                                                )) :
                                             krc20OpList.list.map((item, index) => (
                                                 <div className="history-item" onClick={() => toOpinfo(index)}
-                                                    key={index}>
+                                                     key={index}>
                                                     <div className="history-top">
                                                         <span>{item.op} {item.to ? formatAddress(item.to, 4) : ""}</span>
                                                         <strong
@@ -546,9 +556,9 @@ const Home = () => {
                                     evmNetwork && (
                                         <div className="page-list-box">
                                             <div className="flex-row cb ac">
-                                                <div className="input-select" onClick={() => navigate('/evm/select')} >
+                                                <div className="input-select" onClick={() => navigate('/evm/select')}>
                                                     <span>{evmNetwork.name}</span>
-                                                    <DownOutline fontSize={14} />
+                                                    <DownOutline fontSize={14}/>
                                                 </div>
                                                 <Popover.Menu
                                                     className="account-popover"
@@ -558,15 +568,18 @@ const Home = () => {
                                                     placement='bottom'
                                                     onAction={node => popoverAction(node.key as string)}
                                                 >
-                                                    <SvgIcon className="cursor-pointer" size={22} iconName="IconMoreVertical" />
+                                                    <SvgIcon className="cursor-pointer" size={22}
+                                                             iconName="IconMoreVertical"/>
                                                 </Popover.Menu>
                                             </div>
                                             {evmTokenList.list.map((token, index) => (
-                                                <div className="page-list-item" key={index} onClick={() => toTokenInfo(index)}>
-                                                    <TokenImg url={token.symbol} name={token.symbol} />
+                                                <div className="page-list-item" key={index}
+                                                     onClick={() => toTokenInfo(index)}>
+                                                    <TokenImg url={token.symbol} name={token.symbol}/>
                                                     <div className="list-item-content">
                                                         <strong>{token.symbol}</strong>
-                                                        <span className="one-line"> {formatAddress(token.address || token.name)} </span>
+                                                        <span
+                                                            className="one-line"> {formatAddress(token.address || token.name)} </span>
                                                     </div>
                                                     <div className="list-item-content text-right">
                                                         <strong>{formatBalanceFixed(token.balance, 4)}</strong>
@@ -575,46 +588,52 @@ const Home = () => {
                                                 </div>
                                             ))}
                                             {
-                                                evmNetwork && evmTokenList.list.length === 0 && <div className="no-data-box flex-row cc ac">
-                                                <img src={NoDataIco} alt="No Data" className="no-data-img" />
-                                            </div>
+                                                evmNetwork && evmTokenList.list.length === 0 &&
+                                                <div className="no-data-box flex-row cc ac">
+                                                    <img src={NoDataIco} alt="No Data" className="no-data-img"/>
+                                                </div>
                                             }
                                         </div>
-                                    ) : homeTabValue === 'KNS' ? 
-                                        knsList && (
+                                    ) : homeTabValue === 'KNS' ?
+                                    knsList && (
                                         <div className="page-list-box">
                                             {knsList.map((item, index) => (
-                                                <div className="page-list-item" key={item.id} onClick={() => toKnsInfo(index)}>
+                                                <div className="page-list-item" key={item.id}
+                                                     onClick={() => toKnsInfo(index)}>
                                                     <div className="list-item-img-star">
                                                         {
-                                                            item.isVerifiedDomain &&  <img src={IconKnsSel } alt="" className="check-icon-sm" />
+                                                            item.isVerifiedDomain &&
+                                                            <img src={IconKnsSel} alt="" className="check-icon-sm"/>
                                                         }
-                                                        <TokenImg url={ item.isDomain ? IconKNS : IconKnsText} name="KNS" urlPath="kns" />
+                                                        <TokenImg url={item.isDomain ? IconKNS : IconKnsText} name="KNS"
+                                                                  urlPath="kns"/>
                                                     </div>
                                                     <div className="list-item-content">
                                                         <strong>{item.asset}</strong>
-                                                        <span className="one-line"> {formatAddress(item.owner || item.asset)} </span>
+                                                        <span
+                                                            className="one-line"> {formatAddress(item.owner || item.asset)} </span>
                                                     </div>
                                                 </div>
                                             ))}
                                             {
                                                 knsList.length > 0 && (
-                                                    <InfiniteScroll loadMore={ getKnslist } hasMore={knsHasMore} />
+                                                    <InfiniteScroll loadMore={getKnslist} hasMore={knsHasMore}/>
                                                 )
                                             }
                                             {
-                                                knsList && knsList.length === 0 && <div className="no-data-box flex-row cc ac">
-                                                <img src={NoDataIco} alt="No Data" className="no-data-img" />
-                                            </div>
+                                                knsList && knsList.length === 0 &&
+                                                <div className="no-data-box flex-row cc ac">
+                                                    <img src={NoDataIco} alt="No Data" className="no-data-img"/>
+                                                </div>
                                             }
                                         </div>
-                                    ) 
-                                    :""
+                                    )
+                                    : ""
                     }
                     {
                         listLoadingType ? (
                             <div className="list-loading">
-                                {listLoadingType === 1 ? <>Loading<DotLoading /></> : <p>No more</p>}
+                                {listLoadingType === 1 ? <>Loading<DotLoading/></> : <p>No more</p>}
                             </div>
                         ) : ''
                     }
@@ -625,4 +644,4 @@ const Home = () => {
     )
 }
 
-export { Home };
+export {Home};

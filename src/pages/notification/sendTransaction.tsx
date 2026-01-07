@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react"
 import HeadNav from '@/components/HeadNav'
-import { Button } from 'antd-mobile'
+import {Button, Mask, Popover, SpinLoading} from 'antd-mobile'
 import { formatAddress } from '@/utils/util'
 import { ethers } from "ethers";
 import '@/styles/transaction.scss'
@@ -12,6 +12,7 @@ import { Keyring } from "@/chrome/keyring";
 import {TransactionRequest} from "ethers/src.ts/providers/provider";
 import { SvgIcon } from '@/components/Icon/index'
 import { useClipboard } from '@/components/useClipboard'
+import NumberInput from '@/components/NumberInput';
 
 interface SendParams {
     tx: TransactionRequest;
@@ -43,6 +44,9 @@ const SendTransaction = () => {
 
     const [data, setData] = useState<ERC20Meta>()
 
+    const [approveAmount, setApproveAmount] = useState<number | undefined>(undefined)
+    const [visibleMask, setVisibleMask] = useState<boolean>(false)
+
     const getApproval = async () => {
         let approval: RequestParam = await Notification.getApproval()
         let param = approval.data
@@ -53,6 +57,7 @@ const SendTransaction = () => {
         if (param.data) {
             setData(param.data)
         }
+        // if (param.data.args)
     }
 
     useEffect(() => {
@@ -73,6 +78,31 @@ const SendTransaction = () => {
         }
         setBtnLoading(false)
     }
+
+    const submitApproveAmount = async (nonce?: number) => {
+        setVisibleMask(false)
+        if (!approveAmount) {
+            return
+        }
+        console.log("submitApproveAmount")
+        let newAmount = ethers.parseUnits(approveAmount.toString(), data!.token.decimals)
+
+        data!.args.amount = newAmount.toString()
+        setData(data)
+        // if (data.args.amount )
+        // setApproveAmount(nonce)
+    }
+
+    const resetNonce = async () => {
+        setApproveAmount(undefined)
+    }
+
+    const showApproveAmount = async () => {
+        // Account.
+        // setVisibleMask(true)
+    }
+
+
 
     return (
         <article className="page-box">
@@ -126,7 +156,9 @@ const SendTransaction = () => {
                             <div className="history-box">
                                 <div className="history-token-item">
                                     <span>Approve Amount</span>
-                                    <em>{ethers.formatUnits(data.args.amount.toString(), data.token.decimals)}</em>
+                                    <em>{ethers.formatUnits(data.args.amount, data.token.decimals)} <SvgIcon iconName="IconEdit" className="cursor-pointer"
+                                                                                                             onClick={() => showApproveAmount()}
+                                                                                                             size={20}/></em>
                                 </div>
                             </div>
                         </>
@@ -146,7 +178,7 @@ const SendTransaction = () => {
                             <div className="history-box">
                                 <div className="history-token-item">
                                     <span>Transfer Amount</span>
-                                    <em>{ethers.formatUnits(data.args.amount.toString(), data.token.decimals)}</em>
+                                    <em>{ethers.formatUnits(data.args.amount, data.token.decimals)}</em>
                                 </div>
                             </div>
                         </>
@@ -202,7 +234,45 @@ const SendTransaction = () => {
                     </Button>
                 </div>
             </div>
+
+            {
+                data && data.method == "approve" && (
+                    <Mask visible={visibleMask} onMaskClick={() => setVisibleMask(false)}>
+                <article className="remove-box">
+                    <div className="remove-bg">
+                        <SvgIcon className="remove-close" onClick={() => setVisibleMask(false)} iconName="IconClose"
+                                 color="#7F7F7F"/>
+                        <div className="remove-nox-content">
+                            <section className="dialog-content">
+                                <p className="remove-tip-strong">Approve amount</p>
+                                <div className="amount-box mt15 mb12">
+                                    <h6 className="sub-tit">
+                                        <span>Edit nonce</span>
+                                        <strong onClick={() => resetNonce()}>Reset</strong>
+                                    </h6>
+                                    <div className="input-box mask-input-box">
+                                        <NumberInput
+                                            value={Number(ethers.formatUnits(data.args.amount.toString(), data.token.decimals))}
+                                            onChange={(e) => setApproveAmount(Number(e))}
+                                            decimalPlaces={0}
+                                            placeholder="amount"
+                                        />
+                                    </div>
+                                </div>
+                            </section>
+                        </div>
+                        <div className="remove-btns">
+                            <Button size="middle" onClick={() => setVisibleMask(false)}>Cancel</Button>
+                            <Button color='primary' size="middle" onClick={() => submitApproveAmount()}>Save</Button>
+                        </div>
+                    </div>
+                </article>
+            </Mask>
+                )
+            }
         </article>
+
+
     )
 }
 

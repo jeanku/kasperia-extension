@@ -39,7 +39,7 @@ class NotificationService {
                     if (IS_CHROME && winId === chrome.windows.WINDOW_ID_NONE && IS_LINUX) {
                         return;
                     }
-                    this.rejectApproval();
+                    // this.rejectApproval();
                 }
             }
         });
