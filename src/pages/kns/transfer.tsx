@@ -85,6 +85,7 @@ const KnsTransfer = () => {
             </div>
             <AddressSelectPopup
                 visible={popupVisible}
+                isKaspa={ true }
                 onClose={() => setPopupVisible(false)}
                 onSelect={(res) => {
                     setAddress(res.address)

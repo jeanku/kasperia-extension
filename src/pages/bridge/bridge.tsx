@@ -2,7 +2,6 @@ import { useMemo, useState, useEffect } from 'react';
 import { useNavigate, useLocation } from "react-router-dom";
 
 import { Button, Mask, SpinLoading } from 'antd-mobile'
-import { AddressType } from '@/types/enum'
 import { useNotice } from '@/components/NoticeBar/NoticeBar'
 
 import { useSelector } from "react-redux";
@@ -27,8 +26,6 @@ import {
 
 import { AccountsSubListDisplay } from '@/model/account'
 import { Address } from '@/model/contact'
-import { Keyring } from '@/chrome/keyring'
-import { Contact } from '@/chrome/contact'
 import { Account } from '@/chrome/account'
 import { Evm } from '@/chrome/evm'
 import { EvmNetwork } from "@/model/evm";
@@ -62,9 +59,6 @@ const Bridge = () => {
     const [popupVisible, setPopupVisible] = useState(false)
     const [amount, setAmount] = useState<number | string>('')
     const [toAmount, setToAmount] = useState<number | string>('')
-    const [contactTabValue, setContactTabValue] = useState<string>("")
-    const [accountsValue, setAccountsValue] = useState<AccountsSubListDisplay[] | null>(null)
-    const [contactValue, setContactValue] = useState<Address[] | null>(null)
 
     const isKasplex = useMemo(() => {
         if (!evmNetwork || !evmNetwork.chainId) return false
@@ -144,33 +138,6 @@ const Bridge = () => {
 
     const submitDisabled = () => {
         return !amount || !toAmount
-    }
-
-    useEffect(() => {
-        switchContactTab("Contacts")
-    }, [])
-
-    const switchContactTab = async (key: string) => {
-        if (key === contactTabValue) return
-        setContactTabValue(key)
-        switch (key) {
-            case "Contacts":
-                if (!contactValue) {
-                    let addrType = toData.isKaspa ? AddressType.KaspaAddress : AddressType.EvmAddress
-                    let contacts: Address[] = await Contact.get(addrType)
-                    setContactValue(contacts)
-                }
-                break
-            case "Accounts":
-                if (!accountsValue) {
-                    let addrType = toData.isKaspa ? AddressType.KaspaAddress : AddressType.EvmAddress
-                    let accounts = await Keyring.getAccountsSubListDisplay(addrType)
-                    setAccountsValue(accounts);
-                }
-                break;
-            default:
-                break;
-        }
     }
 
     const switchInfo = async () => {
@@ -386,7 +353,7 @@ const Bridge = () => {
                 </div>
                 <div className="btn-pos-two flexd-row post-bottom">
                     <Button block size="large" color="primary" loading={bridgeLoading} disabled={submitDisabled()} onClick={() => bridgeSubmit()}>
-                        Bridge
+                        Bridge { toData.isKaspa }
                     </Button>
                 </div>
             </div>
@@ -401,6 +368,8 @@ const Bridge = () => {
             </Mask>
             <AddressSelectPopup
                 visible={popupVisible}
+                isKaspa={ toData.isKaspa }
+                isUpdata={ true }
                 onClose={() => setPopupVisible(false)}
                 onSelect={(res) => {
                     setAddress(res.address)
