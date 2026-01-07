@@ -24,63 +24,56 @@ const NumberInput: React.FC<NumberInputProps> = ({
     disabled = false,
     ...props
 }) => {
-    const [displayValue, setDisplayValue] = useState('');
-    const [isFocused, setIsFocused] = useState(false);
+    const [displayValue, setDisplayValue] = useState<string>('');
+    const [isFocused, setIsFocused] = useState<boolean>(false);
     const inputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
-        if (!isFocused) {
-            if (value !== undefined && value !== null && value !== '') {
-                const adjustedValue = max !== undefined ? Math.min(value, max) : value;
-                setDisplayValue(String(adjustedValue));
-            } else {
-                setDisplayValue('');
-            }
+        if (isFocused) return;
+
+        if (value === '' || value === null || value === undefined) {
+            setDisplayValue('');
+        } else {
+            setDisplayValue(String(value));
         }
-    }, [value, max, isFocused]);
+    }, [value, isFocused]);
 
     const handleFocus = () => {
         setIsFocused(true);
     };
 
     const handleBlur = () => {
-        setIsFocused(false);
-
-        if (displayValue === '-' || displayValue === '') {
+        if (displayValue === '' || displayValue === '-') {
             setDisplayValue('');
             onChange('');
-        } else if (displayValue.endsWith('.') || displayValue.startsWith('.')) {
-            let normalizedValue = displayValue.replace(/\.$/, '');
-            if (displayValue.startsWith('.')) {
-                normalizedValue = '0' + normalizedValue;
-            }
-
-            let numValue = parseFloat(normalizedValue);
-            if (isNaN(numValue)) {
-                setDisplayValue('');
-                onChange('');
-                return;
-            }
-
-            if (max !== undefined && numValue > max) {
-                numValue = max;
-            }
-
-            setDisplayValue(String(numValue));
-            onChange(numValue);
-        } else {
-            const numValue = parseFloat(displayValue);
-            if (isNaN(numValue)) {
-                setDisplayValue('');
-                onChange('');
-            } else if (max !== undefined && numValue > max) {
-                setDisplayValue(String(max));
-                onChange(max);
-            } else {
-                setDisplayValue(String(numValue));
-                onChange(numValue);
-            }
+            setIsFocused(false);
+            return;
         }
+
+        let normalizedValue = displayValue;
+
+        if (normalizedValue.startsWith('.')) {
+            normalizedValue = '0' + normalizedValue;
+        }
+        if (normalizedValue.endsWith('.')) {
+            normalizedValue = normalizedValue.slice(0, -1);
+        }
+
+        const numValue = parseFloat(normalizedValue);
+
+        if (isNaN(numValue)) {
+            setDisplayValue('');
+            onChange('');
+            setIsFocused(false);
+            return;
+        }
+
+        const finalValue = max !== undefined && numValue > max ? max : numValue;
+
+        setDisplayValue(String(finalValue));
+        onChange(finalValue);
+
+        setIsFocused(false);
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -112,10 +105,6 @@ const NumberInput: React.FC<NumberInputProps> = ({
 
             if (isValid && inputValue !== '-' && inputValue !== '') {
                 let numValue = parseFloat(inputValue);
-                if (max !== undefined && numValue > max) {
-                    numValue = max;
-                    setDisplayValue(String(max));
-                }
                 onChange(isNaN(numValue) ? '' : numValue);
             } else if (inputValue === '' || inputValue === '-') {
                 onChange('');
