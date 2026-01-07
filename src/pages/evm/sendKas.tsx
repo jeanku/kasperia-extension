@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo, useEffect, useCallback } from "react"
 import HeadNav from '@/components/HeadNav'
 import { Button, Image } from 'antd-mobile'
 import { SvgIcon } from '@/components/Icon/index'
@@ -42,6 +42,10 @@ const SendKas = () => {
     useEffect(() => {
         switchContactTab("Contacts")
     }, [])
+
+    const isKaspa = useCallback(() => {
+        return Number(network?.chainId) === 167012 || Number(network?.chainId) === 202555
+    }, [network?.chainId])
 
     const switchContactTab = async (key: string) => {
         if (key === contactTabValue) return
@@ -120,6 +124,7 @@ const SendKas = () => {
             </div>
             <AddressSelectPopup
                 visible={popupVisible}
+                isKaspa={ isKaspa() }
                 onClose={() => setPopupVisible(false)}
                 onSelect={(res) => {
                     setAddress(res.address)

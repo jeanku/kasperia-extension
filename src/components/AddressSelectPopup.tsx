@@ -5,6 +5,7 @@ import { formatAddress } from '@/utils/util'
 import { Address } from '@/model/contact'
 import { Keyring } from '@/chrome/keyring'
 import { Contact } from '@/chrome/contact'
+import { AddressType } from '@/types/enum'
 
 export type TabKey = 'Contacts' | 'Accounts'
 
@@ -27,12 +28,16 @@ export interface AddressSelectResult {
 
 interface Props {
     visible: boolean
+    isKaspa: boolean
+    isUpdata?: boolean
     onClose: () => void
     onSelect: (res: AddressSelectResult) => void
 }
 
 const AddressSelectPopup: React.FC<Props> = ({
     visible,
+    isKaspa,
+    isUpdata = false,
     onClose,
     onSelect,
 }) => {
@@ -45,21 +50,22 @@ const AddressSelectPopup: React.FC<Props> = ({
 
     const switchContactTab = async (key: TabKey) => {
         setActiveTab(key)
-
-        if (key === 'Contacts' && !contacts) {
+        if (key === 'Contacts' && (isUpdata || !contacts)) {
             setLoading(true)
             try {
-                const list = await Contact.get()
+                let addrType = isKaspa ? AddressType.KaspaAddress : AddressType.EvmAddress
+                let list: Address[] = await Contact.get(addrType)
                 setContacts(list || [])
             } finally {
                 setLoading(false)
             }
         }
 
-        if (key === 'Accounts' && !accounts) {
+        if (key === 'Accounts' && (isUpdata || !accounts)) {
             setLoading(true)
             try {
-                const list = await Keyring.getAccountsSubListDisplay()
+                let addrType = isKaspa ? AddressType.KaspaAddress : AddressType.EvmAddress
+                const list = await Keyring.getAccountsSubListDisplay(addrType)
                 setAccounts(list || [])
             } finally {
                 setLoading(false)
@@ -68,8 +74,13 @@ const AddressSelectPopup: React.FC<Props> = ({
     }
 
     useEffect(() => {
-        if (!visible) return
-
+        if (!visible) {
+            if (isUpdata) {
+                setContacts(null)
+                setAccounts(null)
+            }
+            return
+        }
         if (activeTab === 'Contacts' && !contacts) {
             switchContactTab('Contacts')
         }
@@ -77,7 +88,7 @@ const AddressSelectPopup: React.FC<Props> = ({
         if (activeTab === 'Accounts' && !accounts) {
             switchContactTab('Accounts')
         }
-    }, [visible])
+    }, [visible, isUpdata])
 
     return (
         <Popup
