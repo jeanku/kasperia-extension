@@ -1,10 +1,10 @@
 import React, {useEffect, useState} from "react"
 import HeadNav from '@/components/HeadNav'
-import {Button, Mask, Popover, SpinLoading} from 'antd-mobile'
+import {Button, Mask } from 'antd-mobile'
 import { formatAddress } from '@/utils/util'
 import { ethers } from "ethers";
 import '@/styles/transaction.scss'
-import { EvmNetwork, ERC20Meta } from "@/model/evm";
+import { EvmNetwork, ERC20Meta, ERC20ApproveMeta } from "@/model/evm";
 import {Notification} from "@/chrome/notification";
 import {useNotice} from "@/components/NoticeBar/NoticeBar";
 import {Account} from "@/chrome/account";
@@ -95,8 +95,9 @@ const SendTransaction = () => {
             "function approve(address spender, uint256 amount)",
         ]);
 
+        let approveData = data as ERC20ApproveMeta
         params.data = iface.encodeFunctionData("approve", [
-            data!.args.spender,
+            approveData!.args.spender,
             newAmount,
         ]);
         setParams(params)

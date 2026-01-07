@@ -76,16 +76,6 @@ class ProviderController {
         )
     }
 
-    sendCommit = async (request: RequestProps) => {
-        return await notificationService.requestApproval(
-            {
-                data: request.data.params,
-                session: request.session
-            },
-            { route: "/evokeBoost/notification/sendkaspa" }
-        )
-    }
-
     signMessage = async (request: RequestProps) => {
         return await notificationService.requestApproval(
             {
