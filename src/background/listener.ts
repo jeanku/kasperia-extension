@@ -108,6 +108,7 @@ const handlers: Record<string, (message: any) => Promise<any> | any> = {
     "Account.getBalanceFormatEther": (msg) => accountService.getBalanceFormatEther(msg.address),
     "Account.bridgeForIgra": (msg) => accountService.bridgeForIgra(msg.receiver, msg.address, msg.amount),
     "Account.transferKns": (msg) => accountService.transferKns(msg.assetId, msg.to, msg.isDomain),
+    "Account.submitCommitReveal": (msg) => accountService.submitCommitReveal(msg.reveal, msg.options),
 };
 
 const handleError = (error: unknown, sendResponse: (response: any) => void) => {

@@ -261,7 +261,7 @@ const SendTransaction = () => {
                                         <p className="remove-tip-strong">Approve amount</p>
                                         <div className="amount-box mt15">
                                             <h6 className="sub-tit">
-                                                <span>Edit nonce</span>
+                                                <span>Edit approve amount</span>
                                                 <strong onClick={() => resetNonce()}>Reset</strong>
                                             </h6>
                                             <div className="input-box mask-input-box">

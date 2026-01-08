@@ -7,3 +7,4 @@ export { SignMessage } from './signMessage'
 export { SendTransaction } from "./sendTransaction"
 export { AddEthereumChain } from "./addEthereumChain"
 export { AddErc20Token } from "./addErc20Token"
+export { SubmitCommitReveal } from "./submitCommitReveal"

@@ -10,7 +10,7 @@ const checkLoaded = (callback: any) => {
     return true;
   } else {
     setTimeout(() => {
-      checkLoaded(callback);
+      checkLoaded(callback); 
     }, 100);
   }
 };

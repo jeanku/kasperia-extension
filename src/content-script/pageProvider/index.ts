@@ -5,8 +5,9 @@ import KasperiaIcon from '@/assets/images/icon128.png'
 import PushEventHandlers from './pushEventHandlers';
 import ReadyPromise from './readyPromise';
 import {NetworkType} from "@/utils/wallet/consensus";
+import { OpCodes, ScriptBuilder } from '@/utils/wallet/tx/script';
 import { $, domReadyCall } from './utils';
-
+import { SubmitSetting, SubmitBuilderOptions } from '@/model/account'
 
 const script = document.currentScript;
 const channelName = script?.getAttribute('channel') || 'Kasperia';
@@ -143,10 +144,6 @@ export class KasperiaProvider extends EventEmitter {
     });
   };
 
-    getScriptBuilder = async () => {
-        return
-    };
-
     getNetwork = async () => {
         return this._request({
             method: 'getNetwork'
@@ -207,6 +204,19 @@ export class KasperiaProvider extends EventEmitter {
         });
     };
 
+    submitCommitReveal = async (reveal: SubmitSetting, options: SubmitBuilderOptions) => {
+        if (reveal.outputs.length == 0 || reveal.outputs.length > 2) {
+            throw Error("outputs has too many paymentoutput")
+        }
+        return this._request({
+            method: 'submitCommitReveal',
+            params: {
+                reveal,
+                options
+            }
+        });
+    };
+
     disconnect = async (origin: string) => {
         return this._request({
             method: 'disconnect',
@@ -217,7 +227,7 @@ export class KasperiaProvider extends EventEmitter {
     };
 
     getVersion = async () => {
-        return "1.10.53";
+        return "1.10.54";
     };
 
   async request({ method, params }: RequestArguments): Promise<any> {

@@ -89,6 +89,7 @@ import {
   AddEthereumChain,
   AddErc20Token,
   SignMessage as NotificatioSign,
+  SubmitCommitReveal,
 } from "@/pages/notification";
 
 import {
@@ -181,6 +182,7 @@ const AppRouter: React.FC = () => {
             <Route path="notification/sendTransaction" element={<SendTransaction />} />
             <Route path="notification/addEthereumChain" element={<AddEthereumChain />} />
             <Route path="notification/addErc20Token" element={<AddErc20Token />} />
+            <Route path="notification/submitCommitReveal" element={<SubmitCommitReveal />} />
           </Route>
 
           <Route path="/bridge">

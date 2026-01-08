@@ -3,6 +3,7 @@ import {GetBalancesByAddressesResponseMessage} from "@/utils/wallet/rpc/types";
 import {Krc20DeployOptions} from "@/utils/wallet/krc20";
 import {TransactionRequest} from "ethers/src.ts/providers/provider";
 import {EvmTokenList} from "@/model/evm";
+import { SubmitSetting, SubmitBuilderOptions } from '@/model/account'
 
 export class Account extends Chrome {
 
@@ -70,5 +71,9 @@ export class Account extends Chrome {
     
     static transferKns(assetId: string, to: string, isDomain: boolean): Promise<string> {
         return Chrome.request({ action: "Account.transferKns", assetId, to, isDomain })
+    }
+
+    static submitCommitReveal(reveal: SubmitSetting, options: SubmitBuilderOptions): Promise<{ commitTxid: string, revealTxid: string }> {
+        return Chrome.request({ action: "Account.submitCommitReveal", reveal, options})
     }
 }

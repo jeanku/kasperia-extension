@@ -53,7 +53,7 @@ const SendKaspa = () => {
             return noticeError("address invalid")
         }
 
-        if (BigInt(param.amount) <= BigInt("100000000")) {
+        if (BigInt(param.amount) < 100000000n) {
             noticeError("trasfer amount at least 1 KAS")
             return
         }

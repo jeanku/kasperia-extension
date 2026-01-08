@@ -18,7 +18,7 @@ import {
     UtxoEntryReference,
     FeeSource, Fees,
 } from '@/utils/wallet/tx'
-import { SubmitSetting } from '@/model/account'
+import { SubmitSetting, SubmitBuilderOptions } from '@/model/account'
 import {Keypair, Wallet} from '@/utils/wallet/wallet'
 import {EvmTokenList} from '@/model/evm'
 import {NetworkId, ScriptPublicKey} from '@/utils/wallet/consensus';
@@ -28,9 +28,10 @@ import { buildEntryPayload } from "@/background/utils";
 import {Provider} from "@/utils/wallet/provider";
 import {BlockTag, TransactionRequest} from "ethers/src.ts/providers/provider";
 import { ethers } from "ethers";
-import { OpCodes, ScriptBuilder } from '@/utils/wallet/tx/script';
+import { BuilderScript } from '@/utils/wallet/script';
 import { addressFromScriptPublicKey } from '@/utils/wallet/util';
-
+import { payToScriptHashScript, payToScriptHashSignatureScript } from '@/utils/wallet/tx/script';
+import {AccountType, AddressType, ChainPath, LockTime} from '@/types/enum';
 
 export class Account {
     private client: RpcClient | undefined = undefined
@@ -89,6 +90,13 @@ export class Account {
         let networkId = await preferenceService.getNetworkId()
         this.client = new RpcClient({resolver: new Resolver(), networkId });
         await this.client.connect()
+    }
+
+    async getClient() {
+        if (!this.client) {
+            await this.connect()
+        }
+        return this.client
     }
 
     async reconnect(networkId: NetworkId | undefined) {
@@ -342,7 +350,8 @@ export class Account {
     }
 
     async transfer(privateKey: string, sender: string, to: string, amount: bigint, networkId: NetworkId, payload: string | undefined = undefined) {
-        let utxos = await this.client?.getUtxosByAddresses([sender])
+        let client = await this.getClient()
+        let utxos = await client?.getUtxosByAddresses([sender])
         if (!utxos) {
             throw new Error("fetch utxo fail")
         }
@@ -354,7 +363,7 @@ export class Account {
         const generator = new Generator(setting);
         let transaction = generator.generateTransaction()
         const signedTx = await transaction!.sign([privateKey]);
-        await this.client?.submitTransaction({
+        await client?.submitTransaction({
             transaction: signedTx.toSubmittableJsonTx(),
             allowOrphan: false
         });
@@ -576,7 +585,7 @@ export class Account {
         let p2shAddress = script.p2shAddress
         let scriptPublicKey = script.payToScriptPublicKey()
 
-        let utxos = await this.client?.getUtxosByAddresses([senderAddress.toString()])
+        let utxos = await (await this.getClient())?.getUtxosByAddresses([senderAddress.toString()])
         if (!utxos) {
             throw Error("fetch utxo fail")
         }
@@ -630,96 +639,86 @@ export class Account {
         if (resp && resp.type == "ERC20" && resp.method == "approve") {
             let provider = await this.get_provider()
             let account = keyringService.currentAccount()
-            let address = Wallet.fromPrivateKey(account.priKey).toEthAddress()
-            let tokenBalance = await provider.getTokenBalance(address, resp.token.address,resp.token.decimals)
+            let address = ""
+            if (account.mnemonic) {
+                address = Wallet.fromMnemonic(account.mnemonic, `${ChainPath.KaspaL2Path}${account.path}`, account.passphrase).toEthAddress()
+            } else {
+                address = Wallet.fromPrivateKey(account.priKey).toEthAddress()
+            }
+            let tokenBalance = await provider.getTokenBalance(address, resp.token.address, resp.token.decimals)
             resp.token.balance = tokenBalance
         }
         return resp
     }
 
-    // async commit(data: SubmitSetting) {
-    //     let account = keyringService.currentAccount()
-    //     let networkId = await preferenceService.getNetworkId()
-    //     const senderAddress = Keypair.fromPrivateKeyHex(account.priKey).toAddress(networkId.networkType);
-    //
-    //     let utxos = await this.client?.getUtxosByAddresses([senderAddress.toString()])
-    //     if (!utxos) {
-    //         throw new Error("fetch utxo fail")
-    //     }
-    //     let payloadArray = data.payload ? stringToUint8Array(data.payload) : undefined
-    //     let fee = new Fees(data.priorityFee == 0 ? 0n : BigInt(data.priorityFee!))
-    //     let setting = new GeneratorSettings(data.outputs, senderAddress, utxos?.entries!, networkId, fee, undefined, undefined, undefined, payloadArray);
-    //     const generator = new Generator(setting);
-    //     let transaction = generator.generateTransaction()
-    //     const signedTx = await transaction!.sign([account.priKey]);
-    //     await this.client?.submitTransaction({
-    //         transaction: signedTx.toSubmittableJsonTx(),
-    //         allowOrphan: false
-    //     });
-    //     this.resetEntry()
-    //     return signedTx.transaction.id.toString()
-    // }
-    //
-    // async submitCommitReveal(commit: SubmitSetting, reveal: SubmitSetting, script: ScriptBuilder) {
-    //     let account = keyringService.currentAccount()
-    //     let networkId = await preferenceService.getNetworkId()
-    //
-    //     const senderAddress = Keypair.fromPrivateKeyHex(account.priKey).toAddress(networkId.networkType);
-    //
-    //     let scriptPublicKey = script.createPayToScriptHashScript()
-    //     let p2shAddress = addressFromScriptPublicKey(scriptPublicKey, networkId.networkType)
-    //
-    //     let utxos = await this.client?.getUtxosByAddresses([senderAddress.toString()])
-    //     if (!utxos) {
-    //         throw Error("fetch utxo fail")
-    //     }
-    //
-    //     const output = new PaymentOutput(p2shAddress.toString(), commit.outputs[0].amount);
-    //
-    //     let setting = new GeneratorSettings([output], senderAddress, utxos.entries, networkId, 0n);
-    //     const generator = new Generator(setting);
-    //
-    //     let transaction = generator.generateTransaction()
-    //
-    //     const signedTx = await transaction!.sign([account.priKey]);
-    //
-    //     await this.client?.submitTransaction({
-    //         transaction: signedTx.toSubmittableJsonTx(),
-    //         allowOrphan: false
-    //     });
-    //     const priorityEntries = [
-    //         new UtxoEntryReference(
-    //             p2shAddress,
-    //             new TransactionOutpoint(signedTx.transaction.id, 0),
-    //             KRC20_TRANSFER_TOTAL_FEES,
-    //             scriptPublicKey,
-    //             U64_MAX_VALUE,
-    //             false
-    //         )
-    //     ];
-    //
-    //     let revealSetting = new GeneratorSettings([
-    //         new PaymentOutput(senderAddress, KRC20_MINT_RETURN_FEES)
-    //     ], senderAddress, priorityEntries, networkId, KRC20_MINT_FEES);
-    //
-    //     const revealGenerator = new Generator(revealSetting);
-    //     let revealTransaction = revealGenerator.generateTransaction()
-    //
-    //     for (const [index, input] of revealTransaction!.tx.inputs.entries()) {
-    //         if (input.signatureScript.length == 0) {
-    //             const signature = revealTransaction!.createInputSignature(index, account.priKey);
-    //             revealTransaction!.fillInputSignature(index, script.encodePayToScriptHashSignatureScript(signature));
-    //         }
-    //     }
-    //
-    //     await this.client?.submitTransaction({
-    //         transaction: revealTransaction!.toSubmittableJsonTx(),
-    //         allowOrphan: false
-    //     });
-    //     return revealTransaction!.tx.id.toHex()
-    // }
+    async submitCommitReveal(reveal: SubmitSetting, options: SubmitBuilderOptions) {
+        let account = keyringService.currentAccount()
+        let networkId = await preferenceService.getNetworkId()
+        const senderAddress = Keypair.fromPrivateKeyHex(account.priKey).toAddress(networkId.networkType);
 
+        const script = new BuilderScript(senderAddress.payload, options.protocol, options.action);
+        let scriptPublicKey = script.payToScriptPublicKey()
+        let p2shAddress = addressFromScriptPublicKey(scriptPublicKey, networkId.networkType)
+        
+        let revealAmount = reveal.outputs.reduce((sum: bigint, o) => {
+            return sum + BigInt(o.amount);
+        }, 0n)
+        let commitAmount = revealAmount + 100000000n
+        // await this.client?.connect()
+        let client = await this.getClient()
+        let utxos = await client?.getUtxosByAddresses([senderAddress.toString()])
+        if (!utxos) {
+            throw Error("fetch utxo fail")
+        }
 
+        const output = new PaymentOutput(p2shAddress.toString(), commitAmount);
+        let setting = new GeneratorSettings([output], senderAddress, utxos.entries, networkId, 0n);
+        const generator = new Generator(setting);
+        let transaction = generator.generateTransaction()
+        const signedTx = await transaction!.sign([account.priKey]);
+        await client?.submitTransaction({
+            transaction: signedTx.toSubmittableJsonTx(),
+            allowOrphan: false
+        });
+
+        const priorityEntries = [
+            new UtxoEntryReference(
+                p2shAddress,
+                new TransactionOutpoint(signedTx.transaction.id, 0),
+                commitAmount,
+                scriptPublicKey,
+                U64_MAX_VALUE,
+                false
+            )
+        ];
+
+        let revealOutput: PaymentOutput[] = []
+        for (const output of reveal.outputs) {
+            revealOutput.push(new PaymentOutput(output.address, BigInt(output.amount)))
+        }
+
+        let payloadArray = reveal.payload ? stringToUint8Array(reveal.payload) : undefined
+        let revealSetting = new GeneratorSettings(revealOutput, senderAddress, priorityEntries, networkId, 0n, undefined, undefined, undefined, payloadArray);
+
+        const revealGenerator = new Generator(revealSetting);
+        let revealTransaction = revealGenerator.generateTransaction()
+
+        for (const [index, input] of revealTransaction!.tx.inputs.entries()) {
+            if (input.signatureScript.length == 0) {
+                const signature = revealTransaction!.createInputSignature(index, account.priKey);
+                revealTransaction!.fillInputSignature(index, payToScriptHashSignatureScript(script.script.script, signature));
+            }
+        }
+
+        await client?.submitTransaction({
+            transaction: revealTransaction!.toSubmittableJsonTx(),
+            allowOrphan: false
+        });
+        return {
+            commitTxid: signedTx.transaction.id.toHex(),
+            revealTxid: revealTransaction!.tx.id.toHex()
+        }
+    }
 }
 
 const account = new Account();

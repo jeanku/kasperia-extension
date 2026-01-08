@@ -76,6 +76,16 @@ class ProviderController {
         )
     }
 
+    submitCommitReveal = async (request: RequestProps) => {
+        return await notificationService.requestApproval(
+            {
+                data: request.data.params,
+                session: request.session
+            },
+            { route: "/evokeBoost/notification/submitCommitReveal" }
+        )
+    }
+
     signMessage = async (request: RequestProps) => {
         return await notificationService.requestApproval(
             {
