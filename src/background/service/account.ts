@@ -430,7 +430,11 @@ export class Account {
     async eth_estimateGas(data: any) {
         let gas = await (await this.get_provider()).estimateGas(data)
         return "0x" + gas.toString(16)
-    } 
+    }
+
+    async eth_getTransactionCount(address: ethers.AddressLike, blockTag?: BlockTag) {
+        return await (await this.get_provider()).getTransactionCount(address, blockTag)
+    }
     
     async eth_getCode(address: any, blockTag?: BlockTag) {
         return await (await this.get_provider()).getCode(address, blockTag)
@@ -663,8 +667,10 @@ export class Account {
         let revealAmount = reveal.outputs.reduce((sum: bigint, o) => {
             return sum + BigInt(o.amount);
         }, 0n)
-        let commitAmount = revealAmount + 100000000n
-        // await this.client?.connect()
+        let priorityFee = BigInt(reveal.priorityFee || 0)
+        let totalFee = priorityFee >= 100000000n ? priorityFee : priorityFee + 100000000n
+        let commitAmount = revealAmount + totalFee
+
         let client = await this.getClient()
         let utxos = await client?.getUtxosByAddresses([senderAddress.toString()])
         if (!utxos) {
@@ -698,7 +704,7 @@ export class Account {
         }
 
         let payloadArray = reveal.payload ? stringToUint8Array(reveal.payload) : undefined
-        let revealSetting = new GeneratorSettings(revealOutput, senderAddress, priorityEntries, networkId, 0n, undefined, undefined, undefined, payloadArray);
+        let revealSetting = new GeneratorSettings(revealOutput, senderAddress, priorityEntries, networkId, priorityFee, undefined, undefined, undefined, payloadArray);
 
         const revealGenerator = new Generator(revealSetting);
         let revealTransaction = revealGenerator.generateTransaction()

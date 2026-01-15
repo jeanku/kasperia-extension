@@ -64,7 +64,7 @@ export default async (request: any) => {
 
     if (method == "eth_chainId" || method == "net_version" || method == "eth_blockNumber" || method == "eth_getTransactionReceipt" || method == "eth_getTransactionByHash"
         || method == "eth_getBlockByNumber" || method == "eth_getBalance" || method == "wallet_revokePermissions" || method == "eth_call"
-        || method == "eth_estimateGas" || method == "eth_getCode" || method == "wallet_getPermissions"
+        || method == "eth_estimateGas" || method == "eth_getCode" || method == "wallet_getPermissions" || method == "eth_getTransactionCount"
         || method == "getNetwork") {
         return (providerController as any)[method](ctx.request)
     }

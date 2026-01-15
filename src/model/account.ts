@@ -68,11 +68,11 @@ export type AccountsSubListDisplay = {
 
 export type SubmitSetting = {
     outputs: Array<{address: string, amount: string}>;
-    priorityFee?: number;
+    priorityFee?: string;
     payload?: string;
 }
 
 export type SubmitBuilderOptions = {
     protocol: string;
-    action: string;
+    action: any;
 }

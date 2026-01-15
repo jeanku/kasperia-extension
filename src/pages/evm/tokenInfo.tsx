@@ -132,7 +132,6 @@ const TokenInfo = () => {
 
     const delToken = async () => {
         try {
-            console.log("token.address", token.address)
             await Evm.removeContract(network.chainId, token.address)
             noticeSuccess(`Delete ${token.name} successfully`)
             navigate("/home")

@@ -227,7 +227,7 @@ export class KasperiaProvider extends EventEmitter {
     };
 
     getVersion = async () => {
-        return "1.10.54";
+        return "1.10.56";
     };
 
   async request({ method, params }: RequestArguments): Promise<any> {
@@ -245,6 +245,7 @@ export class KasperiaProvider extends EventEmitter {
       case 'eth_sendTransaction':
       case 'eth_getTransactionReceipt':
       case 'eth_getTransactionByHash':
+      case 'eth_getTransactionCount':
       case 'eth_getCode':
       case 'eth_call':
       case 'wallet_watchAsset':

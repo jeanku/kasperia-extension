@@ -59,13 +59,9 @@ const SubmitCommitReveal = () => {
         if (!param) {
             return noticeError("invalid param")
         }
-        console.log("param", param)
         for (const output of param?.reveal.outputs) {
             if (!Address.validate(output.address || "")) {
                 return noticeError("address invalid")
-            }
-            if (BigInt(output.amount) < 100000000n) {
-                return noticeError("trasfer amount at least 1 KAS")
             }
         }
     }
@@ -110,13 +106,22 @@ const SubmitCommitReveal = () => {
                     </div>
                 </div>
 
+                {params?.reveal?.priorityFee ?
+                    <div className="history-box">
+                        <div className="history-token-item">
+                            <span>Transaction fee</span>
+                            <em>{ethers.formatUnits(Number(params?.reveal?.priorityFee), 8)} KAS</em>
+                        </div>
+                    </div> : null
+                }
+
                 {params?.options.action ?
                     <>
                         <div className="tx-confirm-box">
                             <h6 className="sub-tit mt15">Inscription</h6>
                             <div className="tx-confirm-content">
                                 <div className="tx-confirm-data">
-                                    {JSON.stringify(params.options.action, null, 8)}
+                                    {typeof params.options.action === 'string' ? params.options.action : JSON.stringify(params.options.action, null, 8)}
                                 </div>
                             </div>
                         </div>
