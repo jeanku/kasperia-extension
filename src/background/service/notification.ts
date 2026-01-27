@@ -75,9 +75,6 @@ class NotificationService {
     };
 
     requestApproval = async (data: any, winProps?: any): Promise<any> => {
-        while (this.isLocked) {
-            await new Promise(resolve => setTimeout(resolve, 50));
-        }
         this.isLocked = true;
         try {
             await this.openNotification(winProps);

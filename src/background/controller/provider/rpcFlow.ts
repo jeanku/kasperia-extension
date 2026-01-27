@@ -11,8 +11,13 @@ const flowContext = flow
       }
       let isLocked = await keyringService.isLocked()
       if (isLocked) {
-          ctx.flowContinue = true;
-          await notificationService.requestApproval({}, { route: "/evokeBoost/notification/unlock" })
+          if (notificationService.isLocked == false) {
+              ctx.flowContinue = true;
+              await notificationService.requestApproval({}, { route: "/evokeBoost/notification/unlock" })
+          } else {
+              console.log("hahah")
+              return
+          }
       }
       return next();
   })
