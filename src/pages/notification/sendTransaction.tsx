@@ -268,7 +268,7 @@ const SendTransaction = () => {
                                                 <NumberInput
                                                     value={approveAmount}
                                                     onChange={setApproveAmount}
-                                                    decimalPlaces={0}
+                                                    decimalPlaces={4}
                                                     placeholder="amount"
                                                 />
                                             </div>
