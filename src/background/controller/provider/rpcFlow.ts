@@ -15,7 +15,6 @@ const flowContext = flow
               ctx.flowContinue = true;
               await notificationService.requestApproval({}, { route: "/evokeBoost/notification/unlock" })
           } else {
-              console.log("hahah")
               return
           }
       }

@@ -27,6 +27,7 @@ import {
 import { AccountsSubListDisplay } from '@/model/account'
 import { Address } from '@/model/contact'
 import { Account } from '@/chrome/account'
+import { AccountEvm } from '@/chrome/accountEvm'
 import { Evm } from '@/chrome/evm'
 import { EvmNetwork } from "@/model/evm";
 import { ethers } from "ethers";
@@ -102,7 +103,7 @@ const Bridge = () => {
                 setFromData(fromData)
             }
         })
-        Account.getEvmBalanceFormatEther(toData.address).then(r => {
+        AccountEvm.getEvmBalanceFormatEther(toData.address).then(r => {
             toData.balance = formatBalanceFixed(r, 8)
             setToData(toData)
         })
@@ -146,7 +147,7 @@ const Bridge = () => {
         }
         let temp = fromData
         if (!toData.isKaspa && Number(toData.balance) == 0) {
-            let balance = await Account.getEvmBalanceFormatEther(toData.address)
+            let balance = await AccountEvm.getEvmBalanceFormatEther(toData.address)
             toData.balance = formatBalanceFixed(balance, 8)
             setFromData(toData)
         } else {
@@ -234,7 +235,7 @@ const Bridge = () => {
         const iface = new ethers.Interface(["function lockForBridge(bytes calldata payload)"]);
         const hexString = ethers.hexlify(ethers.toUtf8Bytes(toData.changeAddress || toData.address));
         const data = iface.encodeFunctionData("lockForBridge", [hexString]);
-        let unSignedTx = await Account.createContractTx({
+        let unSignedTx = await AccountEvm.createContractTx({
             from: preference.currentAccount?.ethAddress!,
             to: bridgeAddr,
             data,

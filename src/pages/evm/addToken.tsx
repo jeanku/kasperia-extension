@@ -3,7 +3,7 @@ import { Evm } from '@/chrome/evm'
 import { Erc20Options, EvmNetwork } from '@/model/evm'
 import HeadNav from '@/components/HeadNav'
 import {Input, DotLoading, Button} from "antd-mobile";
-import { Provider } from "@/utils/wallet/provider";
+import { AccountEvm } from "@/chrome/accountEvm";
 import { ethers } from "ethers";
 import {useNotice} from "@/components/NoticeBar/NoticeBar";
 import {useNavigate} from "react-router-dom";
@@ -34,18 +34,14 @@ const AddToken = () => {
 
     const fetchTokenInfo = async () => {
         setIsLoading(true)
-        let provider: Provider
         if (!network) {
             let curNetwork = await Evm.getSelectedNetwork()
             if (!curNetwork) {
                 throw Error("network not find")
             }
             setNetwork(curNetwork)
-            provider = new Provider(curNetwork.rpcUrl[0], Number(curNetwork.chainId))
-        } else {
-            provider = new Provider(network.rpcUrl[0], Number(network.chainId))
         }
-        let contract = await provider.getTokenInfo(token.address)
+        let contract = await AccountEvm.getERC20Info(token.address)
         setToken(contract)
         setIsLoading(false)
         setSubmitDisabled(false)

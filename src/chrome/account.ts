@@ -1,8 +1,6 @@
 import { Chrome } from '@/chrome/chrome'
-import {GetBalancesByAddressesResponseMessage} from "@/utils/wallet/rpc/types";
-import {Krc20DeployOptions} from "@/utils/wallet/krc20";
-import {TransactionRequest} from "ethers/src.ts/providers/provider";
-import {EvmTokenList} from "@/model/evm";
+import { GetBalancesByAddressesResponseMessage } from "@/utils/wallet/rpc/types";
+import { Krc20DeployOptions } from "@/utils/wallet/krc20";
 import { SubmitSetting, SubmitBuilderOptions } from '@/model/account'
 
 export class Account extends Chrome {
@@ -13,10 +11,6 @@ export class Account extends Chrome {
 
     static getBalance(address: string | undefined = undefined): Promise<any> {
         return Chrome.request({ action: "Account.getBalance", address })
-    }
-
-    static getEvmBalanceFormatEther(address: string): Promise<any> {
-        return Chrome.request({ action: "Account.getBalanceFormatEther", address })
     }
 
     static getAddressesBalance(addresses: string[]): Promise<GetBalancesByAddressesResponseMessage> {
@@ -44,25 +38,6 @@ export class Account extends Chrome {
 
     static estimateFee(from: string, to: string, sompi: string, payload: string | undefined): Promise<string | undefined> {
         return Chrome.request({ action: "Account.estimateFee", from, to, sompi, payload})
-    }
-    static async createTransaction(from: string, to: string, amount: string): Promise<TransactionRequest> {
-        return Chrome.request({ action: "Account.createTransaction", from, to, amount })
-    }
-
-    static async createErc20Transaction(from: string, tokenAddress: string, toAddress: string, amount: string, tokenDecimals: number): Promise<TransactionRequest> {
-        return Chrome.request({ action: "Account.createERC20TransferTx", from, tokenAddress, toAddress, amount, tokenDecimals })
-    }
-
-    static async createContractTx(tx: TransactionRequest): Promise<TransactionRequest> {
-        return Chrome.request({ action: "Account.createContractTx", tx })
-    }
-
-    static async sendTransaction(tx: TransactionRequest): Promise<string> {
-        return Chrome.request({ action: "Account.sendTransaction", tx })
-    }
-
-    static async getERC20Tokens(address: string): Promise<EvmTokenList[]> {
-        return Chrome.request({ action: "Account.getERC20Tokens", address })
     }
 
     static async bridgeForIgra(receiver: string, address: string, amount: string): Promise<string> {

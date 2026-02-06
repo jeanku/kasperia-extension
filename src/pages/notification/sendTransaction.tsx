@@ -7,7 +7,7 @@ import '@/styles/transaction.scss'
 import { EvmNetwork, ERC20Meta, ERC20ApproveMeta } from "@/model/evm";
 import { Notification } from "@/chrome/notification";
 import { useNotice } from "@/components/NoticeBar/NoticeBar";
-import { Account } from "@/chrome/account";
+import { AccountEvm } from "@/chrome/accountEvm";
 import { Keyring } from "@/chrome/keyring";
 import { TransactionRequest } from "ethers/src.ts/providers/provider";
 import { SvgIcon } from '@/components/Icon/index'
@@ -75,7 +75,7 @@ const SendTransaction = () => {
     const submitTransaction = async () => {
         try {
             setBtnLoading(true)
-            let hash = await Account.sendTransaction(params)
+            let hash = await AccountEvm.sendTransaction(params)
             Notification.resolveApproval(hash)
         } catch (error) {
             noticeError(error);

@@ -1,6 +1,6 @@
 import {
     keyringService, preferenceService, contactService, notificationService, permissionService,
-    evmService, shareService, accountService
+    evmService, shareService, accountService, accountEvmService
 } from './service';
 
 const handlers: Record<string, (message: any) => Promise<any> | any> = {
@@ -92,23 +92,28 @@ const handlers: Record<string, (message: any) => Promise<any> | any> = {
     "Share.add": (msg) => shareService.add(msg.item),
     "Share.remove": (msg) => shareService.remove(msg.id),
 
-    "Account.createTransaction": (msg) => accountService.createTransaction(msg.from, msg.to, msg.amount),
-    "Account.createERC20TransferTx": (msg) => accountService.createERC20TransferTx(msg.from, msg.tokenAddress, msg.toAddress, msg.amount, msg.tokenDecimals),
-    "Account.createContractTx": (msg) => accountService.createContractTx(msg.tx),
-    "Account.sendTransaction": (msg) => accountService.sendTransaction(msg.tx),
+
     "Account.signMessage": (msg) => accountService.signMessage(msg.message),
     "Account.getBalance": (msg) => accountService.getBalance(msg.address),
-    "Account.getERC20Tokens": (msg) => accountService.getERC20Tokens(msg.address),
     "Account.getAddressesBalance": (msg) => accountService.getAddressesBalance(msg.addresses),
     "Account.transferKrc20": (msg) => accountService.transferKrc20(msg.tick, msg.ca, msg.amount, msg.to),
     "Account.deployKrc20": (msg) => accountService.deployKrc20(msg.data),
     "Account.mintKrc20": (msg) => accountService.mintKrc20(msg.txid, msg.balance, msg.tick, msg.times, msg.useUtxo),
     "Account.estimateFee": (msg) => accountService.estimateFee(msg.from, msg.to, msg.sompi, msg.payload),
     "Account.transferKas": (msg) => accountService.transferKas(msg.to, msg.amount, msg.payload),
-    "Account.getBalanceFormatEther": (msg) => accountService.getBalanceFormatEther(msg.address),
     "Account.bridgeForIgra": (msg) => accountService.bridgeForIgra(msg.receiver, msg.address, msg.amount),
     "Account.transferKns": (msg) => accountService.transferKns(msg.assetId, msg.to, msg.isDomain),
     "Account.submitCommitReveal": (msg) => accountService.submitCommitReveal(msg.reveal, msg.options),
+
+    // evm account
+    "AccountEvm.getBalanceFormatEther": (msg) => accountEvmService.getBalanceFormatEther(msg.address),
+    "AccountEvm.getTokenBalance": (msg) => accountEvmService.getTokenBalance(msg.address, msg.token, msg.decimals),
+    "AccountEvm.createTransaction": (msg) => accountEvmService.createTransaction(msg.from, msg.to, msg.amount),
+    "AccountEvm.createERC20TransferTx": (msg) => accountEvmService.createERC20TransferTx(msg.from, msg.tokenAddress, msg.toAddress, msg.amount),
+    "AccountEvm.createContractTx": (msg) => accountEvmService.createContractTx(msg.tx),
+    "AccountEvm.sendTransaction": (msg) => accountEvmService.sendTransaction(msg.tx),
+    "AccountEvm.getERC20Tokens": (msg) => accountEvmService.getERC20Tokens(msg.address),
+    "AccountEvm.getERC20Info": (msg) => accountEvmService.getERC20Info(msg.address),
 };
 
 const handleError = (error: unknown, sendResponse: (response: any) => void) => {

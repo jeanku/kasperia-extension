@@ -17,6 +17,7 @@ import { NetworkType } from '@/utils/wallet/consensus';
 import { formatAddress, formatBalance, formatDate, formatHash, formatDecimal, formatBalanceFixed } from "@/utils/util"
 import { Evm } from "@/chrome/evm"
 import { Account } from "@/chrome/account"
+import { AccountEvm } from "@/chrome/accountEvm"
 import store, { RootState } from '@/store';
 import {
     setKrc20TokenList as setKrc20TokenListSlice,
@@ -38,7 +39,7 @@ import NoDataIco from '@/assets/images/no-data-3.png'
 import IconKNS from '@/assets/icons/icon-kns.jpg'
 import IconKnsText from '@/assets/icons/icon-kns-text.png'
 import IconKnsSel from '@/assets/icons/icon-kns-sel.svg'
-
+import { useNotice } from '@/components/NoticeBar/NoticeBar'
 
 export type TimedList<T> = {
     time: number;
@@ -49,6 +50,7 @@ type LoadingType = 0 | 1 | 2
 
 const Home = () => {
     const { handleCopy } = useClipboard();
+    const { noticeError } = useNotice();
     const navigate = useNavigate();
 
     const { preference } = useSelector((state: RootState) => state.preference);
@@ -206,13 +208,13 @@ const Home = () => {
                 setEvmTokenList({ time: curTime, list: oldList })
             }
             if (curTime - evmTokenList.time <= 1) return
-            let data = await Account.getERC20Tokens(preference.currentAccount!.ethAddress)
+            let data = await AccountEvm.getERC20Tokens(preference.currentAccount!.ethAddress)
             if (!shallowCompareTokens(data, oldList)) {
                 setEvmTokenList({ time: curTime, list: data });
                 dispatch(setPreferenceEvmTokenList({ chainId, listData: data }));
             }
         } catch (error) {
-            console.log('error-fetchEvmTokenlist', error)
+            noticeError(error)
         }
         setListLoadingType(0)
     }

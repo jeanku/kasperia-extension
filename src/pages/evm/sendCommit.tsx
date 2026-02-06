@@ -11,7 +11,8 @@ import { useSelector } from "react-redux";
 
 import '@/styles/transaction.scss'
 import { EvmTokenList, EvmNetwork } from "@/model/evm";
-import {Account} from "@/chrome/account";
+import {Evm} from "@/chrome/evm";
+import {AccountEvm} from "@/chrome/accountEvm";
 import {TransactionRequest} from "ethers/src.ts/providers/provider";
 import {ethers} from "ethers";
 import {useClipboard} from "@/components/useClipboard";
@@ -60,21 +61,21 @@ const SendCommit = () => {
     const createTransaction = async () => {
         let unsignedTx = undefined
         if (!ethers.isAddress(token.address)) {
-            unsignedTx = await Account.createTransaction(currentAccount?.ethAddress!, sendTo.address, sendTo.amount)
+            let network = await Evm.getSelectedNetwork()
+            if (!network) {
+                throw new Error("network not find")
+            }
+            const amount = ethers.parseUnits(sendTo.amount, network.decimals || 18)
+            unsignedTx = await AccountEvm.createTransaction(currentAccount?.ethAddress!, sendTo.address, amount.toString())
         } else {
             setIsErc20(true)
-            unsignedTx = await Account.createErc20Transaction(currentAccount?.ethAddress!, token.address, sendTo.address, sendTo.amount, token.decimals)
+            const amount = ethers.parseUnits(sendTo.amount, token.decimals)
+            unsignedTx = await AccountEvm.createErc20Transaction(currentAccount?.ethAddress!, token.address, sendTo.address, amount.toString())
         }
         setTx(unsignedTx)
-        let maxGasPrice = BigInt(unsignedTx?.maxFeePerGas || "0")
         let gasPrice = BigInt(unsignedTx?.gasPrice || "0")
-        if (maxGasPrice < gasPrice) {
-            maxGasPrice = gasPrice
-        }
         let feeStr = ethers.formatEther(gasPrice * BigInt(unsignedTx?.gasLimit || "0"))
-        let feeMaxStr = ethers.formatEther(maxGasPrice * BigInt(unsignedTx?.gasLimit || "0"))
         setFee(formatBalanceFixed(feeStr, 6))
-        setMaxFee(formatBalanceFixed(feeMaxStr, 6))
         const abi = ["function transfer(address to, uint256 amount)"];
         const iface = new ethers.Interface(abi);
         if (unsignedTx.data) {
@@ -143,10 +144,6 @@ const SendCommit = () => {
                                 <span>Gas</span>
                             </Popover>
                             <em>{fee} {network.symbol}</em>
-                        </div>
-                        <div className="flex-row cb ac">
-                            <span>maxPriorityFeePerGas</span>
-                            <em>{maxFee} {network.symbol}</em>
                         </div>
                     </div>
                     <div className="history-token-item">

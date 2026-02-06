@@ -6,7 +6,7 @@ import {useLocation, useNavigate} from "react-router-dom";
 import '@/styles/transaction.scss'
 import {EvmNetwork} from "@/model/evm";
 import {useNotice} from "@/components/NoticeBar/NoticeBar";
-import {Account} from "@/chrome/account";
+import { AccountEvm } from "@/chrome/accountEvm";
 import {TransactionRequest} from "ethers/src.ts/providers/provider";
 
 const SendTransaction = () => {
@@ -27,7 +27,7 @@ const SendTransaction = () => {
     const submitTransaction = async () => {
         try {
             setBtnLoading(true)
-            let hash = await Account.sendTransaction(unSignedTx)
+            let hash = await AccountEvm.sendTransaction(unSignedTx)
             navigate('/bridge/sendResult', {
                 state: {
                     hash,

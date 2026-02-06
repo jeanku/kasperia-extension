@@ -130,6 +130,7 @@ const EvmList = () => {
         if (!newNetwork.symbol) throw Error(`Please enter a symbol`)
         if (newNetwork.explorer && !isValidUrl(newNetwork.explorer)) throw Error(`Invalid explorer url`)
         if (newNetwork.decimals <= 0 || newNetwork.decimals > 18) throw Error("decimal invalid")
+        newNetwork.name = newNetwork.name.trim()
     }
 
     return (
@@ -208,9 +209,9 @@ const EvmList = () => {
                     <h6 className="sub-tit">RPC URL</h6>
                     <div className="input-box mb12">
                         <Input
-                            value={newNetwork.rpcUrl[0]}
+                            value={newNetwork.rpcUrl.join(",")}
                             onChange={val => {
-                                setNewNetworkInfo("rpcUrl", [val])
+                                setNewNetworkInfo("rpcUrl", val.trim().split(","))
                             }}
                             type="text"
                         />
@@ -231,7 +232,7 @@ const EvmList = () => {
                             maxLength={8}
                             value={newNetwork.symbol}
                             onChange={val => {
-                                setNewNetworkInfo('symbol', val)
+                                setNewNetworkInfo('symbol', val.trim())
                             }}
                             type="text"
                         />
@@ -253,7 +254,7 @@ const EvmList = () => {
                         <Input
                             value={newNetwork.explorer}
                             onChange={val => {
-                                setNewNetworkInfo('explorer', val)
+                                setNewNetworkInfo('explorer', val.trim())
                             }}
                             type="text"
                         />

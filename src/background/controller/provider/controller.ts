@@ -3,6 +3,7 @@ import {
     preferenceService,
     keyringService,
     accountService,
+    accountEvmService,
     permissionService,
     sessionService,
     evmService
@@ -24,7 +25,6 @@ interface RequestProps {
 
 class ProviderController {
 
-    // kaspa api
     getAccounts = async () => {
         const address = await keyringService._getActiveAddress();
         return [address]
@@ -157,11 +157,20 @@ class ProviderController {
 
     ethSendTransaction = async (request: RequestProps) => {
         const tx = request.data.params?.[0];
-        let contractData = await accountService.parseERC20Meta(tx)
+        let evmAddress = await keyringService.getActiveAddressForEvm()
+        if (tx.from) {
+            if (ethers.getAddress(tx.from) != ethers.getAddress(evmAddress.address)) {
+                throw new Error("tx from address invalid")
+            }
+        } else {
+            tx.from = evmAddress.address
+        }
+        let contractData = await accountEvmService.parseERC20Meta(tx)
+        let estimateGas = await accountEvmService.eth_estimateGas(tx)
         const network = await evmService.getSelectedNetwork()
         return await notificationService.requestApproval(
             {
-                data: { tx, network, data: contractData },
+                data: { tx, network, data: contractData, gas: estimateGas },
                 session: request.session
             },
             { route: "/evokeBoost/notification/sendTransaction" }
@@ -381,69 +390,13 @@ class ProviderController {
 
     eth_getBlockByNumber = async (request: RequestProps) => {
         let [blockNumber, includeTx] = request.data.params || [];
-
-        const validTags = ['latest', 'earliest', 'pending'];
-
-        const isHexBlock =
-            typeof blockNumber === 'string' &&
-            /^0x[0-9a-fA-F]+$/.test(blockNumber);
-
-        const isTag =
-            typeof blockNumber === 'string' &&
-            validTags.includes(blockNumber);
-
-        if (!isHexBlock && !isTag) {
-            throw ethErrors.rpc.invalidParams(
-                'blockNumber must be a hex string or one of: latest | earliest | pending'
-            );
-        }
-        if (typeof includeTx !== 'boolean') {
-            throw ethErrors.rpc.invalidParams(
-                'second param includeTransactions must be a boolean'
-            );
-        }
-        return await accountService.eth_getBlockByNumber(blockNumber, includeTx)
+        return await accountEvmService.eth_getBlockByNumber(blockNumber, includeTx)
     }
 
     eth_getBalance = async (request: RequestProps) => {
         const [address, tag] = request.data.params || [];
-
-        if (!ethers.isAddress(address)) {
-            throw ethErrors.rpc.invalidParams(
-                "eth_getBalance address params invalid"
-            )
-        }
-        let formattedTag = 'latest'
-        if (tag !== undefined && tag !== null) {
-            if (typeof tag === 'string') {
-                const predefinedTags = ['latest', 'earliest', 'pending'];
-                const lowerTag = tag.toLowerCase();
-
-                if (predefinedTags.includes(lowerTag)) {
-                    formattedTag = lowerTag;
-                } else {
-                    try {
-                        formattedTag = ethers.toQuantity(tag);
-                    } catch {
-                        throw ethErrors.rpc.invalidParams(`Invalid blockTag: ${tag}. Must be 'latest', 'earliest', 'pending', or a valid hex number.`);
-                    }
-                }
-            } else if (typeof tag === 'number' || typeof tag === 'bigint') {
-                try {
-                    const num = typeof tag === 'bigint' ? tag : BigInt(Math.floor(Number(tag)));
-                    if (num < 0n) {
-                        throw new Error(`BlockTag cannot be negative: ${tag}`);
-                    }
-                    formattedTag = ethers.toQuantity(num);
-                } catch {
-                    throw new Error(`Invalid blockTag number: ${tag}`);
-                }
-            } else {
-                throw new Error(`Invalid blockTag type: ${typeof tag}. Must be string, number, or bigint.`);
-            }
-        }
-        let balance = await accountService.eth_getBalance(address, formattedTag)
-        return '0x' + BigInt(balance).toString(16);
+        let balance = await accountEvmService.eth_getBalance(address, tag)
+        return ethers.toBeHex(balance);
     }
 
     eth_call = async (request: RequestProps) => {
@@ -452,11 +405,11 @@ class ProviderController {
         if (typeof tx !== "object" || !tx) {
             throw ethErrors.rpc.invalidParams('eth_estimateGas must be a object');
         }
-        return await accountService.eth_call(tx)
+        return await accountEvmService.eth_call(tx)
     }
 
     eth_blockNumber = async () => {
-        const block = await accountService.eth_blockNumber();
+        const block = await accountEvmService.eth_blockNumber();
         return ethers.toBeHex(BigInt(block));
     }
 
@@ -471,7 +424,7 @@ class ProviderController {
                 'transaction hash must be 0x-prefixed 32-byte hex string'
             );
         }
-        return await accountService.eth_getTransactionReceipt(hash)
+        return await accountEvmService.eth_getTransactionReceipt(hash)
     }
 
     eth_getTransactionByHash = async (request: RequestProps) => {
@@ -485,7 +438,7 @@ class ProviderController {
                 'transaction hash must be 0x-prefixed 32-byte hex string'
             );
         }
-        return await accountService.eth_getTransactionByHash(hash)
+        return await accountEvmService.eth_getTransactionByHash(hash)
     }
 
     eth_getTransactionCount = async (request: RequestProps) => {
@@ -540,7 +493,7 @@ class ProviderController {
             }
         }
 
-        const nonce = await accountService.eth_getTransactionCount(
+        const nonce = await accountEvmService.eth_getTransactionCount(
             address,
             formattedTag
         );
@@ -555,7 +508,7 @@ class ProviderController {
         if (typeof tx !== "object" || !tx) {
             throw ethErrors.rpc.invalidParams('eth_estimateGas must be a object');
         }
-        return await accountService.eth_estimateGas(tx)
+        return await accountEvmService.eth_estimateGas(tx)
     }
 
     eth_getCode = async (request: RequestProps) => {
@@ -590,7 +543,7 @@ class ProviderController {
                 'blockTag must be a hex string or one of: latest | earliest | pending'
             );
         }
-        return await accountService.eth_getCode(address, blockTag) || "0x"
+        return await accountEvmService.eth_getCode(address, blockTag) || "0x"
     };
 
 

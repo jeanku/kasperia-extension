@@ -25,7 +25,7 @@ import {NetworkId, ScriptPublicKey} from '@/utils/wallet/consensus';
 import {Krc20DeployOptions, Krc20DeployScript, Krc20MintScript, Krc20TransferScript, KnsTransferScript, KnsTransferOptions} from '@/utils/wallet/krc20';
 import {stringToUint8Array} from "@/utils/util";
 import { buildEntryPayload } from "@/background/utils";
-import {Provider} from "@/utils/wallet/provider";
+// import {Provider} from "@/utils/wallet/provider";
 import {BlockTag, TransactionRequest} from "ethers/src.ts/providers/provider";
 import { ethers } from "ethers";
 import { BuilderScript } from '@/utils/wallet/script';
@@ -36,7 +36,7 @@ import {AccountType, AddressType, ChainPath, LockTime} from '@/types/enum';
 export class Account {
     private client: RpcClient | undefined = undefined
 
-    private clients: Map<number, Provider> = new Map();
+    // private clients: Map<number, Provider> = new Map();
 
     private entry: { total: bigint, from: string, data: RpcUtxosByAddressesEntry[]} = {
         from: "",
@@ -44,24 +44,24 @@ export class Account {
         data: []
     };
 
-    async get_provider(chainIdStr: string | undefined = undefined): Promise<Provider> {
-        let network = undefined
-        if (chainIdStr) {
-            network = await evmService.getNetwork(chainIdStr)
-        } else {
-            network = await evmService.getSelectedNetwork();
-        }
-        if (!network || network.rpcUrl.length == 0) {
-            throw Error("network not found");
-        }
-        const chainId = Number(network.chainId);
-        if (this.clients.has(chainId) && this.clients.get(chainId)!.rpcUrl == network.rpcUrl[0]) {
-            return this.clients.get(chainId)!;
-        }
-        const client = new Provider(network.rpcUrl[0], chainId);
-        this.clients.set(chainId, client);
-        return client;
-    }
+    // async get_provider(chainIdStr: string | undefined = undefined): Promise<Provider> {
+    //     let network = undefined
+    //     if (chainIdStr) {
+    //         network = await evmService.getNetwork(chainIdStr)
+    //     } else {
+    //         network = await evmService.getSelectedNetwork();
+    //     }
+    //     if (!network || network.rpcUrl.length == 0) {
+    //         throw Error("network not found");
+    //     }
+    //     const chainId = Number(network.chainId);
+    //     if (this.clients.has(chainId) && this.clients.get(chainId)!.rpcUrl == network.rpcUrl[0]) {
+    //         return this.clients.get(chainId)!;
+    //     }
+    //     const client = new Provider(network.rpcUrl[0], chainId);
+    //     this.clients.set(chainId, client);
+    //     return client;
+    // }
 
     async getBalance(addr: string | undefined = undefined) {
         if (!this.client) {
@@ -371,100 +371,100 @@ export class Account {
         return signedTx.transaction.id.toString()
     }
 
-    async getERC20Tokens(address: string): Promise<EvmTokenList[]> {
-        let provider = await this.get_provider()
-        let network = await evmService.getSelectedNetwork()
-        if (!network) throw new Error("no network find")
-        let ethBalance = await provider.getBalance(address)
-        let listdata = [{
-            native: true,
-            symbol: network.symbol,
-            balance: ethers.formatUnits(ethBalance, network.decimals),
-            name: network.name,
-            address: "",
-            decimals: network.decimals
-        }]
-        if (network.contracts) {
-            let tokensBalance = await provider.getMultipleTokenBalances(address, network.contracts)
-            const tokenList = network.contracts.map((token) => ({
-                native: false,
-                symbol: token.symbol,
-                balance: tokensBalance[token.address] || "0",
-                name: token.name,
-                address: token.address,
-                decimals: token.decimals
-            }));
-            listdata = listdata.concat(tokenList);
-        }
-        return listdata
-    }
-
-    async eth_blockNumber() {
-        return (await this.get_provider()).blockNumber()
-    }
-
-    async eth_getBlockByNumber(block_number: string, flag: boolean) {
-        return (await this.get_provider()).getBlockByNumber(block_number, flag)
-    }
-
-    async eth_getBalance(address: string, blockTag?: BlockTag) {
-        return (await this.get_provider()).getBalance(address, blockTag)
-    }
-
-    async getBalanceFormatEther(address: string) {
-        return (await this.get_provider()).getBalanceFormatEther(address)
-    }
-
-    async eth_call(tx: TransactionRequest) {
-        return (await this.get_provider()).ethCall(tx)
-    }
-
-    async eth_getTransactionReceipt(hash: string) {
-        return await (await this.get_provider()).getTransactionReceipt(hash)
-    }
-
-    async eth_getTransactionByHash(hash: string) {
-        return await (await this.get_provider()).getTransactionByHash(hash)
-    }
-
-    async eth_estimateGas(data: any) {
-        let gas = await (await this.get_provider()).estimateGas(data)
-        return "0x" + gas.toString(16)
-    }
-
-    async eth_getTransactionCount(address: ethers.AddressLike, blockTag?: BlockTag) {
-        return await (await this.get_provider()).getTransactionCount(address, blockTag)
-    }
-    
-    async eth_getCode(address: any, blockTag?: BlockTag) {
-        return await (await this.get_provider()).getCode(address, blockTag)
-    }
-
-    async createTransaction(from: string, to: string, amount: string): Promise<string> {
-        return this.get_provider().then(provider => {
-            return provider.createTransaction(from, to, amount)
-        })
-    }
-
-    async createERC20TransferTx(from: string, tokenAddress: string, toAddress: string, amount: string, tokenDecimals: number): Promise<string> {
-        return this.get_provider().then(provider => {
-            return provider.createERC20TransferTx(from, tokenAddress, toAddress, amount, tokenDecimals)
-        })
-    }
-
-    async createContractTx(tx: TransactionRequest): Promise<TransactionRequest> {
-        return this.get_provider().then(provider => {
-            // @ts-ignore
-            return provider.createContractTx(tx)
-        })
-    }
-
-    async sendTransaction(tx: TransactionRequest): Promise<string> {
-        let privateKey = await keyringService.getActiveWalletPrivateKeyForEvm()
-        return this.get_provider().then(provider => {
-            return provider.sendTransaction(privateKey.priKey, tx)
-        })
-    }
+    // async getERC20Tokens(address: string): Promise<EvmTokenList[]> {
+    //     let provider = await this.get_provider()
+    //     let network = await evmService.getSelectedNetwork()
+    //     if (!network) throw new Error("no network find")
+    //     let ethBalance = await provider.getBalance(address)
+    //     let listdata = [{
+    //         native: true,
+    //         symbol: network.symbol,
+    //         balance: ethers.formatUnits(ethBalance, network.decimals),
+    //         name: network.name,
+    //         address: "",
+    //         decimals: network.decimals
+    //     }]
+    //     if (network.contracts) {
+    //         let tokensBalance = await provider.getMultipleTokenBalances(address, network.contracts)
+    //         const tokenList = network.contracts.map((token) => ({
+    //             native: false,
+    //             symbol: token.symbol,
+    //             balance: tokensBalance[token.address] || "0",
+    //             name: token.name,
+    //             address: token.address,
+    //             decimals: token.decimals
+    //         }));
+    //         listdata = listdata.concat(tokenList);
+    //     }
+    //     return listdata
+    // }
+    //
+    // async eth_blockNumber() {
+    //     return (await this.get_provider()).blockNumber()
+    // }
+    //
+    // async eth_getBlockByNumber(block_number: string, flag: boolean) {
+    //     return (await this.get_provider()).getBlockByNumber(block_number, flag)
+    // }
+    //
+    // async eth_getBalance(address: string, blockTag?: BlockTag) {
+    //     return (await this.get_provider()).getBalance(address, blockTag)
+    // }
+    //
+    // async getBalanceFormatEther(address: string) {
+    //     return (await this.get_provider()).getBalanceFormatEther(address)
+    // }
+    //
+    // async eth_call(tx: TransactionRequest) {
+    //     return (await this.get_provider()).ethCall(tx)
+    // }
+    //
+    // async eth_getTransactionReceipt(hash: string) {
+    //     return await (await this.get_provider()).getTransactionReceipt(hash)
+    // }
+    //
+    // async eth_getTransactionByHash(hash: string) {
+    //     return await (await this.get_provider()).getTransactionByHash(hash)
+    // }
+    //
+    // async eth_estimateGas(data: any) {
+    //     let gas = await (await this.get_provider()).estimateGas(data)
+    //     return "0x" + gas.toString(16)
+    // }
+    //
+    // async eth_getTransactionCount(address: ethers.AddressLike, blockTag?: BlockTag) {
+    //     return await (await this.get_provider()).getTransactionCount(address, blockTag)
+    // }
+    //
+    // async eth_getCode(address: any, blockTag?: BlockTag) {
+    //     return await (await this.get_provider()).getCode(address, blockTag)
+    // }
+    //
+    // async createTransaction(from: string, to: string, amount: string): Promise<string> {
+    //     return this.get_provider().then(provider => {
+    //         return provider.createTransaction(from, to, amount)
+    //     })
+    // }
+    //
+    // async createERC20TransferTx(from: string, tokenAddress: string, toAddress: string, amount: string, tokenDecimals: number): Promise<string> {
+    //     return this.get_provider().then(provider => {
+    //         return provider.createERC20TransferTx(from, tokenAddress, toAddress, amount, tokenDecimals)
+    //     })
+    // }
+    //
+    // async createContractTx(tx: TransactionRequest): Promise<TransactionRequest> {
+    //     return this.get_provider().then(provider => {
+    //         // @ts-ignore
+    //         return provider.createContractTx(tx)
+    //     })
+    // }
+    //
+    // async sendTransaction(tx: TransactionRequest): Promise<string> {
+    //     let privateKey = await keyringService.getActiveWalletPrivateKeyForEvm()
+    //     return this.get_provider().then(provider => {
+    //         return provider.sendTransaction(privateKey.priKey, tx)
+    //     })
+    // }
 
     async bridgeForIgra(receiveAddress: string, toAddress: string, amount: string): Promise<string> {
         let account = keyringService.currentAccount()
@@ -506,7 +506,7 @@ export class Account {
                 const generator = new Generator(baseSetting);
                 const id = generator.generateTransactionId();
                 const idBytes = id?.toBytes();
-                if (idBytes && idBytes[0] === 151 && idBytes[1] === 177) {
+                if (idBytes && idBytes[0] === 151 && idBytes[1] === 180) {
                     return { nonce: i };
                 }
             }
@@ -638,22 +638,22 @@ export class Account {
         return revealTransaction!.tx.id.toHex()
     }
 
-    async parseERC20Meta(tx: any) {
-        let resp = await (await this.get_provider()).parseERC20Meta(tx)
-        if (resp && resp.type == "ERC20" && resp.method == "approve") {
-            let provider = await this.get_provider()
-            let account = keyringService.currentAccount()
-            let address = ""
-            if (account.mnemonic) {
-                address = Wallet.fromMnemonic(account.mnemonic, `${ChainPath.KaspaL2Path}${account.path}`, account.passphrase).toEthAddress()
-            } else {
-                address = Wallet.fromPrivateKey(account.priKey).toEthAddress()
-            }
-            let tokenBalance = await provider.getTokenBalance(address, resp.token.address, resp.token.decimals)
-            resp.token.balance = tokenBalance
-        }
-        return resp
-    }
+    // async parseERC20Meta(tx: any) {
+    //     let resp = await (await this.get_provider()).parseERC20Meta(tx)
+    //     if (resp && resp.type == "ERC20" && resp.method == "approve") {
+    //         let provider = await this.get_provider()
+    //         let account = keyringService.currentAccount()
+    //         let address = ""
+    //         if (account.mnemonic) {
+    //             address = Wallet.fromMnemonic(account.mnemonic, `${ChainPath.KaspaL2Path}${account.path}`, account.passphrase).toEthAddress()
+    //         } else {
+    //             address = Wallet.fromPrivateKey(account.priKey).toEthAddress()
+    //         }
+    //         let tokenBalance = await provider.getTokenBalance(address, resp.token.address, resp.token.decimals)
+    //         resp.token.balance = tokenBalance
+    //     }
+    //     return resp
+    // }
 
     async submitCommitReveal(reveal: SubmitSetting, options: SubmitBuilderOptions) {
         let account = keyringService.currentAccount()

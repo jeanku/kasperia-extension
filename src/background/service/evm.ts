@@ -42,12 +42,12 @@ export class EVM {
                             decimals: 18,
                             select: false,
                         },
-                        "19416": {
-                            chainId: "19416",
+                        "38836": {
+                            chainId: "38836",
                             symbol: "iKAS",
                             name: "Igra Caravel",
-                            rpcUrl: ["https://caravel.igralabs.com:8545"],
-                            explorer: "https://explorer.caravel.igralabs.com",
+                            rpcUrl: ["https://galleon-testnet.igralabs.com:8545"],
+                            explorer: "https://explorer.galleon-testnet.igralabs.com/",
                             decimals: 18,
                             select: false,
                         }

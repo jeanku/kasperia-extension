@@ -32,7 +32,7 @@ const SendKas = () => {
     const [accountsValue, setAccountsValue] = useState<AccountsSubListDisplay[] | null>(null)
 
     const submitDisabled = useMemo(() => {
-        return !amount || !ethers.isAddress(address) || amount >  Number(token.balance || "0")
+        return !amount || !ethers.isAddress(address) || amount > Number(token.balance || "0" || amount < 0)
     }, [amount, address]);
 
     const sendSubmit = () => {
@@ -106,7 +106,6 @@ const SendKas = () => {
                             onChange={(e) => setAmount(Number(e))}
                             decimalPlaces={Number(8)}
                             max={Number(token.balance)}
-                            allowNegative={true}
                             placeholder="amount"
                         />
                     </div>

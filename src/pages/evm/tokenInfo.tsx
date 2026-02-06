@@ -24,7 +24,7 @@ import {
 } from "@/model/evm";
 
 import {ethers} from "ethers";
-import {Provider} from "@/utils/wallet/provider";
+import {AccountEvm} from "@/chrome/accountEvm";
 import { HttpClient } from "@/utils/http";
 import { KasplexL2MainnetChainId } from "@/types/constant";
 import {useSelector} from "react-redux";
@@ -113,12 +113,11 @@ const TokenInfo = () => {
     };
 
     const fetchBalance = async () => {
-        let provider = new Provider(network.rpcUrl[0], Number(network.chainId))
         let balance = ""
         if (ethers.isAddress(token.address)) {
-            balance = await provider.getTokenBalance(currentAccount?.ethAddress!, token.address)
+            balance = await AccountEvm.getTokenBalance(currentAccount?.ethAddress!, token.address, token.decimals)
         } else {
-            balance = await provider.getBalance(currentAccount?.ethAddress!)
+            balance = await AccountEvm.getEvmBalanceFormatEther(currentAccount?.ethAddress!)
         }
         if (balance != token.balance) {
             setTokenInfo("balance", ethers.formatUnits(balance, network.decimals))
@@ -257,7 +256,8 @@ const TokenInfo = () => {
                                             <div className="history-token-item">
                                                 <span>Contract Address</span>
                                                 <em onClick={() => handleCopy(token.address)}>{formatAddress(token.address)}
-                                                    <SvgIcon iconName="IconCopy" offsetStyle={{marginLeft: '5px', marginRight: '-12px'}}/></em>
+                                                    <SvgIcon iconName="IconCopy"
+                                                             offsetStyle={{marginLeft: '5px', marginRight: '-12px'}}/></em>
                                             </div>
                                         </>
                                     )
@@ -265,6 +265,10 @@ const TokenInfo = () => {
                                 <div className="history-token-item">
                                     <span>Token</span>
                                     <em>{token.symbol}</em>
+                                </div>
+                                <div className="history-token-item">
+                                    <span>Decimals</span>
+                                    <em>{token.decimals}</em>
                                 </div>
                             </>
                         )}
