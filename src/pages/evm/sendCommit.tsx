@@ -48,7 +48,7 @@ const SendCommit = () => {
     const submitTransaction = async () => {
         try {
             setBtnLoading(true)
-            let hash = await AccountEvm.sendTransaction(tx)
+            let hash = await AccountEvm.sendTransaction(tx!)
             navigate("/evm/sendResult", { state: { sendTo, token, network, hash } })
         } catch (error) {
             noticeError(error)
