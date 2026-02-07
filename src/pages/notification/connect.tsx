@@ -73,7 +73,7 @@ const Connect =  () => {
                 {
                     session ? <div className='source-box'>
                         <div className='text-center wd100'>
-                            <strong>{session?.name}</strong>
+                            <strong className="one-line">{session?.name}</strong>
                             <p>{session?.origin}</p>
                         </div>
                     </div>: ""

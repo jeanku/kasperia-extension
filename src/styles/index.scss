@@ -1950,7 +1950,7 @@ em {
             margin-bottom: 7px;
             font-size: 15px;
             font-weight: bold;
-            max-width: 230px;
+            width: 220px;
             word-break: break-all;
             color: $text-color;
         }
@@ -1968,6 +1968,10 @@ em {
             -ms-text-overflow: ellipsis;
             text-overflow: ellipsis;
         }
+    }
+    .one-line {
+        width: 236px;
+        display: block;
     }
 }
 
