@@ -27,7 +27,6 @@ const SendCommit = () => {
     const [network] = useState<EvmNetwork>(state?.network)
     const [tx, setTx] = useState<TransactionRequest | undefined>(undefined)
     const [fee, setFee] = useState<string>("")
-    const [maxFee, setMaxFee] = useState<string>("")
     const [isERC20, setIsErc20] = useState<boolean>(false)
     const [sendTo] = useState<{
         address: string,
