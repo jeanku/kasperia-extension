@@ -961,6 +961,7 @@ em {
         .adm-image {
             flex-shrink: 0;
         }
+
         .list-item-img-star {
             position: relative;
         }
@@ -2082,6 +2083,7 @@ em {
         >img {
             width: 107px;
         }
+
         .span-amount {
             display: block;
             margin-top: 10px;
@@ -2515,6 +2517,38 @@ em {
     font-size: 16px;
 }
 
+.sign-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    font-size: 12px;
+}
+
+.sign-label {
+    color: #999;
+    min-width: 90px;
+    text-align: left;
+}
+.sign-value {
+    color: #fff;
+    max-width: 65%;
+    text-align: right;
+    word-break: break-all;
+}
+.sign-statement {
+    margin-bottom: 12px;
+}
+
+.sign-statement-content {
+    padding: 8px 0;
+    color: #fff;
+    text-align: left;
+    white-space: normal;
+    word-break: break-word;
+    line-height: 1.5;
+}
+
+
 .switch-network {
     margin-top: 30px;
     display: flex;
@@ -2747,9 +2781,11 @@ em {
     align-items: center;
     justify-content: center;
 }
+
 .cost-loading {
-  --color: #3dd6c6;
+    --color: #3dd6c6;
 }
+
 .check-icon-sm {
     font-size: 12px;
     position: absolute;
@@ -2788,16 +2824,16 @@ em {
 }
 
 .cost-text {
-  font-size: 15px;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.88);
-  line-height: 1.4;
+    font-size: 15px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.88);
+    line-height: 1.4;
 
-  .cost-sub {
-    margin-top: 4px;
-    font-size: 13px;
-    color: rgba(255, 255, 255, 0.6);
-  }
+    .cost-sub {
+        margin-top: 4px;
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.6);
+    }
 }
 
 @keyframes ellipsis {
