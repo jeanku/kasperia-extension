@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react"
 import { Notification } from '@/chrome/notification'
 import { Account } from '@/chrome/account'
-import { formatAddress, formatSignMessage } from '@/utils/util'
+import { formatAddress, formatSignMessage, hexDecode } from '@/utils/util'
 import { Button, Divider } from 'antd-mobile'
+import { ethers } from "ethers";
 
 interface Session {
     origin: string;
@@ -76,7 +77,7 @@ const SignMessage = () => {
                     }}
                 >Sign Message</Divider>
                 <div className="sign-info">
-                    {data?.message}
+                    {hexDecode(data?.message)}
                 </div>
             </div>
             <div className="btn-pos-two flexd-row post-bottom">

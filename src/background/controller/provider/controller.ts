@@ -361,7 +361,7 @@ class ProviderController {
 
     eth_chainId = async () => {
         let chainHex = await evmService.getSelectedChainId()
-        return '0x' + Number(chainHex).toString(16)
+        return ethers.toQuantity(chainHex)
     }
 
     personalSign = async (request: RequestProps) => {
@@ -443,59 +443,9 @@ class ProviderController {
 
     eth_getTransactionCount = async (request: RequestProps) => {
         const [address, tag] = request.data.params || [];
-
-        if (!ethers.isAddress(address)) {
-            throw ethErrors.rpc.invalidParams(
-                "eth_getTransactionCount address params invalid"
-            );
-        }
-
-        let formattedTag: string = 'latest';
-
-        if (tag !== undefined && tag !== null) {
-            if (typeof tag === 'string') {
-                const predefinedTags = ['latest', 'earliest', 'pending', 'safe', 'finalized'];
-                const lowerTag = tag.toLowerCase();
-
-                if (predefinedTags.includes(lowerTag)) {
-                    formattedTag = lowerTag;
-                } else {
-                    try {
-                        // hex block number
-                        formattedTag = ethers.toQuantity(tag);
-                    } catch {
-                        throw ethErrors.rpc.invalidParams(
-                            `Invalid blockTag: ${tag}. Must be 'latest', 'earliest', 'pending', 'safe', 'finalized', or a valid hex number.`
-                        );
-                    }
-                }
-            } else if (typeof tag === 'number' || typeof tag === 'bigint') {
-                try {
-                    const num =
-                        typeof tag === 'bigint'
-                            ? tag
-                            : BigInt(Math.floor(Number(tag)));
-
-                    if (num < 0n) {
-                        throw new Error();
-                    }
-
-                    formattedTag = ethers.toQuantity(num);
-                } catch {
-                    throw ethErrors.rpc.invalidParams(
-                        `Invalid blockTag number: ${tag}`
-                    );
-                }
-            } else {
-                throw ethErrors.rpc.invalidParams(
-                    `Invalid blockTag type: ${typeof tag}. Must be string, number, or bigint.`
-                );
-            }
-        }
-
         const nonce = await accountEvmService.eth_getTransactionCount(
             address,
-            formattedTag
+            tag
         );
 
         return ethers.toQuantity(nonce);

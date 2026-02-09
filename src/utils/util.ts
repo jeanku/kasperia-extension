@@ -288,3 +288,14 @@ export const mergeUrlParams = (url: string, params = {}) => {
         mergedParams
     };
 }
+
+export const hexDecode = (message?: string) => {
+    try {
+        if (!message) {
+            return ""
+        }
+        return ethers.toUtf8String(message)
+    } catch (error) {
+        return message
+    }
+}
