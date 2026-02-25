@@ -166,11 +166,11 @@ class ProviderController {
             tx.from = evmAddress.address
         }
         let contractData = await accountEvmService.parseERC20Meta(tx)
-        let estimateGas = await accountEvmService.eth_estimateGas(tx)
         const network = await evmService.getSelectedNetwork()
+        const buildTx = await accountEvmService.createContractTx(tx)
         return await notificationService.requestApproval(
             {
-                data: { tx, network, data: contractData, gas: estimateGas },
+                data: { tx: buildTx, network, data: contractData },
                 session: request.session
             },
             { route: "/evokeBoost/notification/sendTransaction" }

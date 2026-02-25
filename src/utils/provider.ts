@@ -229,7 +229,7 @@ export class Provider {
             if (tx.value == null) {
                 tx.value = 0;
             } else {
-                tx.value = tx.value.toString()
+                tx.value = ethers.toQuantity(tx.value)
             }
             return tx;
         });

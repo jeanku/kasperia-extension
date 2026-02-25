@@ -42,7 +42,7 @@ const SendTransaction = () => {
 
     const [network, setNetwork] = useState<EvmNetwork>()
 
-    const [data, setData] = useState<ERC20Meta>()
+    const [data, setData] = useState<ERC20Meta | undefined>(undefined)
 
     const [approveAmount, setApproveAmount] = useState<number | ''>('')
     const [visibleMask, setVisibleMask] = useState<boolean>(false)
@@ -50,13 +50,9 @@ const SendTransaction = () => {
     const getApproval = async () => {
         let approval: RequestParam = await Notification.getApproval()
         let param = approval.data
-        let from = await Keyring.getActiveAddressForEvm()
-        param.tx.from = from.address
-        setParams({ from, ...param.tx })
+        setParams(param.tx)
         setNetwork(param.network)
-        if (param.data) {
-            setData(param.data)
-        }
+        setData(param.data)
     }
 
     useEffect(() => {
@@ -64,8 +60,7 @@ const SendTransaction = () => {
     }, []);
 
     useEffect(() => {
-        if (!data || !data.args?.amount) return;
-        resetNonce()
+        resetApproveAmount()
     }, [data]);
 
     const reject = () => {
@@ -83,12 +78,8 @@ const SendTransaction = () => {
         setBtnLoading(false)
     }
 
-    const submitApproveAmount = async (nonce?: number) => {
+    const submitApproveAmount = async () => {
         if (!approveAmount) {
-            return
-        }
-        if (approveAmount > Number(data!.token.balance)) {
-            noticeError(`The amount is too large, max ${data!.token.balance}`)
             return
         }
         setVisibleMask(false)
@@ -113,9 +104,23 @@ const SendTransaction = () => {
         setParams(params)
     }
 
-    const resetNonce = async () => {
-        let orgAmount = ethers.formatUnits(data!.args.amount, data!.token.decimals)
-        setApproveAmount(Number(orgAmount))
+    const resetApproveAmount = async () => {
+        if (data?.args?.amount) {
+            let amount = ethers.formatUnits(data.args.amount, data.token.decimals)
+            setApproveAmount(Number(amount))
+        }
+    }
+
+    const resetMaxApproveAmount = async () => {
+        if (data?.token.balance) {
+            let orgAmount = data!.token.balance
+            setApproveAmount(Number(orgAmount))
+        }
+    }
+
+    const cancelResetMaxApproveAmount = async () => {
+        setVisibleMask(false)
+        resetApproveAmount()
     }
 
     return (
@@ -150,7 +155,9 @@ const SendTransaction = () => {
                             <div className="history-box">
                                 <div className="history-token-item">
                                     <span>Token Address</span>
-                                    <em onClick={() => handleCopy(data.token.address)}>{formatAddress(data.token.address)} <SvgIcon iconName="IconCopy" offsetStyle={{ marginLeft: '5px', marginRight: '-12px' }} /></em>
+                                    <em onClick={() => handleCopy(data.token.address)}>{formatAddress(data.token.address)}
+                                        <SvgIcon iconName="IconCopy"
+                                                 offsetStyle={{marginLeft: '5px', marginRight: '-12px'}}/></em>
                                 </div>
                             </div>
                         </>
@@ -163,16 +170,19 @@ const SendTransaction = () => {
                             <div className="history-box">
                                 <div className="history-token-item">
                                     <span>Approve To</span>
-                                    <em onClick={() => handleCopy(data.token.address)}>{formatAddress(data.args.spender)} <SvgIcon iconName="IconCopy" offsetStyle={{ marginLeft: '5px', marginRight: '-12px' }} /></em>
+                                    <em onClick={() => handleCopy(data.token.address)}>{formatAddress(data.args.spender)}
+                                        <SvgIcon iconName="IconCopy"
+                                                 offsetStyle={{marginLeft: '5px', marginRight: '-12px'}}/></em>
                                 </div>
                             </div>
 
                             <div className="history-box">
                                 <div className="history-token-item">
                                     <span>Approve Amount</span>
-                                    <em>{ethers.formatUnits(data.args.amount, data.token.decimals)} <SvgIcon iconName="IconEdit" className="cursor-pointer"
+                                    <em>{ethers.formatUnits(data.args.amount, data.token.decimals)} <SvgIcon
+                                        iconName="IconEdit" className="cursor-pointer"
                                         onClick={() => setVisibleMask(true)}
-                                        size={20} /></em>
+                                        size={20}/></em>
                                 </div>
                             </div>
                         </>
@@ -226,10 +236,78 @@ const SendTransaction = () => {
                     )
                 }
 
+                {
+                    !data && params && (
+                        <>
+                            {
+                                params.chainId && (
+                                    <div className="history-box">
+                                        <div className="history-token-item">
+                                            <span>ChainId</span>
+                                            <em>{params.chainId.toString()}</em>
+                                        </div>
+                                    </div>
+                                )
+                            }
+                            {
+                                params.from && (
+                                    <div className="history-box">
+                                        <div className="history-token-item">
+                                            <span>From</span>
+                                            <em>{formatAddress(params.from.toString())}</em>
+                                        </div>
+                                    </div>
+                                )
+                            }
+
+                            {
+                                params.to && (
+                                    <div className="history-box">
+                                        <div className="history-token-item">
+                                            <span>To</span>
+                                            <em>{formatAddress(params.to.toString())}</em>
+                                        </div>
+                                    </div>
+                                )
+                            }
+                            {
+                                params.value != null && params.value != undefined && Number(params.value) > 0 && (
+                                    <div className="history-box">
+                                        <div className="history-token-item">
+                                            <span>Value</span>
+                                            <em>{ethers.formatUnits(params.value, network?.decimals || 18)} {network?.symbol}</em>
+                                        </div>
+                                    </div>
+                                )
+                            }
+                            {
+                                params.gasLimit && params.gasPrice && (
+                                    <div className="history-box">
+                                        <div className="history-token-item">
+                                            <span>Gas</span>
+                                            <em>{ethers.formatUnits(BigInt(params.gasLimit) * BigInt(params.gasPrice), network?.decimals || 18)} {network?.symbol}</em>
+                                        </div>
+                                    </div>
+                                )
+                            }
+                        </>
+                    )
+                }
+
+                {
+                    params.nonce != null && params.nonce != undefined && (
+                        <div className="history-box">
+                            <div className="history-token-item">
+                                <span>Nonce</span>
+                                <em>{params.nonce}</em>
+                            </div>
+                        </div>
+                    )
+                }
                 <div className="tx-confirm-box">
                     <h6 className="sub-tit mt15">Sign Message</h6>
                     <div className="tx-confirm-content">
-                        <div className="tx-confirm-data">
+                    <div className="tx-confirm-data">
                             {JSON.stringify(params, null, 8)}
                         </div>
                     </div>
@@ -241,9 +319,9 @@ const SendTransaction = () => {
                     </Button>
 
                     <Button block size="large" color="primary"
-                        loading={btnLoading}
-                        loadingText={'Submitting'}
-                        onClick={() => submitTransaction()}>
+                            loading={btnLoading}
+                            loadingText={'Submitting'}
+                            onClick={() => submitTransaction()}>
                         Sign & Pay
                     </Button>
                 </div>
@@ -262,7 +340,7 @@ const SendTransaction = () => {
                                         <div className="amount-box mt15">
                                             <h6 className="sub-tit">
                                                 <span>Edit approve amount</span>
-                                                <strong onClick={() => resetNonce()}>Reset</strong>
+                                                <strong onClick={() => resetMaxApproveAmount()}>Max</strong>
                                             </h6>
                                             <div className="input-box mask-input-box">
                                                 <NumberInput
@@ -277,7 +355,7 @@ const SendTransaction = () => {
                                     </section>
                                 </div>
                                 <div className="remove-btns">
-                                    <Button size="middle" onClick={() => setVisibleMask(false)}>Cancel</Button>
+                                    <Button size="middle" onClick={() => cancelResetMaxApproveAmount()}>Cancel</Button>
                                     <Button color='primary' size="middle" onClick={() => submitApproveAmount()}>Save</Button>
                                 </div>
                             </div>
