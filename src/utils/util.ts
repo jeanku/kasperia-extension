@@ -299,3 +299,33 @@ export const hexDecode = (message?: string) => {
         return message
     }
 }
+
+export function formatMessage(message: string) {
+    const lines = message.split("\n").map(l => l.trim()).filter(Boolean);
+    const result: Record<string, string> = {};
+    let domain = "";
+    let address = "";
+
+    for (const line of lines) {
+        if (line.includes("wants you to sign in")) {
+            domain = line.split(" wants you")[0];
+            continue;
+        }
+        if (line.startsWith("0x")) {
+            address = line;
+            continue;
+        }
+        const match = line.match(/^(.+?):\s*(.+)$/);
+        if (match) {
+            const key = match[1];
+            const value = match[2];
+            result[key] = value;
+            continue;
+        }
+    }
+    return {
+        domain,
+        address,
+        ...result,
+    };
+}
