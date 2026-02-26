@@ -212,9 +212,24 @@ export function debounce<F extends (...args: any[]) => any>(func: F, delay: numb
 }
 
 export function isValidUrl(url: string): boolean {
+    if (!url || typeof url !== "string") return false;
     try {
-        const u = new URL(url);
-        return ["https:", "http:"].includes(u.protocol);
+        const parsed = new URL(url);
+        if (!["http:", "https:", "ws:", "wss:"].includes(parsed.protocol)) {
+            return false;
+        }
+        const hostname = parsed.hostname;
+        if (!hostname) return false;
+
+        const ipv4 =/^(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}$/;
+        if (ipv4.test(hostname)) {
+            return true;
+        }
+        const domain =/^(?!-)[A-Za-z0-9-]{1,63}(?<!-)(\.(?!-)[A-Za-z0-9-]{1,63}(?<!-))+$/;
+        if (domain.test(hostname)) {
+            return true;
+        }
+        return false;
     } catch {
         return false;
     }
