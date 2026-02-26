@@ -133,7 +133,7 @@ const SendCommit = () => {
                         )
                     }
                     <div className="cart-box">
-                        <div className="flex-row cb ac mb12">
+                        <div className="flex-row cb ac">
                             <Popover
                                 content='Gas Fee tip Message'
                                 placement='top-start'
