@@ -178,7 +178,9 @@ const TokenInfo = () => {
                     <ul className="page-tabs mb20">
                         <li className={currentTab === 0 ? "active" : ""} onClick={() => handleTab(0)}>Token info</li>
                         <li className={currentTab === 1 ? "active" : ""} onClick={() => handleTab(1)}>History</li>
-                        <SvgIcon className="remove-icon-right cursor-pointer" size={22} iconName="IconDel" onClick={() =>
+                        {
+                            ethers.isAddress(token.address) &&
+                            <SvgIcon className="remove-icon-right cursor-pointer" size={22} iconName="IconDel" onClick={() =>
                             Modal.alert({
                                 title: 'Message',
                                 bodyClassName: 'modal-alert-body',
@@ -190,6 +192,8 @@ const TokenInfo = () => {
                                 },
                             })
                         }  />
+                        }
+                        
                     </ul>
                     <div className="history-box">
                         {currentTab === 1 ? (
