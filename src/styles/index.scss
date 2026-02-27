@@ -2355,6 +2355,7 @@ em {
 
         strong {
             font-size: 14px;
+            max-width: 150px;
             color: $text-color-secondary;
         }
 
@@ -2391,7 +2392,7 @@ em {
 
         .history-time,
         .history-amount {
-            font-size: 14px;
+            font-size: 13px;
             color: $text-color;
             font-weight: bold;
         }

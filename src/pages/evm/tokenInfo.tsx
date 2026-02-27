@@ -208,13 +208,13 @@ const TokenInfo = () => {
                                                             className="history-href">{formatHash(item.hash)}
                                                             <SvgIcon color="#74E6D8" offsetStyle={{marginRight: '6px'}} iconName="IconShare" /></em>
                                                         </span>
-                                                    <strong className='history-status'>{item.transaction_types[0] || ""}</strong>
+                                                    <strong className='history-status one-line'>{item.transaction_types[0] || ""}</strong>
                                                 </div>
                                                 <div className="history-bottom">
                                                     <div className="history-left">
                                                         <em className={item.from.hash === currentAccount?.ethAddress! ? 'history-icon sub' : 'history-icon'}>{item.from.hash === currentAccount?.ethAddress! ? "-" : "+"}</em>
                                                         <strong
-                                                            className="history-amount">{ ethers.formatEther(item.value) } { token.symbol }</strong>
+                                                            className="history-amount">{ formatBalanceFixed(ethers.formatEther(item.value), 4) } { token.symbol }</strong>
                                                     </div>
                                                     <span className="history-time">{ formatUTCToLocal(item.timestamp) }</span>
                                                 </div>
