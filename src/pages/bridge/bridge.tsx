@@ -296,7 +296,7 @@ const Bridge = () => {
                     </div>
                     <div className='flex-row cb ac mb12 mt20'>
                         <NumberInput
-                            value={amount && Number(amount)}
+                            value={amount.toString() ?? ''}
                             onChange={(e) => setAmount(e.toString())}
                             decimalPlaces={Number(fromData.desc)}
                             max={Number(fromData.balance)}
@@ -309,7 +309,7 @@ const Bridge = () => {
                                 <strong className='strong' onClick={() => setMax()}>MAX</strong>
                             </div>
                             <div className="input-select flex-row cb ac">
-                                <TokenImg url={fromData.token!} className={'visable-top-img'} name={fromData.token} width={20} height={20} marginRight={3} />
+                                <TokenImg url={fromData.token!} className={'visable-top-img'} name={fromData.token} width={20} height={20} marginRight={"3"} />
                                 <span>{fromData.token}</span>
                             </div>
                         </div>
@@ -334,7 +334,7 @@ const Bridge = () => {
                     </div>
                     <div className='flex-row cb ac mb12 mt20'>
                         <NumberInput
-                            value={Number(toAmount)}
+                            value={toAmount.toString() ?? ''}
                             onChange={(e) => { }}
                             decimalPlaces={Number(toData.desc)}
                             allowNegative={true}
@@ -343,7 +343,7 @@ const Bridge = () => {
                             style={{ fontSize: '14px', color: 'white', flex: 2 }}
                         />
                         <div className="input-select flex-row cb ac" >
-                            <TokenImg url={toData.token!} className={'visable-top-img'} name={toData.token} width={20} height={20} marginRight={3} />
+                            <TokenImg url={toData.token!} className={'visable-top-img'} name={toData.token} width={20} height={20} marginRight={"3"} />
                             <span>{toData.token}</span>
                         </div>
                     </div>

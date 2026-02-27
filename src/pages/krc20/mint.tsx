@@ -129,7 +129,7 @@ const Mint = () => {
                     <h6 className="sub-tit">Amount:</h6>
                     <div className="input-box mb12">
                         <NumberInput
-                            value={Number(amount)}
+                            value={amount}
                             onChange={(e) => setAmount(e ? e.toString() : '')}
                             decimalPlaces={0}
                             max={1000}

@@ -5,6 +5,8 @@ import { Evm } from '@/chrome/evm'
 import { useNotice } from '@/components/NoticeBar/NoticeBar'
 import { InfiniteScroll, List, Image, Modal } from 'antd-mobile'
 import { useClipboard } from '@/components/useClipboard'
+import TokenImg from "@/components/TokenImg";
+
 import {
     formatAddress,
     formatUTCToLocal,
@@ -148,18 +150,7 @@ const TokenInfo = () => {
         <article className="page-box">
             <HeadNav title={token.name}></HeadNav>
             <div className="page-content assets-details">
-                <Image
-                    src={`https://krc20-assets.kas.fyi/icons/${token.symbol}.jpg`}
-                    width={54}
-                    height={54}
-                    lazy={true}
-                    placeholder={<SvgIcon iconName="PngCoinDef" size={54} />}
-                    fallback={<SvgIcon iconName="PngCoinDef" size={54} />}
-                    className="assets-logo"
-                    fit='cover'
-                    alt={token.symbol}
-                    style={{ borderRadius: '50%' }}
-                />
+                <TokenImg width={54} height={54} marginRight={"auto"} className="assets-logo" url={token.symbol} name={token.symbol}/>
 
                 <div className="assets-amount">{formatBalanceFixed(token.balance || "0")} {token.symbol}</div>
 
