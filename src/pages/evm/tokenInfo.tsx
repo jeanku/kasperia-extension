@@ -208,7 +208,7 @@ const TokenInfo = () => {
                                                             className="history-href">{formatHash(item.hash)}
                                                             <SvgIcon color="#74E6D8" offsetStyle={{marginRight: '6px'}} iconName="IconShare" /></em>
                                                         </span>
-                                                    <strong className='history-status'>{item.transaction_types[0] || ""}</strong>
+                                                    <strong className='history-status'>{item.method || item.transaction_types[0] || ""}</strong>
                                                 </div>
                                                 <div className="history-bottom">
                                                     <div className="history-left">
@@ -229,7 +229,7 @@ const TokenInfo = () => {
                                                             className="history-href">{formatHash(item.transaction_hash)}
                                                             <SvgIcon color="#74E6D8" offsetStyle={{marginRight: '6px'}} iconName="IconShare" /></em>
                                                         </span>
-                                                    <strong className='history-status'></strong>
+                                                    <strong className='history-status'>{item.method || item.type || ""}</strong>
                                                 </div>
                                                 <div className="history-bottom">
                                                 <div className="history-left">

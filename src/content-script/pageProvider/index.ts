@@ -66,47 +66,59 @@ const _kasperiaPrividerPrivate: {
 let cache_origin = '';
 
 export class KasperiaProvider extends EventEmitter {
-  constructor({ maxListeners = 100 } = {}) {
-    super();
-    this.setMaxListeners(maxListeners);
-    this.initialize();
-    _kasperiaPrividerPrivate._pushEventHandlers = new PushEventHandlers(this, _kasperiaPrividerPrivate);
-  }
 
-  tryDetectTab = async () => {
-    const origin = window.top?.location.origin;
-    if (origin && cache_origin !== origin) {
-      cache_origin = origin;
-      const icon =
-        ($('head > link[rel~="icon"]') as HTMLLinkElement)?.href ||
-        ($('head > meta[itemprop="image"]') as HTMLMetaElement)?.content;
+    private _chainId: string | null = null;
 
-      const name = document.title || ($('head > meta[name="title"]') as HTMLMetaElement)?.content || origin;
-      _kasperiaPrividerPrivate._bcm.request({
-        method: 'tabCheckin',
-        params: { icon, name, origin }
-      });
+    constructor({ maxListeners = 100 } = {}) {
+        super();
+        this.setMaxListeners(maxListeners);
+        this.initialize();
+        _kasperiaPrividerPrivate._pushEventHandlers = new PushEventHandlers(this, _kasperiaPrividerPrivate);
     }
-  };
 
-  initialize = async () => {
-    document.addEventListener('visibilitychange', this._requestPromiseCheckVisibility);
-    _kasperiaPrividerPrivate._bcm.connect().on('message', this._handleBackgroundMessage);
-  };
+    get chainId(): string {
+        if (!this._chainId) {
+            throw new Error('ChainId not initialized. Call initialize() first.');
+        }
+        return this._chainId;
+    }
 
-  /**
-   * Sending a message to the extension to receive will keep the service worker alive.
-   */
-  private keepAlive = () => {
-    this._request({
-      method: 'keepAlive',
-      params: {}
-    }).then((v) => {
-      setTimeout(() => {
-        this.keepAlive();
-      }, 1000);
-    });
-  };
+    tryDetectTab = async () => {
+        const origin = window.top?.location.origin;
+        if (origin && cache_origin !== origin) {
+            cache_origin = origin;
+            const icon =
+                ($('head > link[rel~="icon"]') as HTMLLinkElement)?.href ||
+                ($('head > meta[itemprop="image"]') as HTMLMetaElement)?.content;
+
+            const name = document.title || ($('head > meta[name="title"]') as HTMLMetaElement)?.content || origin;
+            _kasperiaPrividerPrivate._bcm.request({
+                method: 'tabCheckin',
+                params: { icon, name, origin }
+            });
+        }
+    };
+
+    initialize = async () => {
+        document.addEventListener('visibilitychange', this._requestPromiseCheckVisibility);
+        _kasperiaPrividerPrivate._bcm.connect().on('message', this._handleBackgroundMessage);
+        const network = await this.request({method: "eth_chainId", params: []})
+        this._chainId = network;
+    };
+
+    /**
+     * Sending a message to the extension to receive will keep the service worker alive.
+     */
+    private keepAlive = () => {
+        this._request({
+            method: 'keepAlive',
+            params: {}
+        }).then((v) => {
+            setTimeout(() => {
+                this.keepAlive();
+            }, 1000);
+        });
+    };
 
     private _requestPromiseCheckVisibility = () => {
         if (document.visibilityState === 'visible') {
@@ -117,32 +129,35 @@ export class KasperiaProvider extends EventEmitter {
     };
 
     private _handleBackgroundMessage = ({ event, data }: {event: string, data: any}) => {
+        if (event === 'chainChanged') {
+            this._chainId = data;
+        }
         this.emit(event, data);
     };
 
     _request = async (data: any) => {
-    if (!data) {
-      throw ethErrors.rpc.invalidRequest();
-    }
+        if (!data) {
+            throw ethErrors.rpc.invalidRequest();
+        }
 
-    this._requestPromiseCheckVisibility();
+        this._requestPromiseCheckVisibility();
 
-    return _kasperiaPrividerPrivate._requestPromise.call(() => {
-      console.log('[request]', JSON.stringify(data, null, 2));
-      return _kasperiaPrividerPrivate._bcm
-        .request(data)
-        .then((res: any) => {
-          return res;
-        })
-        .catch((err: any) => {
-            let resp = err.message.toString().split("::")
-            if (resp.length <= 1) {
-                throw serializeError(err)
-            }
-            throw { code: Number(resp[0]), message: resp[1] }
+        return _kasperiaPrividerPrivate._requestPromise.call(() => {
+            console.log('[request]', JSON.stringify(data, null, 2));
+            return _kasperiaPrividerPrivate._bcm
+                .request(data)
+                .then((res: any) => {
+                    return res;
+                })
+                .catch((err: any) => {
+                    let resp = err.message.toString().split("::")
+                    if (resp.length <= 1) {
+                        throw serializeError(err)
+                    }
+                    throw { code: Number(resp[0]), message: resp[1] }
+                });
         });
-    });
-  };
+    };
 
     getNetwork = async () => {
         return this._request({
@@ -230,38 +245,50 @@ export class KasperiaProvider extends EventEmitter {
         return "1.10.57";
     };
 
-  async request({ method, params }: RequestArguments): Promise<any> {
-    console.log("【injected call:】method: is calling ....", method, JSON.stringify(params))
-    switch (method) {
-      case 'eth_requestAccounts':
-      case 'eth_accounts':
-      case 'eth_chainId':
-      case 'net_version':
-      case 'personal_sign':
-      case 'eth_getBalance':
-      case 'eth_estimateGas':
-      case 'eth_blockNumber':
-      case 'eth_getBlockByNumber':
-      case 'eth_sendTransaction':
-      case 'eth_getTransactionReceipt':
-      case 'eth_getTransactionByHash':
-      case 'eth_getTransactionCount':
-      case 'eth_getCode':
-      case 'eth_call':
-      case 'wallet_watchAsset':
-      case 'wallet_requestPermissions':
-      case 'wallet_getPermissions':
-      case 'wallet_revokePermissions':
-      case 'wallet_addEthereumChain':
-      case 'wallet_switchEthereumChain': {
-        return this._request({ method, params });
-      }
-      default:
-        throw serializeError(ethErrors.rpc.methodNotFound({
-          message: `${method} is not supported`
-        }))
+    async request({ method, params }: RequestArguments): Promise<any> {
+        console.log("【injected call:】method: is calling ....", method, JSON.stringify(params))
+        switch (method) {
+            case 'eth_requestAccounts':
+            case 'eth_accounts':
+            case 'eth_chainId':
+            case 'net_version':
+            case 'personal_sign':
+            case 'eth_getBalance':
+            case 'eth_estimateGas':
+            case 'eth_blockNumber':
+            case 'eth_getBlockByNumber':
+            case 'eth_sendTransaction':
+            case 'eth_getTransactionReceipt':
+            case 'eth_getTransactionByHash':
+            case 'eth_getTransactionCount':
+            case 'eth_getCode':
+            case 'eth_call':
+            case 'wallet_watchAsset':
+            case 'wallet_requestPermissions':
+            case 'wallet_getPermissions':
+            case 'wallet_revokePermissions':
+            case 'wallet_addEthereumChain':
+            case 'wallet_switchEthereumChain': {
+                return this._request({method, params})
+            };
+            case 'web3_clientVersion': {
+                return `MetaMask/v` + (await this.getVersion())
+            };
+            case 'wallet_getCapabilities': {
+                return {
+                    "signTransaction": true,
+                    "signMessage": true,
+                    "eth_sendTransaction": true,
+                    "wallet_addEthereumChain": true,
+                    "wallet_switchEthereumChain": true
+                }
+            }
+            default:
+                throw serializeError(ethErrors.rpc.methodNotFound({
+                    message: `${method} is not supported`
+                }))
+        }
     }
-  }
 }
 
 declare global {
@@ -301,7 +328,7 @@ const handler: ProxyHandler<KasperiaProvider> = {
 const existing = window.kasperia as KasperiaProvider | undefined;
 const baseProvider: KasperiaProvider = existing ?? new KasperiaProvider();
 (baseProvider as any).isKasperia = true;
-(baseProvider as any).isMetamask = true;
+(baseProvider as any).isMetaMask = true;
 const proxied = new Proxy(baseProvider, handler);
 
 const kasperiaProviderInfo = {

@@ -49,19 +49,15 @@ const deleteSession = (id: string) => {
 };
 
 const broadcastEvent = async (ev: any, data?: any, origin?: string) => {
-    sessionMap.forEach((session) => {
-        permissionService.hasPermission(session.origin).then(r => {
-            if (r) {
-                try {
-                    session.pushMessage?.(ev, data);
-                } catch (e) {
-                    if (sessionMap.has(session.key)) {
-                        deleteSession(session.key);
-                    }
-                }
-            }
-        })
-    });
+    for (const session of sessionMap.values()) {
+        const has = await permissionService.hasPermission(session.origin);
+        if (!has) continue;
+        try {
+            session.pushMessage?.(ev, data);
+        } catch {
+            deleteSession(session.key);
+        }
+    }
 };
 
 export default {
