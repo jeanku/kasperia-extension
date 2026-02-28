@@ -1,4 +1,4 @@
-import {debounce} from 'lodash';
+import debounce from 'lodash/debounce';
 import {KasPrice, Network, PreferenceState} from '@/model/account';
 import {Oplist, TokenList} from '@/model/krc20';
 import {AccountDisplay} from '@/model/wallet';
