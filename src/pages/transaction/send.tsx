@@ -8,6 +8,7 @@ import NumberInput from '@/components/NumberInput';
 import { useNotice } from '@/components/NoticeBar/NoticeBar'
 import { SvgIcon } from '@/components/Icon/index'
 import AddressSelectPopup from '@/components/AddressSelectPopup'
+import TokenImg from "@/components/TokenImg";
 
 import { formatBalance } from '@/utils/util'
 import { Address as AddressHelper } from '@/utils/wallet/address'
@@ -123,11 +124,8 @@ const Send = () => {
             <HeadNav title={`Send  ${token.tick}`}></HeadNav>
             <div className="content-main send-kas-page">
                 <div className="coin-item">
-                    <Image src={`https://krc20-assets.kas.fyi/icons/${token.tick}.jpg`}
-                        placeholder={<SvgIcon iconName="PngCoinDef" size={44} />}
-                        width={44} height={44}
-                        fallback={<SvgIcon iconName="PngCoinDef" size={44} />}
-                        style={{ borderRadius: '50%', marginRight: '12px' }} lazy fit='cover' />
+                    <TokenImg width={44} height={44} url={token.tick!} name={token.tick ?? ""}/>
+
                     <div className="coin-item-info">
                         <div className="coin-item-name">
                             <span>{token.tick}</span>

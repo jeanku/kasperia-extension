@@ -12,3 +12,5 @@ export const KasplexL2ToL1BridgeAddressForMainnet = "0x34606e6d01280f49791628b31
 export const IGRAL1ToL2BridgeAddressForTestnet = "kaspatest:qqmstl2znv9tsfgcmj9shme82my867tapz7pdu4ztwdn6sm9452jj5mm0sxzw"
 
 export const KNSDomain = "https://api.knsdomains.org"
+
+export const FixDecimal = 4
