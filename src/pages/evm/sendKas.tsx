@@ -1,6 +1,6 @@
-import { useState, useMemo, useEffect, useCallback } from "react"
+import { useState, useMemo, useEffect } from "react"
 import HeadNav from '@/components/HeadNav'
-import { Button, Image } from 'antd-mobile'
+import { Button } from 'antd-mobile'
 import { SvgIcon } from '@/components/Icon/index'
 import { useNavigate } from "react-router-dom";
 import {formatBalanceFixed} from '@/utils/util'
@@ -9,6 +9,7 @@ import { AccountsSubListDisplay } from '@/model/account'
 import { Address } from '@/model/contact'
 import NumberInput from '@/components/NumberInput';
 import AddressSelectPopup from '@/components/AddressSelectPopup'
+import TokenImg from "@/components/TokenImg";
 import { AddressType } from '@/types/enum'
 import { Keyring } from '@/chrome/keyring'
 import { Contact } from '@/chrome/contact'
@@ -69,11 +70,7 @@ const SendKas = () => {
             <HeadNav title={`Send  ${token.name}`}></HeadNav>
             <div className="content-main send-kas-page">
                 <div className="coin-item">
-                    <Image src={`https://krc20-assets.kas.fyi/icons/${token.symbol}.jpg`}
-                        placeholder={<SvgIcon iconName="PngCoinDef" size={44} />}
-                        width={44} height={44}
-                        fallback={<SvgIcon iconName="PngCoinDef" size={44} />}
-                        style={{ borderRadius: '50%', marginRight: '12px' }} lazy fit='cover' />
+                    <TokenImg width={44} height={44} url={token.symbol} name={token.symbol}/>
 
                     <div className="coin-item-info">
                         <div className="coin-item-name">
