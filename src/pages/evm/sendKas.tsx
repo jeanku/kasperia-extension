@@ -102,7 +102,7 @@ const SendKas = () => {
                     </h6>
                     <div className="input-box">
                         <NumberInput
-                            value={amount}
+                            value={amount.toString()}
                             onChange={(e) => setAmount(Number(e))}
                             decimalPlaces={Number(8)}
                             max={Number(token.balance)}

@@ -159,7 +159,7 @@ const Send = () => {
                     </h6>
                     <div className="input-box">
                         <NumberInput
-                            value={Number(amount)}
+                            value={amount}
                             onChange={(e) => setAmount(e.toString())}
                             decimalPlaces={Number(token.dec)}
                             max={Number(ethers.formatUnits(token.balance, token.dec))}

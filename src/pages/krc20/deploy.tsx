@@ -147,7 +147,7 @@ const Deploy = () => {
                     <h6 className="sub-tit">Max Supply: {formatNumber(maxSupply)}</h6>
                     <div className="input-box">
                         <NumberInput
-                            value={Number(maxSupply)}
+                            value={maxSupply}
                             onChange={(e) => setMaxSupply(e ? e.toString() : '')}
                             decimalPlaces={0}
                             allowNegative={false}
@@ -159,7 +159,7 @@ const Deploy = () => {
                     <h6 className="sub-tit">Amount per mint: {formatNumber(limit)}</h6>
                     <div className="input-box">
                         <NumberInput
-                            value={Number(limit)}
+                            value={limit}
                             onChange={(e) => setLimit(e ? e.toString() : '')}
                             decimalPlaces={0}
                             allowNegative={false}
@@ -171,7 +171,7 @@ const Deploy = () => {
                     <h6 className="sub-tit">Pre-allocation amount (Optional): {formatNumber(preAmount)}</h6>
                     <div className="input-box">
                         <NumberInput
-                            value={Number(preAmount)}
+                            value={preAmount}
                             onChange={(e) => setPreAmount(e ? e.toString() : '')}
                             decimalPlaces={0}
                             allowNegative={false}
@@ -196,7 +196,7 @@ const Deploy = () => {
                     <h6 className="sub-tit">Decimal (Optional): </h6>
                     <div className="input-box">
                         <NumberInput
-                            value={Number(decimal)}
+                            value={decimal}
                             onChange={(e) => setDecimal(e ? e.toString() : '')}
                             decimalPlaces={0}
                             allowNegative={false}

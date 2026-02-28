@@ -51,7 +51,7 @@ interface TokenImgProps {
     height?: number;
     className?: string;
     showDefault?: boolean;
-    marginRight?: number;
+    marginRight?: string;
     styleInfo?: React.CSSProperties;
 }
 

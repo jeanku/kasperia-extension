@@ -223,7 +223,7 @@ const SendCommit = () => {
                                     </h6>
                                     <div className="input-box mask-input-box">
                                         <NumberInput
-                                            value={Number(nonce == undefined ? tx?.nonce : nonce)}
+                                            value={nonce == undefined ? tx?.nonce?.toString() : nonce.toString()}
                                             onChange={(e) => setNonce(Number(e))}
                                             decimalPlaces={0}
                                             placeholder="amount"
