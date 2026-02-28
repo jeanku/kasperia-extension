@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 
 interface NumberInputProps {
-    value?: number | null | '';
-    onChange: (value: number | '') => void;
+    value?: string | null | '';
+    onChange: (value: number | string | '') => void;
     decimalPlaces?: number;
     allowNegative?: boolean;
     placeholder?: string;
@@ -67,6 +67,12 @@ const NumberInput: React.FC<NumberInputProps> = ({
             setIsFocused(false);
             return;
         }
+        if (numValue > Number.MAX_SAFE_INTEGER) {
+            setDisplayValue(normalizedValue);
+            onChange(normalizedValue);
+            setIsFocused(false);
+            return;
+        }
 
         const finalValue = max !== undefined && numValue > max ? max : numValue;
 
@@ -105,7 +111,11 @@ const NumberInput: React.FC<NumberInputProps> = ({
 
             if (isValid && inputValue !== '-' && inputValue !== '') {
                 let numValue = parseFloat(inputValue);
-                onChange(isNaN(numValue) ? '' : numValue);
+                if (!isNaN(numValue) && numValue > Number.MAX_SAFE_INTEGER) {
+                    onChange(inputValue);
+                } else {
+                    onChange(isNaN(numValue) ? '' : numValue);
+                }
             } else if (inputValue === '' || inputValue === '-') {
                 onChange('');
             }

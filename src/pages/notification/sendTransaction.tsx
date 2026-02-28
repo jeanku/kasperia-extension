@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, useCallback } from "react"
 import HeadNav from '@/components/HeadNav'
-import { Button, Mask } from 'antd-mobile'
+import { Button, Mask, Popover } from 'antd-mobile'
 import { formatAddress } from '@/utils/util'
 import { ethers } from "ethers";
 import '@/styles/transaction.scss'
@@ -8,7 +8,6 @@ import { EvmNetwork, ERC20Meta, ERC20ApproveMeta } from "@/model/evm";
 import { Notification } from "@/chrome/notification";
 import { useNotice } from "@/components/NoticeBar/NoticeBar";
 import { AccountEvm } from "@/chrome/accountEvm";
-import { Keyring } from "@/chrome/keyring";
 import { TransactionRequest } from "ethers/src.ts/providers/provider";
 import { SvgIcon } from '@/components/Icon/index'
 import { useClipboard } from '@/components/useClipboard'
@@ -44,8 +43,9 @@ const SendTransaction = () => {
 
     const [data, setData] = useState<ERC20Meta | undefined>(undefined)
 
-    const [approveAmount, setApproveAmount] = useState<number | ''>('')
+    const [approveAmount, setApproveAmount] = useState<string | number>('');
     const [visibleMask, setVisibleMask] = useState<boolean>(false)
+    const [visiblePopover, setVisiblePopover] = useState<boolean>(false)
 
     const getApproval = async () => {
         let approval: RequestParam = await Notification.getApproval()
@@ -107,14 +107,14 @@ const SendTransaction = () => {
     const resetApproveAmount = async () => {
         if (data?.args?.amount) {
             let amount = ethers.formatUnits(data.args.amount, data.token.decimals)
-            setApproveAmount(Number(amount))
+            setApproveAmount(amount)
         }
     }
 
     const resetMaxApproveAmount = async () => {
         if (data?.token.balance) {
             let orgAmount = data!.token.balance
-            setApproveAmount(Number(orgAmount))
+            setApproveAmount(orgAmount.toString())
         }
     }
 
@@ -122,6 +122,13 @@ const SendTransaction = () => {
         setVisibleMask(false)
         resetApproveAmount()
     }
+
+    const tipAmount = useCallback(() => {
+        if (data && data.method === "approve") {
+            return ethers.formatUnits(data.args.amount, data.token.decimals)
+        }
+        return ''
+    }, [data])
 
     return (
         <article className="page-box">
@@ -157,7 +164,7 @@ const SendTransaction = () => {
                                     <span>Token Address</span>
                                     <em onClick={() => handleCopy(data.token.address)}>{formatAddress(data.token.address)}
                                         <SvgIcon iconName="IconCopy"
-                                                 offsetStyle={{marginLeft: '5px', marginRight: '-12px'}}/></em>
+                                            offsetStyle={{ marginLeft: '5px', marginRight: '-12px' }} /></em>
                                 </div>
                             </div>
                         </>
@@ -171,18 +178,26 @@ const SendTransaction = () => {
                                 <div className="history-token-item">
                                     <span>Approve To</span>
                                     <em onClick={() => handleCopy(data.token.address)}>{formatAddress(data.args.spender)}
-                                        <SvgIcon iconName="IconCopy"
-                                                 offsetStyle={{marginLeft: '5px', marginRight: '-12px'}}/></em>
+                                        <SvgIcon iconName="IconCopy" offsetStyle={{ marginLeft: '5px', marginRight: '-12px' }} /></em>
                                 </div>
                             </div>
 
                             <div className="history-box">
                                 <div className="history-token-item">
                                     <span>Approve Amount</span>
-                                    <em>{ethers.formatUnits(data.args.amount, data.token.decimals)} <SvgIcon
-                                        iconName="IconEdit" className="cursor-pointer"
-                                        onClick={() => setVisibleMask(true)}
-                                        size={20}/></em>
+                                    <Popover
+                                        content={<div className="popover-content">Amount: {tipAmount()}
+                                        </div>}
+                                        visible={visiblePopover}
+                                        onVisibleChange={setVisiblePopover}
+                                        placement='top-start'
+                                    >
+                                        <em onMouseEnter={() => setVisiblePopover(true)} onMouseLeave={() => setVisiblePopover(false)}><span style={{ width: '110px' }} className="one-line">{ethers.formatUnits(data.args.amount, data.token.decimals)}</span> <SvgIcon
+                                            iconName="IconEdit" className="cursor-pointer"
+                                            onClick={() => setVisibleMask(true)}
+                                            size={20} /></em>
+                                    </Popover>
+
                                 </div>
                             </div>
                         </>
@@ -307,7 +322,7 @@ const SendTransaction = () => {
                 <div className="tx-confirm-box">
                     <h6 className="sub-tit mt15">Sign Message</h6>
                     <div className="tx-confirm-content">
-                    <div className="tx-confirm-data">
+                        <div className="tx-confirm-data">
                             {JSON.stringify(params, null, 8)}
                         </div>
                     </div>
@@ -319,9 +334,9 @@ const SendTransaction = () => {
                     </Button>
 
                     <Button block size="large" color="primary"
-                            loading={btnLoading}
-                            loadingText={'Submitting'}
-                            onClick={() => submitTransaction()}>
+                        loading={btnLoading}
+                        loadingText={'Submitting'}
+                        onClick={() => submitTransaction()}>
                         Sign & Pay
                     </Button>
                 </div>
@@ -344,8 +359,10 @@ const SendTransaction = () => {
                                             </h6>
                                             <div className="input-box mask-input-box">
                                                 <NumberInput
-                                                    value={approveAmount}
-                                                    onChange={setApproveAmount}
+                                                    value={approveAmount?.toString() ?? ''}
+                                                    onChange={(val) => {
+                                                        setApproveAmount(val);
+                                                    }}
                                                     decimalPlaces={4}
                                                     placeholder="amount"
                                                 />

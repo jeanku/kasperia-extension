@@ -50,6 +50,10 @@
             color: $text-color;
             display: flex;
             align-items: center;
+            > span {
+                padding-right: 3px;
+                text-align: right;
+            }
         }
         .history-href {
             font-size: 14px;
@@ -61,6 +65,12 @@
         color: $text-color-desc;
     }
     
+}
+.popover-content {
+    max-width: 300px;
+    white-space: normal;
+    word-break: break-all;
+    line-height: 1.5;
 }
 .cart-box {
     margin-bottom: 12px;
