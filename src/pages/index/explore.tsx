@@ -73,6 +73,13 @@ const Explore = () => {
                     </div>
                     <SvgIcon iconName="IconExpand" />
                 </div>
+                <div className="list-item-box" onClick={() => {
+                    navigate('/stableCoin/stableCoin')
+                }}>
+                    <div className="list-item-left">
+                        <strong>StableCoin Bridge</strong>
+                    </div>
+                </div>
                 {
                     links.length > 0 && (
                         <Divider className="mt15" style={{

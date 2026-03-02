@@ -99,6 +99,13 @@ import {
   SendResult as BridgeSendResult,
 } from "@/pages/bridge/index";
 
+import {
+  StableCoin,
+  History as StablecoinHistory,
+  SendTransaction as StablecoinSendTransaction,
+  SendResult as StablecoinSendResult,
+} from "@/pages/stablecoin/index";
+
 import KnsAssetPage from "@/pages/kns/asset";
 import KnsTransfer from '@/pages/kns/transfer'
 
@@ -195,6 +202,13 @@ const AppRouter: React.FC = () => {
           <Route path="/kns"> 
             <Route path="knsAsset" element={ <KnsAssetPage /> } />
             <Route path="transfer" element={ <KnsTransfer /> } />
+          </Route>
+
+          <Route path="/stableCoin">
+            <Route path="stableCoin" element={ <StableCoin /> } />
+            <Route path="stableCoinHistory" element={ <StablecoinHistory /> } />
+            <Route path="stableCoinSendTx" element={ <StablecoinSendTransaction /> } />
+            <Route path="stableCoinSendResult" element={ <StablecoinSendResult /> } />
           </Route>
 
           <Route path="*" element={<Nopage />} />
