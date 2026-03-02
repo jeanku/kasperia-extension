@@ -41,7 +41,7 @@ export class Provider {
     private async initProvider(): Promise<ethers.JsonRpcProvider> {
         const url = await this.pickBestRpc();
         const req = new FetchRequest(url);
-        req.timeout = 8000;
+        req.timeout = 10000;
         req.setHeader("content-type", "application/json");
 
         const provider = new ethers.JsonRpcProvider(
@@ -230,6 +230,11 @@ export class Provider {
                 tx.value = 0;
             } else {
                 tx.value = ethers.toQuantity(tx.value)
+            }
+
+            if (tx.maxFeePerGas != undefined && tx.maxPriorityFeePerGas != undefined && tx.gasPrice != undefined && BigInt(tx.maxPriorityFeePerGas) < BigInt(tx.gasPrice)) {
+                tx.maxPriorityFeePerGas = tx.gasPrice
+                tx.maxFeePerGas = tx.gasPrice
             }
             return tx;
         });

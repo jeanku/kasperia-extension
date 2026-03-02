@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react"
 import { Notification } from '@/chrome/notification'
 import { Account } from '@/chrome/account'
-import { formatAddress, formatSignMessage, hexDecode, formatMessage } from '@/utils/util'
+import { formatAddress, formatSignMessage, hexDecode } from '@/utils/util'
 import { Button, Divider } from 'antd-mobile'
 
 interface Session {
@@ -44,7 +44,6 @@ const SignMessage = () => {
         Notification.resolveApproval(signature)
     }
     const decodedMessage = hexDecode(data?.message);
-    const formatted = decodedMessage ? formatMessage(decodedMessage) : null;
 
     useEffect(() => {
         getApproval()
@@ -78,24 +77,7 @@ const SignMessage = () => {
                     }}
                 >Sign Message</Divider>
                 <div className="sign-info">
-                    {formatted ? (
-                        Object.entries(formatted).map(([key, value]) => (
-                            <>
-                                {key.includes('Click to sign in and accept') ?
-                                    <div className="sign-row" key={key}>
-                                        <span className="sign-statement-content">{key}{value}</span>
-                                    </div> :
-                                    <div className="sign-row" key={key}>
-
-                                        <span className="sign-label">{key}:</span>
-                                        <span className="sign-value">{value}</span>
-                                    </div>
-                                }
-                            </>
-                        ))
-                    ) : (
-                        <div>{decodedMessage}</div>
-                    )}
+                    <div style={{ whiteSpace: "pre-wrap", textAlign: "left" }}>{decodedMessage}</div>
                 </div>
             </div>
             <div className="btn-pos-two flexd-row post-bottom">

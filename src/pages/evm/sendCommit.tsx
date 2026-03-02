@@ -5,6 +5,7 @@ import NumberInput from '@/components/NumberInput';
 import {Button, Mask, Popover, SpinLoading} from 'antd-mobile'
 import { useNavigate, useLocation } from "react-router-dom";
 import {formatAddress, formatBalanceFixed} from '@/utils/util'
+import {useNotice} from "@/components/NoticeBar/NoticeBar";
 
 import { RootState } from '@/store';
 import { useSelector } from "react-redux";
@@ -33,6 +34,7 @@ const SendCommit = () => {
         amount: string,
     }>(state?.sendTo)
     const [loading, setLoading] = useState(true)
+    const [btnLoading, setBtnLoading] = useState(false)
 
     const [sendData, setSendData] = useState<{
         address: string,
@@ -41,8 +43,17 @@ const SendCommit = () => {
 
     const currentAccount = useSelector((state: RootState) => state.preference.preference?.currentAccount);
 
+    const { noticeError } = useNotice()
+
     const submitTransaction = async () => {
-        navigate("/evm/sendResult", { state: { sendTo, token, network, tx } })
+        try {
+            setBtnLoading(true)
+            let hash = await AccountEvm.sendTransaction(tx)
+            navigate("/evm/sendResult", { state: { sendTo, token, network, hash } })
+        } catch (error) {
+            noticeError(error)
+            setBtnLoading(false)
+        }
     }
 
     const saveNonce = async (nonce?: number) => {
@@ -71,6 +82,7 @@ const SendCommit = () => {
             const amount = ethers.parseUnits(sendTo.amount, token.decimals)
             unsignedTx = await AccountEvm.createErc20Transaction(currentAccount?.ethAddress!, token.address, sendTo.address, amount.toString())
         }
+
         setTx(unsignedTx)
         let gasPrice = BigInt(unsignedTx?.gasPrice || "0")
         let feeStr = ethers.formatEther(gasPrice * BigInt(unsignedTx?.gasLimit || "0"))
@@ -199,9 +211,10 @@ const SendCommit = () => {
                     Reject
                     </Button>
                     <Button block size="large" color="primary"
+                            loading={btnLoading}
                             loadingText={'Submitting'}
                             disabled={tx == undefined}
-                                onClick={() => submitTransaction()}>
+                            onClick={() => submitTransaction()}>
                         Sign & Pay
                     </Button>
                 </div>
