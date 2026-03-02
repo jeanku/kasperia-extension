@@ -5,7 +5,7 @@ import providerController from './controller';
 const flow = new PromiseFlow();
 
 const flowContext = flow
-  .use(async (ctx: any, next: any) => {
+    .use(async (ctx: any, next: any) => {
       let isLocked = await keyringService.isLocked()
       if (isLocked) {
           if (notificationService.isLocked == false) {
@@ -16,8 +16,8 @@ const flowContext = flow
           }
       }
       return next();
-  })
-  .use(async (ctx: any, next: any) => {
+    })
+    .use(async (ctx: any, next: any) => {
       const {
           request: {
               session: { origin, name, icon }
@@ -37,7 +37,8 @@ const flowContext = flow
           )
       }
       return next()
-  }).use(async (ctx: any, next: any) => {
+  })
+    .use(async (ctx: any, next: any) => {
         const {
             data: { method, params }
         } = ctx.request;
@@ -46,7 +47,7 @@ const flowContext = flow
             return await (providerController as any)[ctx.mapMethod](ctx.request)
         }
     })
-  .callback();
+    .callback();
 
 export default async (request: any) => {
     const ctx: any = { request: { ...request, requestedApproval: false } };

@@ -3,7 +3,7 @@ import HeadNav from '@/components/HeadNav'
 import { AddressType } from '@/types/enum'
 import { Evm } from '@/chrome/evm'
 import { useNotice } from '@/components/NoticeBar/NoticeBar'
-import { InfiniteScroll, List, Image, Modal } from 'antd-mobile'
+import { InfiniteScroll, List, Modal } from 'antd-mobile'
 import { useClipboard } from '@/components/useClipboard'
 import TokenImg from "@/components/TokenImg";
 
@@ -28,7 +28,7 @@ import {
 import {ethers} from "ethers";
 import {AccountEvm} from "@/chrome/accountEvm";
 import { HttpClient } from "@/utils/http";
-import { KasplexL2MainnetChainId } from "@/types/constant";
+import { KasplexL2MainnetChainId, FixDecimal } from "@/types/constant";
 import {useSelector} from "react-redux";
 import {RootState} from "@/store";
 
@@ -76,7 +76,7 @@ const TokenInfo = () => {
         let url = `${domain}/api/v2/addresses/${currentAccount?.ethAddress!}/transactions`
         let resp = await new HttpClient().get<TransactionResponse>(url, nextPageParams)
         setHasMore(!!resp.next_page_params)
-        if (resp.items.length > 0) {
+        if (resp.items && resp.items.length > 0) {
             let temp = resp.items
             if (nextPageParams.size > 0) {
                 setDatalist([...datalist, ...temp])
@@ -97,7 +97,7 @@ const TokenInfo = () => {
         let url = `${domain}/api/v2/addresses/${currentAccount?.ethAddress!}/token-transfers`
         let resp = await new HttpClient().get<TransactionTokenResponse>(url, {...nextPageParams, token: token.address})
         setHasMore(!!resp.next_page_params)
-        if (resp.items.length > 0) {
+        if (resp.items && resp.items.length > 0) {
             if (nextPageParams.size > 0) {
                 setDataTokenList([...dataTokenList, ...resp.items])
             } else {
@@ -121,9 +121,7 @@ const TokenInfo = () => {
         } else {
             balance = await AccountEvm.getEvmBalanceFormatEther(currentAccount?.ethAddress!)
         }
-        if (balance != token.balance) {
-            setTokenInfo("balance", ethers.formatUnits(balance, network.decimals))
-        }
+        setTokenInfo("balance", formatBalanceFixed(balance, FixDecimal))
     }
 
     const openTxExplorer = (hash: string) => {
@@ -197,7 +195,7 @@ const TokenInfo = () => {
                                                     <span className="history-href">
                                                         <em onClick={() => openTxExplorer(item.hash)}
                                                             className="history-href">{formatHash(item.hash)}
-                                                            <SvgIcon color="#74E6D8" offsetStyle={{marginRight: '6px'}} iconName="IconShare" /></em>
+                                                            <SvgIcon color="#74E6D8" size={22} offsetStyle={{marginRight: '6px'}} iconName="IconShare" /></em>
                                                         </span>
                                                     <strong className='history-status one-line'>{item.method || item.transaction_types[0] || ""}</strong>
                                                 </div>
@@ -205,7 +203,7 @@ const TokenInfo = () => {
                                                     <div className="history-left">
                                                         <em className={item.from.hash === currentAccount?.ethAddress! ? 'history-icon sub' : 'history-icon'}>{item.from.hash === currentAccount?.ethAddress! ? "-" : "+"}</em>
                                                         <strong
-                                                            className="history-amount">{ formatBalanceFixed(ethers.formatEther(item.value), 4) } { token.symbol }</strong>
+                                                            className="history-amount">{ formatBalanceFixed(ethers.formatEther(item.value), FixDecimal) } { token.symbol }</strong>
                                                     </div>
                                                     <span className="history-time">{ formatUTCToLocal(item.timestamp) }</span>
                                                 </div>
