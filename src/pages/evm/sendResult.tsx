@@ -17,7 +17,7 @@ const SendResult = () => {
     const { state } = useLocation()
     const { noticeError } = useNotice()
 
-    const [hash, setHash ] = useState<string>("")
+    const [hash, setHash ] = useState<string>(state?.hash)
     const [network ] = useState<EvmNetwork>(state?.network)
     const [tx] = useState<TransactionRequest>(state?.tx)
     const [token] = useState<EvmTokenList>(state?.token)
@@ -32,26 +32,8 @@ const SendResult = () => {
         window.open(`${network.explorer}/tx/${hash}`);
     }
 
-    const sendTx = async () => {
-        try {
-            let hash = await AccountEvm.sendTransaction(tx)
-            setHash(hash)
-        } catch (error) {
-            noticeError(error)
-        }
-        setLoading(false)
-    }
-
-    useEffect(() => {
-        sendTx()
-    }, [])
-
     return (
         <article className="page-box">
-            <Mask visible={loading}>
-                <SpinLoading className='loading-fixed' style={{ '--size': '32px' }} color='primary'  />
-            </Mask>
-
             <div className="content-main send-result">
                 <div className='send-result-txt'>
                     <img className='result-img' src={IconSuccess} alt="success" />
