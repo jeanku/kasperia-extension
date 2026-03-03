@@ -4,7 +4,7 @@ import Footer from '@/components/Footer'
 import { LinkItem } from '@/model/links'
 import { useNavigate } from "react-router-dom";
 import { SvgIcon } from '@/components/Icon/index'
-import {Modal, Divider, Image} from "antd-mobile";
+import { Modal, Divider, Image } from "antd-mobile";
 import { Share } from "@/chrome/share"
 import { openUrl, getUrlIcon } from "@/utils/util"
 
@@ -56,6 +56,10 @@ const Explore = () => {
         <article className="page-box">
             <HeadNav url="/share/add" title='Explore' rightType="add"></HeadNav>
             <div className="page-content page-search list-box pb50">
+                <Divider className="mt15" style={{
+                    color: '#ffffff',
+                    borderColor: '#333333',
+                }}>KRC20</Divider>
                 <div className="list-item-box" onClick={() => {
                     navigate('/krc20/mint')
                 }}>
@@ -73,6 +77,10 @@ const Explore = () => {
                     </div>
                     <SvgIcon iconName="IconExpand" />
                 </div>
+                <Divider className="mt15" style={{
+                    color: '#ffffff',
+                    borderColor: '#333333',
+                }}>Bridge</Divider>
                 <div className="list-item-box" onClick={() => {
                     navigate('/stableCoin/stableCoin')
                 }}>
@@ -84,9 +92,9 @@ const Explore = () => {
                 {
                     links.length > 0 && (
                         <Divider className="mt15" style={{
-                        color: '#ffffff',
-                        borderColor: '#333333',
-                    }}>My Sites</Divider>
+                            color: '#ffffff',
+                            borderColor: '#333333',
+                        }}>My Sites</Divider>
                     )
                 }
                 {
@@ -94,14 +102,14 @@ const Explore = () => {
                         <div className="list-item-box" >
                             <div className="flex-row">
                                 <Image
-                                    src={ item.imgIcon! }
+                                    src={item.imgIcon!}
                                     width={44}
                                     height={44}
                                     lazy={true}
-                                    placeholder={<SvgIcon iconName="PngCoinDef" size={44} color=""/>}
-                                    fallback={<SvgIcon iconName="PngCoinDef" size={44} color=""/>}
+                                    placeholder={<SvgIcon iconName="PngCoinDef" size={44} color="" />}
+                                    fallback={<SvgIcon iconName="PngCoinDef" size={44} color="" />}
                                     fit='cover'
-                                    style={{borderRadius: '10%', marginRight: '16px'}}
+                                    style={{ borderRadius: '10%', marginRight: '16px' }}
                                 />
 
                                 <div className="list-item-left" onClick={() => openUrl(item.url)}>

@@ -97,6 +97,7 @@ export interface ChainConfig {
 export interface StableCoinData extends ChainConfig {
     address: string;
     balance: string;
+    baseFee?: number;
 }
 
 export interface TokenListItem {

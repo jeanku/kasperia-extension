@@ -578,7 +578,7 @@ const Home = () => {
                                                 <div className="page-list-item" key={index}
                                                      onClick={() => toTokenInfo(index)}>
                                                     <TokenImg url={token.symbol} name={token.symbol}/>
-                                                    <div className="list-item-content">
+                                                    <div data-symbol={token.symbol} className="list-item-content">
                                                         <strong>{token.symbol}</strong>
                                                         <span
                                                             className="one-line"> {formatAddress(token.address || token.name)} </span>
