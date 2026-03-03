@@ -79,6 +79,7 @@ const Explore = () => {
                     <div className="list-item-left">
                         <strong>StableCoin Bridge</strong>
                     </div>
+                    <SvgIcon iconName="IconBridge" />
                 </div>
                 {
                     links.length > 0 && (

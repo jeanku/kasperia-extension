@@ -1,3 +1,5 @@
+import {ethers } from 'ethers'
+
 export interface HeadNavProps {
     title?: string;
     rightTit?: string;
@@ -73,4 +75,37 @@ export type AddressSelectResult = {
     name: string
     address: string
     groupName?: string
+}
+
+
+export interface ChainConfig {
+    name?: string;
+    rpcUrl: string;
+    tokenABI: ethers.InterfaceAbi;
+    bridgeABI: ethers.InterfaceAbi;
+    chainId: number | string;
+    symbol?: string;
+    decimals: number;
+    token: string;
+    estTime: string;
+    isTestnet?: boolean;
+    iconText?: string;
+    bridgeAddress: string;
+    blockExplorerUrl?: string;
+}
+
+export interface StableCoinData extends ChainConfig {
+    address: string;
+    balance: string;
+}
+
+export interface TokenListItem {
+    name: string;
+    symbol: string;
+    fSymbol: string;
+    decimals: number;
+    token: string;
+    feeRate?: number; 
+    baseFee?: number;
+    iconText?: string;
 }

@@ -1,3 +1,7 @@
+import { ethers } from 'ethers';
+
+import IconKasplex from '@/assets/images/chains/167012.svg'
+import IconBNB from '@/assets/images/tokens/BNB.svg'
 
 export const SECOND = 1000;
 export const MINUTE = 60 * SECOND;
@@ -14,3 +18,181 @@ export const IGRAL1ToL2BridgeAddressForTestnet = "kaspatest:qqmstl2znv9tsfgcmj9s
 export const KNSDomain = "https://api.knsdomains.org"
 
 export const FixDecimal = 4
+
+
+/****** StableCoin Bridge Config ******/
+
+export const USDCBridgeABI = [
+    "function deposit(address token,uint256 amount,uint32 toChainId,address toAddress)",
+    "function supportedTokens(address token) view returns (bool)"
+] as ethers.InterfaceAbi;
+
+export const TokenABI = [
+    "function name() view returns (string)",
+    "function symbol() view returns (string)",
+    "function decimals() view returns (uint8)",
+    "function balanceOf(address) view returns (uint256)",
+    "function allowance(address owner, address spender) view returns (uint256)",
+    "function approve(address spender, uint256 amount) returns (bool)",
+    "function nonces(address) view returns (uint256)",
+    "function transfer(address to, uint256 amount) returns (bool)",
+    "function totalSupply() view returns (uint256)",
+    "function minterAllowance(address) view returns (uint256)"
+] as ethers.InterfaceAbi;
+
+// Test
+export const StableCoinTestnetTokenList = [
+    {
+        "name": "BSC",
+        "symbol": "USDC",
+        "fSymbol": "BNB",
+        "decimals": 18,
+        "feeRate": 0,
+        "baseFee": 0,
+        "token": "0xc2dF2F567d37Ef4b8A620b41e46b17D7aEc22687",
+        iconText: IconBNB,
+    },
+    {
+        "name": "BSC",
+        "symbol": "USDT",
+        "fSymbol": "BNB",
+        "decimals": 18,
+        "feeRate": 0,
+        "baseFee": 0,
+        "token": "0x764f9f2053FA63aE31550AEEa6b1E7dB1bAa6117",
+        iconText: IconBNB,
+    },
+    {
+        "name": "KasplexL2",
+        "symbol": "USDC",
+        "fSymbol": "KAS",
+        "decimals": 6,
+        "feeRate": 0,
+        "baseFee": 10,
+        "token": "0x83d9025F3a829EEa4996326aFCCB1A2cC2889fe2",
+        iconText: IconKasplex,
+    },
+    {
+        "name": "KasplexL2",
+        "symbol": "USDC",
+        "fSymbol": "KAS",
+        "decimals": 6,
+        "feeRate": 0,
+        "baseFee": 10,
+        "token": "0xBfF413abe53450B66911fE378Db0AFCB1D8C1deF",
+        iconText: IconKasplex,
+    },
+    {
+        "name": "KasplexL2",
+        "symbol": "USDT",
+        "fSymbol": "KAS",
+        "decimals": 6,
+        "feeRate": 0,
+        "baseFee": 10,
+        "token": "0x406Fd2c59FA5AB66F21486019b3f2AF93B6E3230",
+        iconText: IconKasplex,
+    }
+]
+
+export const ChainListTestnet = [
+    {
+        chainId: KasplexL2TestnetChainId,
+        decimals: 6,
+        symbol: "USDC",
+        name: "KasplexL2",
+        rpcUrl: "https://rpc.kasplextest.xyz",
+        blockExplorerUrl: "https://explorer.testnet.kasplextest.xyz/",
+        token: "0x83d9025F3a829EEa4996326aFCCB1A2cC2889fe2",
+        bridgeAddress: "0x4f34Ccabc4642945BEce27a4963189C893b5a899",
+        estTime: "1~3",
+        tokenABI: TokenABI,
+        bridgeABI: USDCBridgeABI,
+        iconText: IconKasplex,
+    },
+    {
+        chainId: 97,
+        decimals: 18,
+        symbol: "USDC",
+        name: "BSC",
+        rpcUrl: "https://bsc-testnet-rpc.publicnode.com",
+        blockExplorerUrl: "https://testnet.bscscan.com/",
+        token: "0xc2dF2F567d37Ef4b8A620b41e46b17D7aEc22687",
+        bridgeAddress: "0x328686dd5fbe0216faffca824d63613908f4b316",
+        estTime: "3~5",
+        tokenABI: TokenABI,
+        bridgeABI: USDCBridgeABI,
+        iconText: IconBNB,
+    }
+]
+
+
+// Token List Mainnet
+export const StableCoinMainTokenList = [
+    {
+        "name": "BSC",
+        "symbol": "USDC",
+        "fSymbol": "BNB",
+        "decimals": 18,
+        "feeRate": 0,
+        "baseFee": 0,
+        "token": "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d"
+    },
+    {
+        "name": "BSC",
+        "symbol": "USDT",
+        "fSymbol": "BNB",
+        "decimals": 18,
+        "feeRate": 0,
+        "baseFee": 0,
+        "token": "0x55d398326f99059fF775485246999027B3197955"
+    },
+    {
+        "name": "KasplexL2",
+        "symbol": "USDC",
+        "fSymbol": "KAS",
+        "decimals": 6,
+        "feeRate": 0,
+        "baseFee": 10,
+        "token": "0x45031B5FC18c7f5C864eDF6E33f3d23Da4285fB1"
+    },
+    {
+        "name": "KasplexL2",
+        "symbol": "USDT",
+        "fSymbol": "KAS",
+        "decimals": 6,
+        "feeRate": 0,
+        "baseFee": 10,
+        "token": "0x18AdEe263E5c8B6df7f803a89C5626148bEb1108"
+    }
+]
+
+export const ChainListMainnet = [
+    {
+        chainId: KasplexL2MainnetChainId,
+        decimals: 6,
+        symbol: "USDC",
+        name: "KasplexL2",
+        rpcUrl: "https://evmrpc.kasplex.org/",
+        blockExplorerUrl: "https://explorer.kasplex.org/",
+        token: "0x45031B5FC18c7f5C864eDF6E33f3d23Da4285fB1",
+        bridgeAddress: "0x4D97210eb885952575F48Ffe4822CE84035832B7",
+        estTime: "1~3",
+        tokenABI: TokenABI,
+        bridgeABI: USDCBridgeABI,
+        iconText: IconKasplex,
+    },
+    {
+        chainId: 56,
+        decimals: 18,
+        symbol: "USDC",
+        name: "BSC",
+        rpcUrl: "https://bsc.publicnode.com/",
+        blockExplorerUrl: "https://bscscan.com/",
+        token: "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d",
+        bridgeAddress: "0xd32121441965b3cfe4b8dcb29615d4c849e952e2",
+        estTime: "3~5",
+        tokenABI: TokenABI,
+        bridgeABI: USDCBridgeABI,
+        iconText: IconBNB,
+    }
+]

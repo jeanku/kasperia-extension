@@ -337,6 +337,14 @@ em {
         font-weight: bold;
     }
 }
+.popup-title {
+    h6 {
+        padding-top: 12px;
+        font-size: 18px;
+        text-align: center;
+        font-weight: bold;
+    }
+}
 
 .flex-row {
     display: flex;
@@ -378,6 +386,9 @@ em {
 
 .ab {
     align-items: baseline;
+}
+.flex2 {
+    flex: 2;
 }
 
 .btn-pos-two {
@@ -517,8 +528,11 @@ em {
     }
 }
 
-:root:root {
+:root {
     --adm-color-primary: $primary-color;
+}
+.adm-tabs {
+    --active-title-color: #74E6D8!important;
 }
 
 .list-box {
@@ -1521,13 +1535,34 @@ em {
     padding: 0 10px;
     height: 35px;
     line-height: 35px;
-
     &:hover {
         background-color: $bg-color-hover;
     }
-
+    cursor: pointer;
+    span {
+        display: inline-block;
+        margin-right: 5px;
+        font-size: 14px;
+        color: $text-color;
+    }
+}
+.bridge-token-img-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 5px;
     cursor: pointer;
 
+    .symbol-icon {
+        position: absolute;
+        display: block;
+        left: 18px;
+        bottom: -3px;
+        width: 15px;
+        height: 15px;
+        border-radius: 50%;
+        background-color: #000207f7;
+    }
     span {
         display: inline-block;
         margin-right: 5px;
