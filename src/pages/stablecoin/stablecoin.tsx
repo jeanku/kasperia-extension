@@ -81,14 +81,13 @@ const Stablecoin = () => {
       return !amount || !toAmount
    }
 
-   const fetchBalance = async () => {
-      let balance = await AccountEvm.getTokenBalance(fromData?.address!, fromData.token, fromData.decimals)
-      console.log("balance", balance)
-      setFromData({
-         ...fromData,
-         balance: formatBalanceFixed(balance, FixDecimal)
-      })
-   }
+   const fetchBalance = useCallback(async (address: string, token: string, decimals: number) => {
+      const bal = await AccountEvm.getTokenBalance(address, token, decimals);
+      setFromData(prev => ({
+         ...prev,
+         balance: formatBalanceFixed(bal, FixDecimal),
+      }));
+   }, []);
 
    const calcToAmount = () => {
       const currentToken = StableCoinToken.find(item => item.token === fromData.token)
@@ -103,11 +102,21 @@ const Stablecoin = () => {
       }
    }
 
+   const fetchEvmInfo = async () => {
+      const network = await Evm.getSelectedNetwork()
+      if (!network) return
+      console.log('network', network)
+      setEvmNetwork(network)
+   }
+
    useEffect(() => {
-      if (fromData.token) {
-         fetchBalance()
-      }
-   }, [fromData.token])
+      fetchEvmInfo()
+   }, [])
+
+   useEffect(() => {
+      if (!fromData.token || !fromData.address) return;
+      fetchBalance(fromData.address, fromData.token, Number(fromData.decimals));
+   }, [fromData.address, fromData.token, fromData.decimals, fetchBalance]);
 
    useMemo(() => {
       if (!amount || Number(amount) < 1) {
@@ -128,11 +137,7 @@ const Stablecoin = () => {
    };
 
    const switchNetwork = async (chainId: string) => {
-      console.log('chainId', chainId)
       await Evm.setSelectedNetwork(chainId)
-      let networks = await Evm.getSelectedNetwork()
-      console.log('networks', networks)
-      await fetchBalance()
    }
 
    const setToken = (item: TokenListItem) => {
@@ -214,13 +219,12 @@ const Stablecoin = () => {
    };
 
    const switchInfo = () => {
-      const tempFrom = fromData
-      switchNetwork(toData.chainId.toString())
-      setFromData(toData)
-      setToData(tempFrom)
-      setAmount('')
-      setToAmount('')
-   }
+      switchNetwork(toData.chainId.toString());
+      setFromData(prev => ({ ...toData }));
+      setToData(prev => ({ ...fromData }));
+      setAmount('');
+      setToAmount('');
+   };
 
    const bridgeSubmit = () => {
 
@@ -364,7 +368,7 @@ const Stablecoin = () => {
                      {
                         tokenList.map((item: TokenListItem) => {
                            return (
-                              <div className="contact-list-item flex-row cb ac mb12" key={item.name} onClick={() => setToken(item)}>
+                              <div className="contact-list-item flex-row cb ac mb12" key={`${item.name}-${item.symbol}-${item.token}`} onClick={() => setToken(item)}>
                                  <div className='flex2 flex-row'>
                                     <TokenImg url={item.symbol!} name={item.symbol!} width={40} height={40} marginRight={"8"} />
                                     <div>
