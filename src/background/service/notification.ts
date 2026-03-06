@@ -35,7 +35,7 @@ class NotificationService {
     constructor() {
         chrome.windows.onFocusChanged.addListener((winId) => {
             if (this.notifiWindowId) {
-                if (winId !== this.notifiWindowId) {
+                if (this.notifiWindowId &&  winId !== this.notifiWindowId) {
                     if (IS_CHROME && winId === chrome.windows.WINDOW_ID_NONE && IS_LINUX) {
                         return;
                     }
@@ -75,24 +75,22 @@ class NotificationService {
     };
 
     requestApproval = async (data: any, winProps?: any): Promise<any> => {
-        this.isLocked = true;
-        try {
-            await this.openNotification(winProps);
-        } finally {
-            this.isLocked = false;
-        }
-
         return new Promise((resolve, reject) => {
             this.approval = {data, resolve, reject};
+            this.openNotification(winProps);
         });
     };
 
     clear = async (stay = false) => {
         this.approval = null;
         if (this.notifiWindowId && !stay) {
-            await winMgr.remove(this.notifiWindowId);
+            const winId = this.notifiWindowId;
+            try {
+                await winMgr.remove(winId);
+            } catch (e) {
+                console.warn("window already closed");
+            }
             this.notifiWindowId = 0;
-            this.notifiRoute = null;
         }
     };
 
@@ -106,12 +104,13 @@ class NotificationService {
 
     openNotification = async (winProps: any) => {
         if (this.notifiWindowId) {
-            winMgr.remove(this.notifiWindowId);
-            this.notifiWindowId = 0;
+            try {
+                winMgr.remove(this.notifiWindowId);
+                this.notifiWindowId = 0;
+            } catch (error) {}
         }
         const winId = await winMgr.openNotification(winProps)
         this.notifiWindowId = winId!;
-        this.notifiRoute = winProps.route;
     };
 }
 

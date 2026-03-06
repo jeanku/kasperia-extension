@@ -63,11 +63,11 @@ const SendCommit = () => {
         }
         setNonce(nonce)
     }
-    
+
     const resetNonce = async () => {
         setNonce(undefined)
     }
-    
+
     const createTransaction = async () => {
         let unsignedTx = undefined
         if (!ethers.isAddress(token.address)) {
@@ -140,7 +140,7 @@ const SendCommit = () => {
                             <div className="history-token-item">
                                 <span>Contract Address</span>
                                 <em>{formatAddress(token.address)}<SvgIcon className="cursor-pointer ml5" offsetStyle={{marginRight: '-10px'}} iconName="IconCopy" size={24}
-                                                                            onClick={() => handleCopy(token.address)}/></em>
+                                                                           onClick={() => handleCopy(token.address)}/></em>
                             </div>
                         )
                     }
@@ -208,7 +208,7 @@ const SendCommit = () => {
                 </div>
                 <div className="btn-pos-two flexd-row post-bottom">
                     <Button block size="large" onClick={() => navigate(-1)}>
-                    Reject
+                        Reject
                     </Button>
                     <Button block size="large" color="primary"
                             loading={btnLoading}

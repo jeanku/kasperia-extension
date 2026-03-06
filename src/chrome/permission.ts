@@ -16,4 +16,8 @@ export class Permission extends Chrome {
     static removeConnectedSite(origin: string): Promise<ConnectedSite[]> {
         return Chrome.request({ action: "Permission.removeConnectedSite", origin })
     }
+
+    static hasPermission(origin: string): Promise<boolean> {
+        return Chrome.request({ action: "Permission.hasPermission", origin })
+    }
 }

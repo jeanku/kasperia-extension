@@ -1,5 +1,6 @@
 import { keyringService, notificationService, permissionService } from '@/background/service';
 import { PromiseFlow, underline2Camelcase } from '@/background/utils';
+import {ethErrors} from 'eth-rpc-errors';
 import providerController from './controller';
 
 const flow = new PromiseFlow();
@@ -8,12 +9,17 @@ const flowContext = flow
     .use(async (ctx: any, next: any) => {
       let isLocked = await keyringService.isLocked()
       if (isLocked) {
-          if (notificationService.isLocked == false) {
-              ctx.flowContinue = true;
-              await notificationService.requestApproval({}, { route: "/evokeBoost/notification/unlock" })
-          } else {
-              return next()
-          }
+          const {
+              request: {
+                  session: { origin, name, icon }
+              },
+          } = ctx;
+          await notificationService.requestApproval({
+              params: {
+                  data: {},
+                  session: { origin, name, icon }
+              },
+          }, { route: "/evokeBoost/notification/unlock" })
       }
       return next();
     })
@@ -23,9 +29,7 @@ const flowContext = flow
               session: { origin, name, icon }
           },
       } = ctx;
-      if (notificationService.notifiRoute == "/evokeBoost/notification/connect" ) return
       if (!await permissionService.hasPermission(origin)) {
-          ctx.flowContinue = true;
           await notificationService.requestApproval(
               {
                   params: {

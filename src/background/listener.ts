@@ -64,6 +64,7 @@ const handlers: Record<string, (message: any) => Promise<any> | any> = {
     "Permission.addConnectedSite": (msg) => permissionService.addConnectedSite(msg.origin, msg.name, msg.icon),
     "Permission.getConnectedSites": () => permissionService.getConnectedSites(),
     "Permission.removeConnectedSite": (msg) => permissionService.removeConnectedSite(msg.origin),
+    "Permission.hasPermission": (msg) => permissionService.hasPermission(msg.origin),
 
     "Notification.resolveApproval": (msg) => notificationService.resolveApproval(msg.data, msg.forceReject),
     "Notification.rejectApproval": (msg) => notificationService.rejectApproval(msg.err, msg.stay, msg.isInternal),

@@ -31,6 +31,7 @@ const Stablecoin = () => {
 
    const { preference } = useSelector((state: RootState) => state.preference);
    const [evmNetwork, setEvmNetwork] = useState<EvmNetwork>(state?.evmNetwork)
+   console.log('evmNetwork', evmNetwork)
 
    const isTestnet = preference.network.networkType === NetworkType.Testnet
    const ChainList = isTestnet ? ChainListTestnet : ChainListMainnet
@@ -47,18 +48,21 @@ const Stablecoin = () => {
    const [selectType, setSelectType] = useState('')
    const [amount, setAmount] = useState<number | string>('')
    const [toAmount, setToAmount] = useState<number | string>('')
+   const [isChain, setIsChain] = useState(false)
 
    const evmAddress = preference.currentAccount?.ethAddress!
    const [fromData, setFromData] = useState<StableCoinData>({
       ...ChainList[0],
       address: evmAddress,
       balance: '',
+      networkName: '',
       baseFee: StableCoinToken.find(item => item.token === ChainList[0].token)?.baseFee || 0
    })
    const [toData, setToData] = useState<StableCoinData>({
       ...ChainList[1],
       address: evmAddress,
       balance: '',
+      networkName: '',
       baseFee: StableCoinToken.find(item => item.token === ChainList[1].token)?.baseFee || 0
    })
 
@@ -104,8 +108,12 @@ const Stablecoin = () => {
 
    const fetchEvmInfo = async () => {
       const network = await Evm.getSelectedNetwork()
+      const networkList = await Evm.getNetworks()
+      console.log('networkList', networkList)
       if (!network) return
-      console.log('network', network)
+      const isFind = !!ChainList.find(item => item.chainId.toString() == network.chainId)
+      console.log('isFind', isFind)
+      setIsChain(isFind)
       setEvmNetwork(network)
    }
 
@@ -170,8 +178,8 @@ const Stablecoin = () => {
          ...chain,
          address: evmAddress,
          balance: '',
-         baseFee:
-            StableCoinToken.find(token => token.token === chain.token)?.baseFee ?? 0
+         networkName: chain.name || '',
+         baseFee: StableCoinToken.find(token => token.token === chain.token)?.baseFee ?? 0
       };
    };
 
@@ -265,7 +273,7 @@ const Stablecoin = () => {
                      placement='bottom'
                      onAction={node => networkPopover(node.key as string, 'from')}
                   >
-                     <span className='hover-text'>{fromData.name}</span>
+                     <span className='hover-text'>{ fromData.networkName || 'Network'}</span>
                   </Popover.Menu>
                   <div className='sub-tit mb0import'>
                      <strong className='strong mr10' onClick={() => setMax()}>MAX</strong>
