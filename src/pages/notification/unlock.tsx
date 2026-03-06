@@ -1,13 +1,29 @@
-import React, { useState, KeyboardEvent } from "react";
+import React, { useState, useEffect, KeyboardEvent } from "react";
 import { Button, Input } from "antd-mobile";
 import { Keyring } from '@/chrome/keyring'
+import { useNavigate } from "react-router-dom";
+import { Permission } from '@/chrome/permission'
 import { SvgIcon } from '@/components/Icon/index'
 import { useNotice } from '@/components/NoticeBar/NoticeBar'
 import { Notification } from '@/chrome/notification';
 import logoImg from '@/assets/images/logo512.png';
 
+interface Session {
+    origin: string;
+    icon: string;
+    name: string;
+}
+
+interface Props {
+    params: {
+        session: Session
+    };
+}
+
 const Unlock = () => {
     const { noticeError } = useNotice();
+    const navigate = useNavigate();
+    const [session, setSession] = useState<Session | undefined>(undefined)
     const [password, setPassword] = useState('');
     const [visible, setVisible] = useState(false);
 
@@ -18,14 +34,32 @@ const Unlock = () => {
         }
     };
 
+    const getApproval = async () => {
+        let approval: Props = await Notification.getApproval()
+        setSession(approval.params.session)
+    }
+
     const handleSubmit = async () => {
         try {
             await Keyring.unLock(password);
-            await Notification.resolveApproval()
+            if (session && session.origin) {
+                let haspremission = await Permission.hasPermission(session.origin)
+                if (!haspremission) {
+                    navigate('/evokeBoost/notification/connect', {state : { session }})
+                } else {
+                    await Notification.resolveApproval()
+                }
+            } else {
+                await Notification.resolveApproval()
+            }
         } catch (error) {
             noticeError(error);
         }
     };
+
+    useEffect(() => {
+        getApproval()
+    }, []);
 
     return (
         <div className="page-box">

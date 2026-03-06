@@ -26,10 +26,10 @@ const create = async ({ url, ...rest }: { url: string } & Record<string, any>): 
       url,
       type: 'popup',
       ...rest,
-      width: undefined,
-      height: undefined,
       left: undefined,
       top: undefined,
+      width: undefined,
+      height: undefined,
       state: 'fullscreen'
     });
   } else {
@@ -43,8 +43,7 @@ const create = async ({ url, ...rest }: { url: string } & Record<string, any>): 
       ...rest
     });
   }
-
-  if (win.left !== left) {
+  if (win.left !== left && currentWindow.state !== 'fullscreen') {
     await chrome.windows.update(win.id!, { left, top });
   }
 

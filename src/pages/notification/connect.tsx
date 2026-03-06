@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react"
 import HeadNav from '@/components/HeadNav'
+import { useLocation } from "react-router-dom";
 import { Button, Radio } from 'antd-mobile'
 import { AccountsSubListDisplay } from '@/model/account'
 import { Notification } from '@/chrome/notification';
@@ -20,7 +21,8 @@ interface Props {
 }
 
 const Connect =  () => {
-    const [session, setSession] = useState<Session | undefined>(undefined)
+    const { state } = useLocation()
+    const [session, setSession] = useState<Session | undefined>(state?.session)
     const [accounts, setAccounts] = useState<AccountsSubListDisplay[]>([])
     const [defaultAddress, setDefaultAddress] = useState<string>('')
     const [accountId, setAccountId] = useState<string>('')
@@ -62,7 +64,9 @@ const Connect =  () => {
     }
 
     useEffect(() => {
-        getApproval()
+        if (!session) {
+            getApproval()
+        }
         getAccountList()
     }, []);
 

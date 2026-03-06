@@ -215,21 +215,47 @@ export class Provider {
                 tx.maxFeePerGas == null &&
                 tx.maxPriorityFeePerGas == null;
 
+            let feeData: ethers.FeeData | null = null;
+
             if (needFee) {
-                const fee = await p.getFeeData();
-                if (fee.maxFeePerGas && fee.maxPriorityFeePerGas) {
-                    tx.gasPrice = fee.gasPrice?.toString()
-                    tx.maxFeePerGas = fee.maxFeePerGas.toString();
-                    tx.maxPriorityFeePerGas = fee.maxPriorityFeePerGas.toString();
-                } else if (fee.gasPrice) {
-                    tx.gasPrice = fee.gasPrice.toString();
+                feeData = await p.getFeeData();
+                if (feeData.maxFeePerGas && feeData.maxPriorityFeePerGas) {
+                    tx.gasPrice = feeData.gasPrice?.toString()
+                    tx.maxFeePerGas = feeData.maxFeePerGas.toString();
+                    tx.maxPriorityFeePerGas = feeData.maxPriorityFeePerGas.toString();
+                } else if (feeData.gasPrice) {
+                    tx.gasPrice = feeData.gasPrice.toString();
                 }
             }
 
+            if (tx.value != null) {
+                let gasFee: bigint;
+                if (tx.maxFeePerGas && tx.maxPriorityFeePerGas) {
+                    gasFee = BigInt(tx.gasLimit) * BigInt(tx.maxFeePerGas);
+                } else {
+                    const gasPrice = tx.gasPrice ? BigInt(tx.gasPrice) : ethers.parseUnits("1", "gwei");
+                    gasFee = BigInt(tx.gasLimit) * gasPrice;
+                }
+
+                const balance = await p.getBalance(tx.from);
+                if (balance < gasFee) {
+                    throw new Error("Insufficient balance to cover gas fee")
+                }
+
+                let sendValue = BigInt(tx.value);
+                if (balance < sendValue + gasFee) {
+                    const buffer = ethers.parseUnits("0.00001", "ether");
+                    const adjusted = balance - gasFee - buffer;
+                    if (adjusted <= 0n) {
+                        throw new Error("Insufficient balance to cover gas fee");
+                    }
+                    tx.value = ethers.toQuantity(adjusted)
+                } else {
+                    tx.value = ethers.toQuantity(tx.value)
+                }
+            }
             if (tx.value == null) {
                 tx.value = 0;
-            } else {
-                tx.value = ethers.toQuantity(tx.value)
             }
 
             if (tx.maxFeePerGas != undefined && tx.maxPriorityFeePerGas != undefined && tx.gasPrice != undefined && BigInt(tx.maxPriorityFeePerGas) < BigInt(tx.gasPrice)) {
