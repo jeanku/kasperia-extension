@@ -24,7 +24,7 @@ export enum TipMsgType  {
 }
 
 export enum KaspaExplorerUrl {
-    Mainnet = 'https://kas.fyi/txs/',
+    Mainnet = 'https://kaspa.stream/transactions/',
     Testnet = 'https://explorer-tn10.kaspa.org/txs/',
 }
 
@@ -36,6 +36,12 @@ export enum EvmExplorerUrl {
 export enum ApiUrl {
     Mainnet = 'https://kasbridge-evm-api.kaspafoundation.org/',
     Testnet = 'https://kasbridge-tn10evm-api.kaspafoundation.org/',
+}
+
+export enum TokenListApi {
+    KaspaMainnet = 'https://api-explorer.kasplex.org/api/v2/addresses/',
+    KaspaTestnet = 'https://explorer.testnet.kasplextest.xyz/api/v2/addresses/'
+    
 }
 
 export const OrderApiKay = {

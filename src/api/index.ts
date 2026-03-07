@@ -1,6 +1,6 @@
 import { HttpClient } from '@/utils/http'
 import type{  PlainObject, ApiResponse, NetworkNameType } from '@/types/type' 
-import { ApiUrl, OrderApiKay } from '@/types/enum'
+import { ApiUrl, OrderApiKay, TokenListApi, } from '@/types/enum'
 
 const http = new HttpClient();
 
@@ -27,6 +27,7 @@ export interface OrderListItem {
     create_time: string;
     showTime?: string
 }
+
 export async function getKaspaList(urlType: NetworkNameType, params: PlainObject): Promise<OrderListItem[]> {
     const url = ApiUrl[urlType]
     const apiKey = OrderApiKay[urlType]
@@ -39,4 +40,10 @@ export async function getKlayerList(urlType: NetworkNameType, params: PlainObjec
     const apiKey = OrderApiKay[urlType]
     const response = await http.get(`${url}api/klayer-list`, params, params, apiKey) as ApiResponse
     return response.data as OrderListItem[]
+}
+
+export async function getTokenBalanceByAddress(urlType: NetworkNameType, params: PlainObject) {
+    const url = `${TokenListApi[`Kaspa${urlType}`]}${params.address}/token-balances`;
+    const response = await http.get(url) as ApiResponse
+    return response
 }

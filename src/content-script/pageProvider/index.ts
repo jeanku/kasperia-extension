@@ -7,6 +7,7 @@ import ReadyPromise from './readyPromise';
 import {NetworkType} from "@/utils/wallet/consensus";
 import { OpCodes, ScriptBuilder } from '@/utils/wallet/tx/script';
 import { $, domReadyCall } from './utils';
+import { Version } from '@/types/constant'
 import { SubmitSetting, SubmitBuilderOptions } from '@/model/account'
 
 const script = document.currentScript;
@@ -242,7 +243,7 @@ export class KasperiaProvider extends EventEmitter {
     };
 
     getVersion = async () => {
-        return "1.10.62";
+        return Version;
     };
 
     async request({ method, params }: RequestArguments): Promise<any> {

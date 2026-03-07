@@ -14,3 +14,7 @@ export const IGRAL1ToL2BridgeAddressForTestnet = "kaspatest:qqmstl2znv9tsfgcmj9s
 export const KNSDomain = "https://api.knsdomains.org"
 
 export const FixDecimal = 4
+
+export const ApiChainId =  [KasplexL2TestnetChainId, KasplexL2MainnetChainId, IGRAL2TestnetChainId]
+
+export const Version = '1.10.63'

@@ -63,7 +63,7 @@ const SwitchChain: React.FC = () => {
                 <div className='source-box'>
                     <img className="logo-img" src={session?.icon} alt="" />
                     <div className='source-txt'>
-                        <strong>{session?.name}</strong>
+                        <strong className="one-line">{session?.name}</strong>
                         <p>{session?.origin}</p>
                     </div>
                 </div>
