@@ -28,7 +28,7 @@ function u64LE(big: bigint) {
     return buf;
 }
 
-function u32LE(n: number) {
+export function u32LE(n: number) {
     const buf = Buffer.alloc(4);
     buf.writeUInt32LE(n >>> 0);
     return buf;

@@ -24,7 +24,7 @@ export enum TipMsgType  {
 }
 
 export enum KaspaExplorerUrl {
-    Mainnet = 'https://kas.fyi/txs/',
+    Mainnet = 'https://kaspa.stream/transactions/',
     Testnet = 'https://explorer-tn10.kaspa.org/txs/',
 }
 

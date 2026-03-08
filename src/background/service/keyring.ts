@@ -12,7 +12,7 @@ import {Wallet} from '@/utils/wallet/wallet';
 import {AccountType, AddressType, ChainPath, LockTime} from '@/types/enum';
 import {hashString} from '@/utils/util';
 import {ObservableStore} from '@metamask/obs-store';
-import {preferenceService, sessionService} from './index';
+import {preferenceService, sessionService, accountService} from './index';
 import {NetworkType} from "@/utils/wallet/consensus";
 import {Keypair} from "@/utils/wallet/tx/keypair";
 
@@ -329,6 +329,7 @@ export class KeyRing {
     async clear(): Promise<void> {
         this.store.updateState({password: "", account: new Map()})
         preferenceService.store = undefined
+        accountService.reconnect(undefined)
         await Storage.clearData();
     }
 

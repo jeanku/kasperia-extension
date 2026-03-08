@@ -1,12 +1,13 @@
-// import { ethErrors } from 'eth-rpc-errors';
-
 import { keyringService } from '@/background/service';
 import rpcFlow from './rpcFlow';
 
-export default (req: any) => {
-  const hasVault = keyringService.isBoot();
-  if (!hasVault) {
-    throw Error('wallet must has at least one account');
-  }
-  return rpcFlow(req);
+const providerHandler = (req: any) => {
+  return keyringService.isBoot().then(hasVault => {
+    if (!hasVault) {
+      throw Error('Wallet must has at least one account; you may need to create or import your wallet first.');
+    }
+    return rpcFlow(req);
+  })
 };
+
+export default providerHandler

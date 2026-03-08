@@ -45,9 +45,18 @@ export class EVM {
                         "38836": {
                             chainId: "38836",
                             symbol: "iKAS",
-                            name: "Igra Caravel",
+                            name: "Igra Caravel Testnet",
                             rpcUrl: ["https://galleon-testnet.igralabs.com:8545"],
                             explorer: "https://explorer.galleon-testnet.igralabs.com/",
+                            decimals: 18,
+                            select: false,
+                        },
+                        "38833": {
+                            chainId: "38833",
+                            symbol: "iKAS",
+                            name: "Igra Caravel Mainnet",
+                            rpcUrl: ["https://rpc.igralabs.com:8545"],
+                            explorer: "https://explorer.igralabs.com/",
                             decimals: 18,
                             select: false,
                         }
