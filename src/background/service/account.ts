@@ -451,11 +451,11 @@ export class Account {
         let account = keyringService.currentAccount()
         let networkId = await preferenceService.getNetworkId()
 
-        let igraChainId = 0
-        if (receiveAddress == IGRAL1ToL2BridgeAddressForTestnet && networkId == NetworkId.Testnet10) {
-            igraChainId = IGRAL2TestnetChainId
-        } else if (receiveAddress == IGRAL1ToL2BridgeAddressForMainnet && networkId == NetworkId.Mainnet) {
-            igraChainId = IGRAL2MainnetChainId
+        let igraPrefix = []
+        if (receiveAddress == IGRAL1ToL2BridgeAddressForTestnet && networkId.networkType == NetworkId.Testnet10.networkType) {
+            igraPrefix = [151, 180]
+        } else if (receiveAddress == IGRAL1ToL2BridgeAddressForMainnet && networkId.networkType == NetworkId.Mainnet.networkType) {
+            igraPrefix = [151, 177]
         } else {
             throw new Error("invalid receiveAddress address")
         }
@@ -480,11 +480,6 @@ export class Account {
             undefined,
             new Uint8Array()
         );
-        const generator = new Generator(baseSetting);
-        let signtx = generator.generateTransaction()
-        if (!signtx) {
-            throw new Error("generateTransaction error")
-        }
 
         const abortController = new AbortController();
         const signal = abortController.signal;
@@ -492,19 +487,16 @@ export class Account {
         const worker = async (workerId: number, start: number, end: number): Promise<{
             nonce: number,
         }> => {
-            let tx = signtx.tx
-            let payload =  buildEntryPayload(toAddress, value, 0)
-            let payloadIndex =  payload.length - 4
-
             for (let i = start; i <= end; i++) {
                 if (signal.aborted) {
                     throw new DOMException('Aborted', 'AbortError');
                 }
-                payload.writeUInt32LE(i, payloadIndex)
-                tx.updatePayload(payload)
-                const idBytes = tx.id.toBytes();
-                let prefix = (idBytes[0] << 8) | idBytes[1]
-                if (prefix === igraChainId) {
+                let bufferData = buildEntryPayload(toAddress, value, i);
+                baseSetting.payload = new Uint8Array(bufferData)
+                const generator = new Generator(baseSetting);
+                const id = generator.generateTransactionId();
+                const idBytes = id?.toBytes();
+                if (idBytes && idBytes.length > 1 && idBytes[0] === igraPrefix[0] && idBytes[1] === igraPrefix[1]) {
                     return { nonce: i };
                 }
                 if (i % 2000 === 0) {
@@ -550,6 +542,7 @@ export class Account {
             ]);
 
             abortController.abort();
+
             if (!(result && result.nonce)) {
                 throw new Error("no result")
             }
@@ -557,13 +550,16 @@ export class Account {
             let bufferData = buildEntryPayload(toAddress, value, result.nonce);
             baseSetting.payload = new Uint8Array(bufferData)
             const generator = new Generator(baseSetting);
-
-            let signTx = generator.generateTransaction()
-            if (!signTx) {
-                throw new Error("tx generateTransaction fail")
+            let sendtx = generator.generateTransaction()
+            if (!sendtx) {
+                throw new Error("generateTransaction error")
+            }
+            const idBytes = sendtx.tx.id.toBytes();
+            if (idBytes.length > 2 && (idBytes[0] !== igraPrefix[0] || idBytes[1] !== igraPrefix[1])) {
+                throw new Error("invalid nonce")
             }
 
-            const signedTx = await signTx.sign([account.priKey]);
+            const signedTx = await sendtx.sign([account.priKey]);
             await this.client?.submitTransaction({
                 transaction: signedTx.toSubmittableJsonTx(),
                 allowOrphan: false
