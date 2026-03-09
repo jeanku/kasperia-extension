@@ -7,19 +7,19 @@ const flow = new PromiseFlow();
 
 const flowContext = flow
     .use(async (ctx: any, next: any) => {
-      let isLocked = await keyringService.isLocked()
-      if (isLocked) {
-          const {
+        let isLocked = await keyringService.isLocked()
+        if (isLocked) {
+            const {
               request: {
                   session: { origin, name, icon }
               },
-          } = ctx;
-          await notificationService.requestApproval({
+            } = ctx;
+            await notificationService.requestApproval({
               params: {
                   data: {},
                   session: { origin, name, icon }
               },
-          }, { route: "/evokeBoost/notification/unlock" })
+            }, { route: "/evokeBoost/notification/unlock" })
       }
       return next();
     })

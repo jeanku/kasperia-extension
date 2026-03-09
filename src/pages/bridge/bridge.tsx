@@ -16,12 +16,14 @@ import { formatAddress, formatBalanceFixed } from '@/utils/util'
 import {
     KasplexL2TestnetChainId,
     IGRAL2TestnetChainId,
+    IGRAL2MainnetChainId,
     KasplexL2MainnetChainId,
     KasplexL1ToL2BridgeAddressForMainnet,
     KasplexL2ToL1BridgeAddressForMainnet,
     KasplexL2ToL1BridgeAddressForTestnet,
     KasplexL1ToL2BridgeAddressForTestnet,
     IGRAL1ToL2BridgeAddressForTestnet,
+    IGRAL1ToL2BridgeAddressForMainnet,
 } from '@/types/constant'
 
 import { AccountsSubListDisplay } from '@/model/account'
@@ -67,6 +69,12 @@ const Bridge = () => {
         return chainId === KasplexL2TestnetChainId || chainId === KasplexL2MainnetChainId
     }, [evmNetwork]);
 
+    const isIGRA = useMemo(() => {
+        if (!evmNetwork || !evmNetwork.chainId) return false
+        const chainId = Number(evmNetwork.chainId)
+        return chainId === IGRAL2TestnetChainId || chainId === IGRAL2MainnetChainId
+    }, [evmNetwork]);
+
     const [fromData, setFromData] = useState<SwitchItem>({
         address: preference.currentAccount?.address!,
         token: "KAS",
@@ -87,7 +95,8 @@ const Bridge = () => {
 
     const bridgeConfig: BridgeConfig = {
         mainnet: {
-            [KasplexL2MainnetChainId]: true
+            [KasplexL2MainnetChainId]: true,
+            [IGRAL2MainnetChainId]: true
         },
         testnet: {
             [KasplexL2TestnetChainId]: true,
@@ -142,7 +151,7 @@ const Bridge = () => {
     }
 
     const switchInfo = async () => {
-        if (Number(evmNetwork.chainId) == IGRAL2TestnetChainId) {
+        if (Number(evmNetwork.chainId) == IGRAL2TestnetChainId || Number(evmNetwork.chainId) == IGRAL2MainnetChainId) {
             return noticeError("not support for igra")
         }
         let temp = fromData
@@ -182,7 +191,7 @@ const Bridge = () => {
                     await bridgeL2ToKasplexL1(isKaspaMain)
                 }
             }
-            if (Number(evmNetwork.chainId) == IGRAL2TestnetChainId) {
+            if (isIGRA) {
                 setCalcLoading(true)
                 if (fromData.isKaspa) {
                     await bridgeL1ToIgraL2(isKaspaMain)
@@ -199,20 +208,26 @@ const Bridge = () => {
     }
 
     const bridgeL1ToIgraL2 = async (isKaspaMainnet: boolean) => {
-        if (isKaspaMainnet) {
-            return noticeError("mainnet not support")
+        if (isKaspaMainnet && Number(amount) < 10) {
+            return noticeError("Minimum bridge amount: 10 KAS.")
         }
-        let txid = await Account.bridgeForIgra(IGRAL1ToL2BridgeAddressForTestnet, toData.changeAddress || toData.address, amount.toString())
-        if (!txid) {
-            return noticeError("No valid nonce found in the specified range. Please try again")
+        let addr = isKaspaMainnet ? IGRAL1ToL2BridgeAddressForMainnet : IGRAL1ToL2BridgeAddressForTestnet
+        try {
+            let txid = await Account.bridgeForIgra(addr, toData.changeAddress || toData.address, amount.toString())
+            if (!txid) {
+                return noticeError("No valid nonce found in the specified range. Please try again")
+            }
+            let tx =  {
+                address: IGRAL1ToL2BridgeAddressForTestnet,
+                amount: ethers.parseUnits(amount.toString(), 8),
+                payload: undefined,
+                token: {}
+            }
+            navigate('/tx/result', { state:{submitTx: tx, txid} })
+        } catch (error) {
+            console.log("error:", error)
+            return noticeError(error)
         }
-        let tx =  {
-            address: IGRAL1ToL2BridgeAddressForTestnet,
-            amount: ethers.parseUnits(amount.toString(), 8),
-            payload: undefined,
-            token: {}
-        }
-        navigate('/tx/result', { state:{submitTx: tx, txid} })
     }
 
     const bridgeL1ToKasplexL2 = async (isKaspaMainnet: boolean) => {
@@ -268,6 +283,9 @@ const Bridge = () => {
                     setToAmount(caluL1ToL2ReceiveAmount())
                     break
                 case IGRAL2TestnetChainId:
+                    setToAmount(amount)
+                    break
+                case IGRAL2MainnetChainId:
                     setToAmount(amount)
                     break
                 default:
