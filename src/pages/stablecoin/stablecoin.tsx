@@ -1,161 +1,145 @@
-
-import { useMemo, useState, useEffect, useCallback } from 'react';
-import { useNavigate, useLocation, useBlocker } from "react-router-dom";
+import { useMemo, useState, useEffect, useCallback } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { Button, Mask, SpinLoading, Popup, Popover, } from 'antd-mobile'
-import { Action } from 'antd-mobile/es/components/popover'
 
-import { BankcardOutline } from 'antd-mobile-icons'
-import { ethers } from "ethers";
+import { Button, Popup, Popover } from "antd-mobile";
+import { Action } from "antd-mobile/es/components/popover";
+import { BankcardOutline } from "antd-mobile-icons";
 
-import { useNotice } from '@/components/NoticeBar/NoticeBar'
-import { SvgIcon } from '@/components/Icon/index'
-import HeadNav from '@/components/HeadNav'
-import NumberInput from '@/components/NumberInput';
+import HeadNav from "@/components/HeadNav";
+import NumberInput from "@/components/NumberInput";
 import TokenImg from "@/components/TokenImg";
-import AddressSelectPopup from '@/components/AddressSelectPopup'
-import { AccountEvm } from "@/chrome/accountEvm";
-import { Evm } from '@/chrome/evm'
+import AddressSelectPopup from "@/components/AddressSelectPopup";
+import { SvgIcon } from "@/components/Icon";
+import { useNotice } from '@/components/NoticeBar/NoticeBar'
 
-import { StableCoinData, TokenListItem, ChainConfig } from '@/types/type'
-import { RootState } from '@/store';
-import { EvmNetwork } from "@/model/evm";
-import { ChainListTestnet, ChainListMainnet, StableCoinTestnetTokenList, StableCoinMainTokenList, FixDecimal } from '@/types/constant'
+import { AccountEvm } from "@/chrome/accountEvm";
+import { Evm } from "@/chrome/evm";
+import { RootState } from "@/store";
+
+import {
+   StableCoinData,
+   TokenListItem,
+   ChainConfig
+} from "@/types/type";
+
+import {
+   ChainListMainnet,
+   ChainListTestnet,
+   StableCoinMainTokenList,
+   StableCoinTestnetTokenList,
+   FixDecimal
+} from "@/types/constant";
+
 import { NetworkType } from "@/utils/wallet/consensus";
-import { formatAddress, formatBalanceFixed } from '@/utils/util'
+import { formatAddress, formatBalanceFixed } from "@/utils/util";
+
+import { EvmNetwork } from "@/model/evm";
+
+interface EvmNetworkItem {
+   chainId: string;
+   name: string;
+}
 
 const Stablecoin = () => {
-   const { state } = useLocation()
-   // const { noticeError } = useNotice();
    const navigate = useNavigate();
+   const { noticeError, noticeInfo } = useNotice();
+   const { state } = useLocation();
 
    const { preference } = useSelector((state: RootState) => state.preference);
-   const [evmNetwork, setEvmNetwork] = useState<EvmNetwork>(state?.evmNetwork)
-   console.log('evmNetwork', evmNetwork)
+   const evmAddress = preference.currentAccount?.ethAddress ?? "";
+   const isTestnet = preference.network.networkType === NetworkType.Testnet;
+   const ChainList = isTestnet ? ChainListTestnet : ChainListMainnet;
+   const StableCoinToken = isTestnet ? StableCoinTestnetTokenList : StableCoinMainTokenList;
 
-   const isTestnet = preference.network.networkType === NetworkType.Testnet
-   const ChainList = isTestnet ? ChainListTestnet : ChainListMainnet
-   const StableCoinToken = isTestnet ? StableCoinTestnetTokenList : StableCoinMainTokenList
+   const [runtimeChainList, setRuntimeChainList] = useState<ChainConfig[]>(ChainList);
 
-   const [btnLoading, setBtnLoading] = useState(false)
-   const [approveBtnLoading, setApproveBtnLoading] = useState(false)
+   const [fromData, setFromData] = useState<StableCoinData | null>(null);
+   const [toData, setToData] = useState<StableCoinData | null>(null);
 
-   const [popupVisible, setPopupVisible] = useState(false)
-   const [popupToken, setPopupToken] = useState(false)
+   const [amount, setAmount] = useState<string>("");
+   const [toAmount, setToAmount] = useState<string>("");
+   const [TokenList, setTokenList] = useState<TokenListItem[]>(StableCoinToken)
+
+   const [popupToken, setPopupToken] = useState(false);
    const [approveVisible, setApproveVisible] = useState(false)
+   const [approveBtnLoading, setApproveBtnLoading] = useState(false)
+   const [popupVisible, setPopupVisible] = useState(false);
+   const [btnLoading, setBtnLoading] = useState(false);
+   const [isChain, setIsChain] = useState(true);
 
-   const [selectChainName, setSelectChainName] = useState<string>('');
-   const [selectType, setSelectType] = useState('')
-   const [amount, setAmount] = useState<number | string>('')
-   const [toAmount, setToAmount] = useState<number | string>('')
-   const [isChain, setIsChain] = useState(false)
+   const [selectType, setSelectType] = useState<"from" | "to">("from");
+   const [selectChainId, setSelectChainId] = useState("");
 
-   const evmAddress = preference.currentAccount?.ethAddress!
-   const [fromData, setFromData] = useState<StableCoinData>({
-      ...ChainList[0],
-      address: evmAddress,
-      balance: '',
-      networkName: '',
-      baseFee: StableCoinToken.find(item => item.token === ChainList[0].token)?.baseFee || 0
-   })
-   const [toData, setToData] = useState<StableCoinData>({
-      ...ChainList[1],
-      address: evmAddress,
-      balance: '',
-      networkName: '',
-      baseFee: StableCoinToken.find(item => item.token === ChainList[1].token)?.baseFee || 0
-   })
+   /* ---------------- network ---------------- */
 
-   const tokenList = useMemo(() => {
-      if (!selectChainName) return [];
-
-      return StableCoinToken.filter(
-         item => item.name === selectChainName
-      );
-   }, [StableCoinToken, selectChainName]);
-
-   const actions: Action[] = useMemo(() => {
-      return ChainList.map((item) => ({
-         key: item.chainId!.toString(),
-         icon: <img src={item.iconText!} style={{ borderRadius: '50%' }} alt={item.name} width={22} height={22} />,
-         text: item.name,
-      }));
-   }, [ChainList]);
-   const submitDisabled = () => {
-      return !amount || !toAmount
-   }
-
-   const fetchBalance = useCallback(async (address: string, token: string, decimals: number) => {
-      const bal = await AccountEvm.getTokenBalance(address, token, decimals);
-      setFromData(prev => ({
-         ...prev,
-         balance: formatBalanceFixed(bal, FixDecimal),
-      }));
-   }, []);
-
-   const calcToAmount = () => {
-      const currentToken = StableCoinToken.find(item => item.token === fromData.token)
-      if (currentToken) {
-         const fee = currentToken.baseFee
-         const toAmount = Number(amount) - fee
-         if (toAmount > 0) {
-            setToAmount(formatBalanceFixed(toAmount.toString(), FixDecimal))
-         } else {
-            setToAmount("")
-         }
-      }
-   }
-
-   const fetchEvmInfo = async () => {
-      const network = await Evm.getSelectedNetwork()
-      const networkList = await Evm.getNetworks()
-      console.log('networkList', networkList)
-      if (!network) return
-      const isFind = !!ChainList.find(item => item.chainId.toString() == network.chainId)
-      console.log('isFind', isFind)
-      setIsChain(isFind)
-      setEvmNetwork(network)
-   }
-
-   useEffect(() => {
-      fetchEvmInfo()
-   }, [])
-
-   useEffect(() => {
-      if (!fromData.token || !fromData.address) return;
-      fetchBalance(fromData.address, fromData.token, Number(fromData.decimals));
-   }, [fromData.address, fromData.token, fromData.decimals, fetchBalance]);
-
-   useMemo(() => {
-      if (!amount || Number(amount) < 1) {
-         setToAmount("")
-         return
-      }
-      calcToAmount()
-   }, [amount]);
-
-   const setMax = () => {
-      setAmount(fromData.balance)
-   }
-
-   const setTokenListFun = (name: string, type: 'fromData' | 'toData') => {
-      setSelectChainName(name);
-      setSelectType(type);
-      setPopupToken(true);
+   const buildStableCoinData = (chain: ChainConfig): StableCoinData => {
+      return {
+         ...chain,
+         address: evmAddress,
+         balance: "",
+         networkName: chain.name ?? "",
+         baseFee:
+            StableCoinToken.find((t) => t.token === chain.token)?.baseFee ?? 0
+      };
    };
 
-   const switchNetwork = async (chainId: string) => {
-      await Evm.setSelectedNetwork(chainId)
-   }
+   const fetchEvmInfo = useCallback(async () => {
+      const network = await Evm.getSelectedNetwork();
+      const networkList: EvmNetworkItem[] = await Evm.getNetworks();
+      if (!network) return;
+      setTokenList(() => TokenList.map(item => {
+         const chainId = ChainList.find(chain => chain.name === item.name)?.chainId.toString();
+         return {
+            ...item,
+            chainId,
+         }
+      }))
+      const updatedChainList = ChainList.map((chain) => {
+         const match = networkList.find((n) => n.chainId === chain.chainId.toString());
+         return {
+            ...chain,
+            name: match?.name ?? chain.name
+         };
+      });
+      
+      setRuntimeChainList(updatedChainList);
+      const currentChain = updatedChainList.find((c) => c.chainId.toString() === network.chainId);
+
+      if (!currentChain) {
+         setIsChain(false);
+         const defaultFrom = updatedChainList[0];
+         const defaultTo = updatedChainList[1];
+         setFromData(buildStableCoinData(defaultFrom));
+         setToData(buildStableCoinData(defaultTo));
+         noticeError("target network invalid!")
+         return
+      }
+      const anotherChain = updatedChainList.find((c) => c.chainId !== currentChain.chainId);
+      if (!anotherChain) return;
+
+      setFromData(buildStableCoinData(currentChain));
+      setToData(buildStableCoinData(anotherChain));
+
+      setIsChain(true);
+   }, [ChainList, StableCoinToken, evmAddress]);
+
+   const tokenList = useMemo(() => {
+      if (!selectChainId) return [];
+      return TokenList.filter(
+         item => item.chainId === selectChainId
+      );
+   }, [TokenList, selectChainId]);
 
    const setToken = (item: TokenListItem) => {
-      if (selectType === 'fromData') {
+      if (selectType === 'from' && fromData) {
          if (item.symbol !== fromData.symbol) {
             setFromData({
                ...fromData,
                ...item,
             });
             setAmount('')
+            if(!toData) return
             const toToken = StableCoinToken.find(token => token.symbol === item.symbol && token.name === toData.name)
             setToData({
                ...toData,
@@ -166,187 +150,280 @@ const Stablecoin = () => {
       setPopupToken(false)
    }
 
-   const setAddress = (address: string) => {
-      setToData(prev => ({
-         ...prev,
-         address
-      }));
+   const selectNetworkTip = () => {
+      if(!isChain) {
+         noticeInfo("Please select a network")
+      }
    }
 
-   const buildStableCoinData = (chain: ChainConfig): StableCoinData => {
-      return {
-         ...chain,
-         address: evmAddress,
-         balance: '',
-         networkName: chain.name || '',
-         baseFee: StableCoinToken.find(token => token.token === chain.token)?.baseFee ?? 0
-      };
-   };
+   const isBridgeAvailable = useMemo(() => {
+      if (!fromData) return false;
+      return runtimeChainList.some(c => c.chainId === fromData.chainId);
+   }, [runtimeChainList, fromData]);
 
-   const getAnotherChain = (excludeChainId: string): ChainConfig | undefined => {
-      return ChainList.find(
-         chain => chain.chainId.toString() !== excludeChainId
+   /* ---------------- balance ---------------- */
+   const fetchBalance = useCallback(async () => {
+      if (!fromData || !isChain) return;
+      const bal = await AccountEvm.getTokenBalance(
+         fromData.address,
+         fromData.token,
+         fromData.decimals
       );
-   };
+      console.log('fetchBalance- bal', bal)
+      setFromData((prev) => prev ? { ...prev, balance: formatBalanceFixed(bal, FixDecimal) } : prev);
+   }, [fromData?.token, fromData?.address]);
 
-   const networkPopover = (key: string, type: 'from' | 'to') => {
-      const selectedChain = ChainList.find(chain => chain.chainId.toString() === key);
-      if (!selectedChain) return;
+   /* ---------------- bridge calc ---------------- */
 
-      const selectedChainId = selectedChain.chainId.toString();
+   const calcToAmount = useCallback(() => {
+      if (!fromData || !amount) {
+         setToAmount("");
+         return;
+      }
+      const fee = fromData.baseFee ?? 0;
+      const result = Number(amount) - fee;
+      if (result <= 0) {
+         setToAmount("");
+         return;
+      }
+      setToAmount(formatBalanceFixed(result.toString(), FixDecimal));
+   }, [amount, fromData]);
 
-      if (type === 'from') {
-         if (selectedChainId === fromData.chainId.toString()) return;
+   /* ---------------- network dropdown ---------------- */
+   const actions: Action[] = useMemo(() => {
+      const getList = runtimeChainList.map((item) => ({
+         key: item.chainId.toString(),
+         text: item.name ?? "",
+         icon: (
+            <img
+               src={item.iconText ?? ""}
+               width={22}
+               height={22}
+               alt=""
+               style={{ borderRadius: "50%" }}
+            />
+         )
+      }));
+      return getList
+   }, [runtimeChainList]);
 
-         let nextFrom = buildStableCoinData(selectedChain);
-         let nextTo = toData;
-         if (toData.chainId.toString() === selectedChainId) {
-            const anotherChain = getAnotherChain(selectedChainId);
-            if (anotherChain) {
-               nextTo = buildStableCoinData(anotherChain);
-            }
-         }
+   const isValidRuntimeChain = useCallback((chainId: string | number) => {
+      return runtimeChainList.some((c) => c.chainId.toString() === chainId.toString());
+   }, [runtimeChainList]);
 
-         setFromData(nextFrom);
-         setToData(nextTo);
+   const networkPopover = async (key: string, type: "from" | "to") => {
+      if (!isValidRuntimeChain(key)) {
+         noticeError("Network not supported");
+         return;
       }
 
-      if (type === 'to') {
-         if (selectedChainId === toData.chainId.toString()) return;
-         let nextTo = buildStableCoinData(selectedChain);
-         let nextFrom = fromData;
-         if (fromData.chainId.toString() === selectedChainId) {
-            const anotherChain = getAnotherChain(selectedChainId);
-            if (anotherChain) {
-               nextFrom = buildStableCoinData(anotherChain);
-            }
-         }
-         setToData(nextTo);
-         setFromData(nextFrom);
+      const selected = runtimeChainList.find((c) => c.chainId.toString() === key);
+      if (!selected || !fromData || !toData) return;
+      if (type === "from") {
+         const another = runtimeChainList.find((c) => c.chainId !== selected.chainId);
+         console.log('another', another)
+         if (!another) return;
+         setFromData(buildStableCoinData(selected));
+         setToData(buildStableCoinData(another));
+         setIsChain(true)
+         await Evm.setSelectedNetwork(fromData.chainId.toString())
+      }
+
+      if (type === "to") {
+         const another = runtimeChainList.find((c) => c.chainId !== selected.chainId);
+         if (!another) return;
+         setToData(buildStableCoinData(selected));
+         setFromData(buildStableCoinData(another));
+         setIsChain(true)
+      }
+   };
+   /* ---------------- actions ---------------- */
+
+   const setMax = () => {
+      if (!fromData) return;
+      setAmount(fromData.balance);
+   };
+
+   const switchInfo = async () => {
+      if(!isChain) selectNetworkTip();
+      if (!fromData || !toData) return;
+      const nextChainId = toData.chainId;
+      if (!isValidRuntimeChain(nextChainId)) {
+         noticeError("Target network not available");
+         return;
+      }
+      setFromData(toData);
+      setToData(fromData);
+      setAmount("");
+      setToAmount("");
+      await Evm.setSelectedNetwork(fromData.chainId.toString())
+      fetchBalance()
+   };
+
+   const bridgeSubmit = async () => {
+      setBtnLoading(true);
+      try {
+         console.log("bridge submit");
+      } finally {
+         setBtnLoading(false);
       }
    };
 
-   const switchInfo = () => {
-      switchNetwork(toData.chainId.toString());
-      setFromData(prev => ({ ...toData }));
-      setToData(prev => ({ ...fromData }));
-      setAmount('');
-      setToAmount('');
-   };
+   useEffect(() => {
+      fetchEvmInfo();
+   }, [fetchEvmInfo]);
 
-   const bridgeSubmit = () => {
+   useEffect(() => {
+      fetchBalance();
+   }, [fetchBalance]);
 
-   }
+   useEffect(() => {
+      calcToAmount();
+   }, [calcToAmount]);
 
+   if (!fromData || !toData) return null;
+
+   /* ---------------- render ---------------- */
 
    return (
       <div className="page-box">
-         <HeadNav title='StableCoin Bridge' rightType={"history"} url="/stableCoin/stableCoinHistory" onBack={() => navigate('/home')}></HeadNav>
+         <HeadNav
+            title="StableCoin Bridge"
+            rightType="history"
+            url="/stableCoin/stableCoinHistory"
+            onBack={() => navigate("/home")}
+         />
          <div className="content-main assets-details">
-            {/* from info  */}
-            <div className='card-box'>
-               <div className='card-title flex-row cb as'>
+            {/* FROM */}
+            <div className="card-box">
+               <div className="card-title flex-row cb as">
                   <span>From</span>
-                  <em className="one-line">{formatAddress(fromData?.address || '', 8)}</em>
+                  <em>{formatAddress(fromData.address, 8)}</em>
                </div>
-               <div className='flex-row cb ac mb12 mt30'>
+               <div className="flex-row cb ac mb12 mt30">
                   <NumberInput
-                     value={amount.toString() ?? ''}
-                     onChange={(e) => setAmount(e.toString())}
-                     decimalPlaces={Number(fromData.decimals)}
+                     value={amount}
+                     onChange={(v) => setAmount(v.toString())}
+                     decimalPlaces={fromData.decimals}
                      max={Number(fromData.balance)}
-                     allowNegative={true}
                      placeholder="amount"
-                     style={{ fontSize: '14px', color: 'white', flex: 2 }}
+                     style={{ flex: 2, fontSize: '14px', color: 'white', }}
                   />
-                  <div className="bridge-token-img-box" onClick={() => setTokenListFun(fromData.name!, 'fromData')}>
-                     <TokenImg url={fromData.symbol!} name={fromData.symbol!} width={28} height={28} marginRight={"3"} />
+                  <div
+                     className="bridge-token-img-box"
+                     onClick={() => {
+                        if(!isChain) {
+                           selectNetworkTip()
+                           return;
+                        };
+                        setSelectChainId(fromData.chainId.toString() ?? "");
+                        setSelectType("from");
+                        setPopupToken(true);
+                     }}
+                  >
+                     <TokenImg
+                        url={fromData.symbol ?? ""}
+                        name={fromData.symbol ?? ""}
+                        width={28}
+                        height={28}
+                        marginRight={"3"}
+                     />
                      <span>{fromData.symbol}</span>
                   </div>
                </div>
-               <div className='mt15 flex-row cb ac' >
+
+               <div className="mt15 flex-row cb ac">
                   <Popover.Menu
-                     className="account-popover"
                      actions={actions}
-                     mode='dark'
-                     trigger='click'
-                     placement='bottom'
-                     onAction={node => networkPopover(node.key as string, 'from')}
+                     trigger="click"
+                     placement="bottom"
+                     onAction={(node) => networkPopover(node.key as string, "from")}
                   >
-                     <span className='hover-text'>{ fromData.networkName || 'Network'}</span>
+                     <span className="hover-text">
+                        {isChain ? (fromData.networkName || fromData.name) : "Not Network"}
+                     </span>
                   </Popover.Menu>
-                  <div className='sub-tit mb0import'>
-                     <strong className='strong mr10' onClick={() => setMax()}>MAX</strong>
-                     <span><BankcardOutline fontSize={16} /> {fromData.balance ? formatBalanceFixed(fromData.balance, 4) : 0}</span>
+                  <div className="sub-tit">
+                     <strong className="mr5" onClick={setMax}>MAX</strong>
+                     <span>
+                        <BankcardOutline /> {fromData.balance || 0}
+                     </span>
                   </div>
                </div>
             </div>
-            {/* switch */}
-            <div className='bridge-divider flex-row cc ac'>
-               <div className='bridge-icon' onClick={() => switchInfo()}>
-                  <SvgIcon iconName="IconConvert" size={22} color="#D8D8D8" />
+
+            {/* SWITCH */}
+            <div className="bridge-divider flex-row cc ac">
+               <div className="bridge-icon" onClick={switchInfo}>
+                  <SvgIcon iconName="IconConvert" size={22} />
                </div>
             </div>
-            <div className='card-box'>
-               <div className='card-title flex-row cb as'>
+
+            {/* TO */}
+            <div className="card-box">
+               <div className="card-title flex-row cb as">
                   <span>To</span>
-                  <p className="cursor-pointer" onClick={() => setPopupVisible(true)}>
-                     <em className="one-line">{formatAddress(toData?.address || '', 8)}</em>
-                     <SvgIcon iconName="IconUser" size={18} offsetStyle={{ marginLeft: '3px' }} />
+                  <p onClick={() => setPopupVisible(true)}>
+                     {formatAddress(toData.address, 8)}
                   </p>
                </div>
-               <div className='flex-row cb ac mb12 mt30'>
+               <div className="flex-row cb ac mb12 mt30">
                   <NumberInput
-                     value={toAmount.toString() ?? ''}
+                     value={toAmount}
+                     disabled
                      onChange={(e) => { }}
-                     decimalPlaces={Number(toData.decimals)}
-                     allowNegative={true}
+                     decimalPlaces={toData.decimals}
                      placeholder="to amount"
-                     disabled={true}
-                     style={{ fontSize: '14px', color: 'white', flex: 2 }}
+                     style={{ flex: 2, fontSize: '14px', color: 'white', }}
                   />
-                  <div className="bridge-token-img-box" >
-                     <TokenImg url={toData.symbol!} name={toData.symbol!} width={28} height={28} marginRight={"3"} />
+                  <div className="bridge-token-img-box">
+                     <TokenImg
+                        url={toData.symbol ?? ""}
+                        name={toData.symbol ?? ""}
+                        width={28}
+                        height={28}
+                        marginRight={"3"}
+                     />
                      <span>{toData.symbol}</span>
                   </div>
                </div>
-               <div className='mt15'>
-                  <Popover.Menu
-                     className="account-popover"
-                     actions={actions}
-                     mode='dark'
-                     trigger='click'
-                     placement='bottom'
-                     onAction={node => networkPopover(node.key as string, 'to')}
-                  >
-                     <span className='hover-text'>{toData.name}</span>
-                  </Popover.Menu>
-               </div>
+               <Popover.Menu
+                  actions={actions}
+                  trigger="click"
+                  placement="bottom"
+                  onAction={(node) => networkPopover(node.key as string, "to")}
+               >
+                  <span className="hover-text">
+                     {isChain ? (toData.networkName || toData.name) : "Not Network"}
+                  </span>
+               </Popover.Menu>
             </div>
-            <div className='history-box mt20'>
-               <div className="history-token-item">
-                  <span>Est. Time</span>
-                  <em>{fromData.estTime} minute</em>
-               </div>
-               <div className="history-token-item">
-                  <span>Service Fee</span>
-                  <em>{fromData.baseFee} {fromData.symbol}</em>
-               </div>
-            </div>
-            <div className="btn-pos-two flexd-row post-bottom">
-               <Button block size="large" color="primary" loading={btnLoading} disabled={submitDisabled()} onClick={() => bridgeSubmit()}>
+
+            {/* submit */}
+            <div className="btn-pos-two post-bottom">
+               <Button
+                  block
+                  size="large"
+                  color="primary"
+                  loading={btnLoading}
+                  disabled={!amount || !toAmount || !isBridgeAvailable || !isChain}
+                  onClick={bridgeSubmit}
+               >
                   Bridge
                </Button>
             </div>
          </div>
+         {/* address popup */}
          <AddressSelectPopup
             visible={popupVisible}
             isKaspa={false}
-            isUpdata={true}
+            isUpdata
             onClose={() => setPopupVisible(false)}
-            onSelect={(res: any) => {
-               setAddress(res.address)
-            }}
+            onSelect={(res) =>
+               setToData((prev) =>
+                  prev ? { ...prev, address: res.address } : prev
+               )
+            }
          />
          {/* Select Token Popup */}
          <Popup
@@ -479,7 +556,7 @@ const Stablecoin = () => {
             </div>
          </Popup>
       </div>
-   )
-}
+   );
+};
 
 export default Stablecoin;

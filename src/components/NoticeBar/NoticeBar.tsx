@@ -51,6 +51,8 @@ const MessageProvider = ({ children }: { children: React.ReactNode }) => {
                 return <SvgIcon iconName="IconTipError" color="#E64E4E" />
             case 'warning':
                 return <ExclamationCircleOutline fontSize={20} />
+            case 'info':
+                return <SoundOutline />
             default:
                 return <SoundOutline />
         }
@@ -130,5 +132,25 @@ export const useNotice = () => {
             closable: false,
         });
     };
-    return { noticeSuccess, noticeError };
+
+    const noticeInfo = (content: string) => {
+        add({
+            content,
+            type: 'info',
+            duration: 2100,
+            closable: false,
+            leftIcon: 'info'
+        });
+    };
+
+    const noticeWarning = (content: string) => {
+        add({
+            content,
+            type: 'warning',
+            duration: 2500,
+            closable: true,
+            leftIcon: 'alert'
+        });
+    };
+    return { noticeSuccess, noticeError, noticeInfo, noticeWarning };
 }

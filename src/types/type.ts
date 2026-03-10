@@ -92,13 +92,13 @@ export interface ChainConfig {
     iconText?: string;
     bridgeAddress: string;
     blockExplorerUrl?: string;
+    networkName?: string;
 }
 
 export interface StableCoinData extends ChainConfig {
     address: string;
     balance: string;
     baseFee?: number;
-    networkName: string;
 }
 
 export interface TokenListItem {
@@ -110,4 +110,5 @@ export interface TokenListItem {
     feeRate?: number; 
     baseFee?: number;
     iconText?: string;
+    chainId?: string;
 }
