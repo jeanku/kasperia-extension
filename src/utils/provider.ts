@@ -300,9 +300,30 @@ export class Provider {
                     tx.gasPrice = feeData.gasPrice.toString();
                 }
             }
+
             if (tx.value != null) {
-                tx.value = ethers.toQuantity(tx.value);
-            } else {
+                let gasFee: bigint;
+                if (tx.maxFeePerGas && tx.maxPriorityFeePerGas) {
+                    gasFee = BigInt(tx.gasLimit) * BigInt(tx.maxFeePerGas);
+                } else {
+                    const gasPrice = tx.gasPrice ? BigInt(tx.gasPrice) : ethers.parseUnits("1", "gwei");
+                    gasFee = BigInt(tx.gasLimit) * gasPrice;
+                }
+
+                const balance = await p.getBalance(tx.from);
+                if (balance < gasFee) {
+                    throw new Error("Insufficient balance to cover gas fee")
+                }
+
+                let sendValue = BigInt(tx.value);
+                if (balance < sendValue + gasFee) {
+                    tx.customData = "Insufficient balance to cover value and gas fee"
+                    tx.value = ethers.toQuantity(tx.value)
+                } else {
+                    tx.value = ethers.toQuantity(tx.value)
+                }
+            }
+            if (tx.value == null) {
                 tx.value = 0;
             }
 
