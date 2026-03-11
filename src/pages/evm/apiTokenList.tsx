@@ -15,7 +15,7 @@ import { useNotice } from '@/components/NoticeBar/NoticeBar'
 
 import { getTokenBalanceByAddress } from '@/api/index'
 import { ApiChainId } from '@/types/constant'
-import { formatBalanceFixed, formatAddress } from "@/utils/util"
+import { formatLargeBalance, formatAddress } from "@/utils/util"
 
 
 const ApiTokenList: React.FC = () => {
@@ -53,7 +53,7 @@ const ApiTokenList: React.FC = () => {
                 decimals: Number(decimals),
                 name,
                 symbol,
-                balance: formatBalanceFixed(item.value, decimals),
+                balance: item.value,
                 native: false,
                 isSelected: false
             }
@@ -153,7 +153,7 @@ const ApiTokenList: React.FC = () => {
                                         <div className="coin-item-info">
                                             <div className="coin-item-name">
                                                 <span>{item.symbol}</span>
-                                                <em className="coin-item-balance">{ item.balance }</em>
+                                                <em className="coin-item-balance">{ formatLargeBalance(item.balance, item.decimals) }</em>
                                             </div>
                                             <div className="coin-item-address">
                                                 <em>{formatAddress(item.address)}</em>

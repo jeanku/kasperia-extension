@@ -70,7 +70,7 @@ export const formatFixed = (value: number): number => {
     if (value <= 100) return 6
     if (value <= 10000) return 4
     if (value <= 1000000) return 2
-    if (value <= 100000000) return 2
+    if (value >= 100000000) return 2
     return 8
 }
 
@@ -89,6 +89,38 @@ export const formatDecBalance = (amount: string, dec: string): BigInt => {
     }
     return (BigInt(amount) / BigInt(10 ** Number(dec)))
 }
+
+export const formatLargeBalance = (amount: string, decimals: number | string): string => {
+    if (!amount) return "";
+
+    const dec = Number(decimals);
+    let valueStr = amount.trim();
+
+    if (/^\d+$/.test(valueStr)) {
+        valueStr = ethers.formatUnits(valueStr, dec);
+    }
+    if (!/^\d+(\.\d+)?$/.test(valueStr)) {
+        return valueStr;
+    }
+    let [intPart, fracPart = ""] = valueStr.split(".");
+    intPart = intPart.replace(/^0+(?=\d)/, "") || "0";
+    let fixed = 2;
+    if (intPart === "0") {
+        const fracPreview = Number(`0.${fracPart.slice(0, 8) || "0"}`);
+        fixed = formatFixed(fracPreview);
+    } else {
+        const intPreview = Number(intPart.slice(0, 15));
+        const intLen = intPart.length;
+        const approxValue =
+        intLen > 15 ? intPreview * Math.pow(10, intLen - 15) : intPreview;
+        fixed = formatFixed(approxValue);
+    }
+    let result = intPart;
+    if (fracPart && fixed > 0) {
+        result = `${intPart}.${fracPart.slice(0, fixed)}`;
+    }
+    return result.replace(/(\.\d*?[1-9])0+$/g, "$1").replace(/\.0+$/, "");
+};
 
 export const toTokenUnits = (amount: number | string, decimals: number | string): BigInt => {
     const amountStr = String(amount);
