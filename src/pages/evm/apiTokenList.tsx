@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from "react"
 import { Button, DotLoading } from "antd-mobile";
 import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
 import { Evm } from '@/chrome/evm'
 import { EvmNetwork, EvmTokenList } from '@/model/evm'
@@ -14,11 +15,12 @@ import { useNotice } from '@/components/NoticeBar/NoticeBar'
 
 import { getTokenBalanceByAddress } from '@/api/index'
 import { ApiChainId } from '@/types/constant'
-import { formatBalance, formatAddress } from "@/utils/util"
+import { formatBalanceFixed, formatAddress } from "@/utils/util"
 
 
 const ApiTokenList: React.FC = () => {
     const { noticeSuccess } = useNotice();
+    const navigate = useNavigate();
 
     const { preference } = useSelector((state: RootState) => state.preference);
     const [evmNetwork, setEvmNetwork] = useState<EvmNetwork | undefined>(undefined);
@@ -43,14 +45,15 @@ const ApiTokenList: React.FC = () => {
     }
 
     const normalizeApiTokens = (list: any[]): EvmTokenList[] => {
-        return list.map(item => {
+        const filterList = list.filter(item => item.symbol && item.symbol !== 'null' && item.decimals && item.decimals!== 'null')
+        return filterList.map(item => {
             const { address, decimals, name, symbol } = item.token
             return {
                 address,
                 decimals: Number(decimals),
                 name,
                 symbol,
-                balance: formatBalance(item.value, decimals),
+                balance: formatBalanceFixed(item.value, decimals),
                 native: false,
                 isSelected: false
             }
@@ -122,8 +125,8 @@ const ApiTokenList: React.FC = () => {
             if (addList.length || removeList.length) {
                 noticeSuccess('Token updated successfully')
                 setTimeout(() => {
-                    
-                }, 800);
+                    navigate('/home')
+                }, 720);
             }
         } finally {
             setBtnLoading(false)
@@ -146,7 +149,7 @@ const ApiTokenList: React.FC = () => {
                             tokenList && tokenList.length ? tokenList.map(item => {
                                 return (
                                     <div className="coin-item" onClick={() => setSelectTokenList(item.address)}>
-                                        <TokenImg url={item.symbol} name={item.symbol} />
+                                        <TokenImg url={item.symbol} name={item.symbol} marginRight="8" />
                                         <div className="coin-item-info">
                                             <div className="coin-item-name">
                                                 <span>{item.symbol}</span>
