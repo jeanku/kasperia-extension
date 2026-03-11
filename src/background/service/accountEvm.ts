@@ -150,6 +150,16 @@ export class AccountEvm {
         })
     }
 
+    async createContractTxKeepValue(tx: TransactionRequest): Promise<TransactionRequest> {
+        if (!tx.from) {
+            let address = await keyringService.getActiveAddressForEvm()
+            tx.from = address.address
+        }
+        return this.getProvider().then(p => {
+            return p.buildTxKeepValue(tx)
+        })
+    }
+
     async sendTransaction(tx: TransactionRequest): Promise<string> {
         let privateKey = await keyringService.getActiveWalletPrivateKeyForEvm()
         let provider = await this.getProvider()

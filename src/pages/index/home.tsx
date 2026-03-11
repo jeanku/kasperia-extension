@@ -4,7 +4,7 @@ import { useSelector } from "react-redux";
 import CountUp from 'react-countup';
 
 import { SearchBar, DotLoading, List, Image, Popover, InfiniteScroll } from 'antd-mobile'
-import { UserOutline, DownOutline, AddOutline, UndoOutline, CheckCircleFill } from 'antd-mobile-icons'
+import { UserOutline, DownOutline, AddOutline, UndoOutline, UnorderedListOutline } from 'antd-mobile-icons'
 import { Action } from 'antd-mobile/es/components/popover'
 import Footer from '@/components/Footer'
 import { SvgIcon } from '@/components/Icon/index'
@@ -40,6 +40,7 @@ import IconKNS from '@/assets/icons/icon-kns.jpg'
 import IconKnsText from '@/assets/icons/icon-kns-text.png'
 import IconKnsSel from '@/assets/icons/icon-kns-sel.svg'
 import { useNotice } from '@/components/NoticeBar/NoticeBar'
+import { ApiChainId } from '@/types/constant'
 
 export type TimedList<T> = {
     time: number;
@@ -66,6 +67,7 @@ const Home = () => {
     const [knsList, setKNSList] = useState<KnsAsset[]>([]);
     const [knsHasMore, setKnsHasMore] = useState(true)
     const [knsPage, setKnsPage] = useState(0)
+    const [currentChainId, setCurrentChainId] = useState<string>('');
 
     const [filteredValue, setfilteredValue] = useState('');
 
@@ -102,10 +104,20 @@ const Home = () => {
         }
     }, [currentAccount]);
 
-    const actions: Action[] = [
-        { key: 'add', icon: <AddOutline fontSize={16} color="#FFFFFF" />, text: 'Add Token' },
-        { key: 'refresh', icon: <UndoOutline fontSize={16} color="#FFFFFF" />, text: 'Refresh' },
-    ];
+    const actions: Action[] = useMemo(() => {
+        const baseActions: Action[] = [
+            { key: 'add', icon: <AddOutline fontSize={16} color="#FFFFFF" />, text: 'Add Token' },
+            { key: 'refresh', icon: <UndoOutline fontSize={16} color="#FFFFFF" />, text: 'Refresh' },
+        ];
+        if (ApiChainId.includes(Number(currentChainId))) {
+            baseActions.push({
+                key: 'allToken',
+                icon: <UnorderedListOutline fontSize={16} color="#FFFFFF" />,
+                text: 'All Token'
+            });
+        }
+        return baseActions;
+    }, [currentChainId]);
 
     const popoverAction = async (key: string) => {
         switch (key) {
@@ -114,6 +126,9 @@ const Home = () => {
                 break;
             case 'refresh':
                 await fetchEvmTokenlist()
+                break;
+            case 'allToken':
+                navigate('/evm/tokenList')
                 break;
             default:
                 break;
@@ -202,6 +217,7 @@ const Home = () => {
         }
         try {
             let chainId = network.chainId
+            setCurrentChainId(String(network.chainId))
             let curTime = new Date().getTime() / 1000
             const oldList = preference?.evmTokenList?.[chainId] || [];
             if (evmTokenList.time === 0) {

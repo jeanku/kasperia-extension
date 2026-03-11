@@ -24,7 +24,8 @@ export type EvmTokenList = {
     balance: string,
     name: string,
     address: string,
-    decimals: number
+    decimals: number,
+    isSelected?: boolean,
 }
 
 

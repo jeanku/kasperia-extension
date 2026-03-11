@@ -16,3 +16,12 @@ export const IGRAL1ToL2BridgeAddressForMainnet = "kaspa:ppvnxxzm0rr37zpnwux2f2nt
 export const KNSDomain = "https://api.knsdomains.org"
 
 export const FixDecimal = 4
+
+export const ApiChainId =  [KasplexL2TestnetChainId, KasplexL2MainnetChainId, IGRAL2TestnetChainId]
+
+export const TokenListApi: Record<string, string> = {
+    [IGRAL2TestnetChainId]: 'https://explorer.galleon-testnet.igralabs.com/api/v2/addresses/',
+    [IGRAL2MainnetChainId]: 'https://explorer.igralabs.com/api/v2/addresses/',
+    [KasplexL2TestnetChainId]: 'https://explorer.testnet.kasplextest.xyz/api/v2/addresses/',
+    [KasplexL2MainnetChainId] : 'https://api-explorer.kasplex.org/api/v2/addresses/',
+}

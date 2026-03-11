@@ -266,6 +266,54 @@ export class Provider {
         });
     }
 
+    async buildTxKeepValue(tx: ethers.TransactionRequest): Promise<ethers.TransactionRequest>{
+        return this.safeCall(async p => {
+            if (!tx.from) {
+                throw new Error("tx.from is required");
+            }
+
+            if (tx.nonce == null) {
+                tx.nonce = await p.getTransactionCount(tx.from, "pending");
+            }
+
+            if (tx.chainId == null) {
+                tx.chainId = this.chainId;
+            }
+
+            if (tx.gasLimit == null) {
+                const estimated = await p.estimateGas(tx);
+                tx.gasLimit = (estimated * 120n / 100n).toString();
+            }
+            const needFee =
+                tx.gasPrice == null &&
+                tx.maxFeePerGas == null &&
+                tx.maxPriorityFeePerGas == null;
+
+            let feeData: ethers.FeeData | null = null;
+            if (needFee) {
+                feeData = await p.getFeeData();
+                if (feeData.maxFeePerGas && feeData.maxPriorityFeePerGas) {
+                    tx.gasPrice = feeData.gasPrice?.toString();
+                    tx.maxFeePerGas = feeData.maxFeePerGas.toString();
+                    tx.maxPriorityFeePerGas = feeData.maxPriorityFeePerGas.toString();
+                } else if (feeData.gasPrice) {
+                    tx.gasPrice = feeData.gasPrice.toString();
+                }
+            }
+            if (tx.value != null) {
+                tx.value = ethers.toQuantity(tx.value);
+            } else {
+                tx.value = 0;
+            }
+
+            if (tx.maxFeePerGas != undefined && tx.maxPriorityFeePerGas != undefined && tx.gasPrice != undefined && BigInt(tx.maxPriorityFeePerGas) < BigInt(tx.gasPrice)) {
+                tx.maxPriorityFeePerGas = tx.gasPrice
+                tx.maxFeePerGas = tx.gasPrice
+            }
+            return tx;
+        });
+    }
+
     async buildERC20TransferTx(params: {
         from: string;
         token: string;

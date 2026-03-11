@@ -1,6 +1,7 @@
 import { HttpClient } from '@/utils/http'
-import type{  PlainObject, ApiResponse, NetworkNameType } from '@/types/type' 
+import type{  PlainObject, ApiResponse, NetworkNameType, TokenBalanceItem } from '@/types/type' 
 import { ApiUrl, OrderApiKay } from '@/types/enum'
+import { TokenListApi} from '@/types/constant'
 
 const http = new HttpClient();
 
@@ -39,4 +40,9 @@ export async function getKlayerList(urlType: NetworkNameType, params: PlainObjec
     const apiKey = OrderApiKay[urlType]
     const response = await http.get(`${url}api/klayer-list`, params, params, apiKey) as ApiResponse
     return response.data as OrderListItem[]
+}
+
+export async function getTokenBalanceByAddress(chainId: string, params: PlainObject) {
+    const url = `${TokenListApi[chainId]}${params.address}/token-balances`;
+    return await http.get(url) as TokenBalanceItem[]
 }

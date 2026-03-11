@@ -74,3 +74,27 @@ export type AddressSelectResult = {
     address: string
     groupName?: string
 }
+
+
+export interface ApiTokenInfo {
+    address: string
+    address_hash: string
+    circulating_market_cap: number | null
+    decimals: string
+    exchange_rate: number | null
+    holders: string
+    holders_count: string
+    icon_url: string | null
+    name: string
+    symbol: string
+    total_supply: string
+    type: string
+    volume_24h: number | null
+}
+
+export interface TokenBalanceItem {
+    token: ApiTokenInfo
+    token_id: string | null
+    token_instance: string | null
+    value: string
+}
