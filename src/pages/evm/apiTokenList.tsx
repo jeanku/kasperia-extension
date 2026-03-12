@@ -39,13 +39,18 @@ const ApiTokenList: React.FC = () => {
 
     const normalizeLocalTokens = (list: EvmTokenList[] = []) => {
         return list.filter(token => token.address).map(token => ({
-                ...token,
-                isSelected: true
-            }))
+            ...token,
+            isSelected: true
+        }))
     }
 
     const normalizeApiTokens = (list: any[]): EvmTokenList[] => {
-        const filterList = list.filter(item => item.symbol && item.symbol !== 'null' && item.decimals && item.decimals!== 'null')
+        const filterList = list.filter(item =>
+            item?.token?.symbol &&
+            item.token.symbol !== 'null' &&
+            item?.token?.decimals &&
+            item.token.decimals !== 'null'
+        )
         return filterList.map(item => {
             const { address, decimals, name, symbol } = item.token
             return {
@@ -103,7 +108,7 @@ const ApiTokenList: React.FC = () => {
     }
 
     const setSelectTokenList = (address: string) => {
-        setTokenList(list => list.map(token => token.address === address ? { ...token, isSelected: !token.isSelected } : token ))
+        setTokenList(list => list.map(token => token.address === address ? { ...token, isSelected: !token.isSelected } : token))
     }
 
     const submit = async () => {
@@ -145,7 +150,7 @@ const ApiTokenList: React.FC = () => {
                     {
                         loading ? <div className="page-list"> <div className="list-loading">
                             Loading<DotLoading />
-                        </div></div>:
+                        </div></div> :
                             tokenList && tokenList.length ? tokenList.map(item => {
                                 return (
                                     <div className="coin-item" onClick={() => setSelectTokenList(item.address)}>
@@ -153,7 +158,7 @@ const ApiTokenList: React.FC = () => {
                                         <div className="coin-item-info">
                                             <div className="coin-item-name">
                                                 <span>{item.symbol}</span>
-                                                <em className="coin-item-balance">{ formatLargeBalance(item.balance, item.decimals) }</em>
+                                                <em className="coin-item-balance">{formatLargeBalance(item.balance, item.decimals)}</em>
                                             </div>
                                             <div className="coin-item-address">
                                                 <em>{formatAddress(item.address)}</em>
