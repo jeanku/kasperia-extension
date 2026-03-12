@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { Evm } from '@/chrome/evm'
 import { EvmNetwork, EvmTokenList } from '@/model/evm'
 import { RootState } from '@/store';
+import { ethers } from 'ethers';
 
 import HeadNav from '@/components/HeadNav'
 import TokenImg from "@/components/TokenImg";
@@ -15,7 +16,7 @@ import { useNotice } from '@/components/NoticeBar/NoticeBar'
 
 import { getTokenBalanceByAddress } from '@/api/index'
 import { ApiChainId } from '@/types/constant'
-import { formatLargeBalance, formatAddress } from "@/utils/util"
+import { formatBalanceFixed, formatAddress } from "@/utils/util"
 
 
 const ApiTokenList: React.FC = () => {
@@ -58,7 +59,7 @@ const ApiTokenList: React.FC = () => {
                 decimals: Number(decimals),
                 name,
                 symbol,
-                balance: item.value,
+                balance: formatBalanceFixed(ethers.formatUnits(item.value, Number(decimals))),
                 native: false,
                 isSelected: false
             }
@@ -158,7 +159,7 @@ const ApiTokenList: React.FC = () => {
                                         <div className="coin-item-info">
                                             <div className="coin-item-name">
                                                 <span>{item.symbol}</span>
-                                                <em className="coin-item-balance">{formatLargeBalance(item.balance, item.decimals)}</em>
+                                                <em className="coin-item-balance">{ item.balance }</em>
                                             </div>
                                             <div className="coin-item-address">
                                                 <em>{formatAddress(item.address)}</em>
@@ -173,7 +174,7 @@ const ApiTokenList: React.FC = () => {
                     }
                     <div className="btn-pos-two flexd-row post-bottom">
                         <Button block size="large" color="primary" disabled={btnDisabled} loading={btnLoading} onClick={() => submit()}>
-                            Submit
+                            Confirm
                         </Button>
                     </div>
                 </div>
