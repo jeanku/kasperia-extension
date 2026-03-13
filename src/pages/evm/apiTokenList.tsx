@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react"
+import { useEffect, useState } from "react"
 import { Button, DotLoading } from "antd-mobile";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -20,7 +20,7 @@ import { formatBalanceFixed, formatAddress } from "@/utils/util"
 
 
 const ApiTokenList: React.FC = () => {
-    const { noticeSuccess } = useNotice();
+    const { noticeSuccess, noticeError } = useNotice();
     const navigate = useNavigate();
 
     const { preference } = useSelector((state: RootState) => state.preference);
@@ -32,11 +32,6 @@ const ApiTokenList: React.FC = () => {
 
     const [btnLoading, setBtnLoading] = useState<boolean>(false)
     const [loading, setLoading] = useState<boolean>(true)
-
-
-    const btnDisabled = useMemo(() => {
-        if (!tokenList?.length) return false
-    }, [tokenList])
 
     const normalizeLocalTokens = (list: EvmTokenList[] = []) => {
         return list.filter(token => token.address).map(token => ({
@@ -53,9 +48,9 @@ const ApiTokenList: React.FC = () => {
             item.token.decimals !== 'null'
         )
         return filterList.map(item => {
-            const { address, decimals, name, symbol } = item.token
+            const { address, address_hash, decimals, name, symbol } = item.token
             return {
-                address,
+                address: address_hash || address,
                 decimals: Number(decimals),
                 name,
                 symbol,
@@ -133,6 +128,8 @@ const ApiTokenList: React.FC = () => {
                 setTimeout(() => {
                     navigate('/home')
                 }, 720);
+            } else {
+                noticeError('No changes')
             }
         } finally {
             setBtnLoading(false)
@@ -173,7 +170,7 @@ const ApiTokenList: React.FC = () => {
                             }) : <NoDataDom imgStyle={{ width: ' 100px', marginLeft: '20px' }} />
                     }
                     <div className="btn-pos-two flexd-row post-bottom">
-                        <Button block size="large" color="primary" disabled={btnDisabled} loading={btnLoading} onClick={() => submit()}>
+                        <Button block size="large" color="primary" loading={btnLoading} onClick={() => submit()}>
                             Confirm
                         </Button>
                     </div>
