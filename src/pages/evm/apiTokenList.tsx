@@ -36,6 +36,7 @@ const ApiTokenList: React.FC = () => {
     const normalizeLocalTokens = (list: EvmTokenList[] = []) => {
         return list.filter(token => token.address).map(token => ({
             ...token,
+            balance: formatBalanceFixed(token.balance),
             isSelected: true
         }))
     }
