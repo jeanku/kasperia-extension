@@ -32,9 +32,10 @@ function handleTokenImage(url: string, urlPath: ImgType): {
         }
         return { src: url, exists: true };
     }
+    const key = urlPath === 'tokens' ? url.toUpperCase() : url;
 
     const images = imageMap[urlPath];
-    const imageSrc = images[url];
+    const imageSrc = images[key];
 
     if (imageSrc) {
         return { src: imageSrc as string, exists: true };
