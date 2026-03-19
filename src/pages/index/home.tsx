@@ -279,11 +279,15 @@ const Home = () => {
     }
 
     const fetchBalance = async () => {
-        let _balance = await Account.getBalance()
-        setIsConnect(true)
-        if (_balance.balance !== balance) {
-            setBalance(_balance.balance.toString())
-            dispatch(setAccountBalanceSlice(_balance.balance.toString()));
+        try {
+            let _balance = await Account.getBalance()
+            setIsConnect(true)
+            if (_balance.balance !== balance) {
+                setBalance(_balance.balance.toString())
+                dispatch(setAccountBalanceSlice(_balance.balance.toString()));
+            }
+        } catch (error) {
+            noticeError(error)
         }
     };
 

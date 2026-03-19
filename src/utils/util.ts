@@ -314,3 +314,13 @@ export const hexDecode = (message?: string) => {
         return message
     }
 }
+
+export function randomCode(len: number): number {
+    const min = Math.pow(10, len - 1);
+    const max = Math.pow(10, len) - 1;
+    return randomInt(min, max);
+}
+
+export function randomInt(min: number, max: number): number {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}

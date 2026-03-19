@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from "react"
 import HeadNav from '@/components/HeadNav'
-import { dispatchRefreshNetwork } from '@/dispatch/preference'
 import { useNotice } from '@/components/NoticeBar/NoticeBar'
-// import { dispatchRpcConnect } from '@/dispatch/rpcclient'
 import LoadingMask from '@/components/LoadingMask'
 import { useSelector } from "react-redux";
 import { RootState } from '@/store';
@@ -12,7 +10,6 @@ import { Network } from "@/model/account"
 import { Preference } from '@/chrome/preference'
 import { Button, Input } from "antd-mobile";
 import { useLocation } from 'react-router-dom'
-// import { setRpcClient } from "@/store/rpcSlice";
 import store from '@/store';
 import { Dispatch } from 'redux';
 
