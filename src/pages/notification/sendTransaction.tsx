@@ -38,6 +38,7 @@ const SendTransaction = () => {
     const [btnLoading, setBtnLoading] = useState(false)
 
     const [params, setParams] = useState<TransactionRequest>({})
+    const [txError, setTxError] = useState<string>("")
 
     const [network, setNetwork] = useState<EvmNetwork>()
 
@@ -53,6 +54,10 @@ const SendTransaction = () => {
         setParams(param.tx)
         setNetwork(param.network)
         setData(param.data)
+        if (param.tx.customData) {
+            setTxError(param.tx.customData)
+            noticeError(param.tx.customData)
+        }
     }
 
     useEffect(() => {
@@ -69,6 +74,9 @@ const SendTransaction = () => {
 
     const submitTransaction = async () => {
         try {
+            if (txError) {
+                return noticeError(txError)
+            }
             setBtnLoading(true)
             let hash = await AccountEvm.sendTransaction(params)
             Notification.resolveApproval(hash)

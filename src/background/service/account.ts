@@ -1,4 +1,4 @@
-import {evmService, keyringService, preferenceService} from './index';
+import { keyringService, preferenceService } from './index';
 import {
     KRC20_DEPLOY_FEES,
     KRC20_DEPLOY_TOTAL_FEES,
@@ -22,7 +22,7 @@ import { SubmitSetting, SubmitBuilderOptions } from '@/model/account'
 import {Keypair, Wallet} from '@/utils/wallet/wallet'
 import {NetworkId, ScriptPublicKey} from '@/utils/wallet/consensus';
 import {Krc20DeployOptions, Krc20DeployScript, Krc20MintScript, Krc20TransferScript, KnsTransferScript, KnsTransferOptions} from '@/utils/wallet/krc20';
-import {stringToUint8Array} from "@/utils/util";
+import { stringToUint8Array, randomCode } from "@/utils/util";
 import { buildEntryPayload } from "@/background/utils";
 import {BlockTag, TransactionRequest} from "ethers/src.ts/providers/provider";
 import { ethers } from "ethers";
@@ -30,10 +30,7 @@ import { BuilderScript } from '@/utils/wallet/script';
 import { addressFromScriptPublicKey } from '@/utils/wallet/util';
 import { payToScriptHashSignatureScript } from '@/utils/wallet/tx/script';
 import {AccountType, AddressType, ChainPath, LockTime} from '@/types/enum';
-
-import {IGRAL1ToL2BridgeAddressForTestnet, IGRAL1ToL2BridgeAddressForMainnet,
-    IGRAL2TestnetChainId, IGRAL2MainnetChainId
-} from '@/types/constant'
+import { IGRAL1ToL2BridgeAddressForTestnet, IGRAL1ToL2BridgeAddressForMainnet } from '@/types/constant'
 
 export class Account {
     private client: RpcClient | undefined = undefined
@@ -45,11 +42,16 @@ export class Account {
     };
 
     async getBalance(addr: string | undefined = undefined) {
-        if (!this.client) {
-            await this.connect()
+        try {
+            if (!this.client) {
+                await this.connect()
+            }
+            const address = addr || await keyringService._getActiveAddress()
+            let balance = await this.client!.getBalanceByAddress(address)
+            return balance
+        } catch (error) {
+            throw error
         }
-        const address = addr || await keyringService._getActiveAddress()
-        return await this.client!.getBalanceByAddress(address)
     }
 
     resetEntry = () => {
@@ -68,9 +70,13 @@ export class Account {
     }
 
     async connect() {
-        let networkId = await preferenceService.getNetworkId()
-        this.client = new RpcClient({resolver: new Resolver(), networkId });
-        await this.client.connect()
+        let network = await preferenceService.getNetwork()
+        let networkId = NetworkId.from(network.networkType)
+        if (network.url.trim() === "") {
+            this.client = new RpcClient({resolver: new Resolver(), networkId });
+        } else {
+            this.client = new RpcClient({ networkId, endpoint: network.url, timeout: 10000 });
+        }
     }
 
     async getClient() {
@@ -81,8 +87,10 @@ export class Account {
     }
 
     async reconnect(networkId: NetworkId | undefined) {
+        if (this.client) {
+            this.client.dispose()
+        }
         this.client = undefined
-        // this.client.connect()
     }
 
     async signMessage(message: number[]) {
@@ -505,9 +513,9 @@ export class Account {
             }
             throw new Error('No match found');
         };
-        const timestampMs = 1;
+        const timestampMs = randomCode(7);
         const startRange = timestampMs;
-        const endRange = timestampMs + 500000;
+        const endRange = timestampMs + 1000000;
 
         const availableCores = navigator.hardwareConcurrency || 4;
         const workerCount = Math.min(availableCores, 8);

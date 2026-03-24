@@ -188,3 +188,11 @@ export const ChainListMainnet = [
         iconText: IconBNB,
     }
 ]
+export const ApiChainId =  [KasplexL2TestnetChainId, KasplexL2MainnetChainId, IGRAL2TestnetChainId]
+
+export const TokenListApi: Record<string, string> = {
+    [IGRAL2TestnetChainId]: 'https://explorer.galleon-testnet.igralabs.com/api/v2/addresses/',
+    [IGRAL2MainnetChainId]: 'https://explorer.igralabs.com/api/v2/addresses/',
+    [KasplexL2TestnetChainId]: 'https://explorer.testnet.kasplextest.xyz/api/v2/addresses/',
+    [KasplexL2MainnetChainId] : 'https://api-explorer.kasplex.org/api/v2/addresses/',
+}

@@ -70,7 +70,7 @@ export const formatFixed = (value: number): number => {
     if (value <= 100) return 6
     if (value <= 10000) return 4
     if (value <= 1000000) return 2
-    if (value <= 100000000) return 2
+    if (value >= 100000000) return 2
     return 8
 }
 
@@ -313,4 +313,14 @@ export const hexDecode = (message?: string) => {
     } catch (error) {
         return message
     }
+}
+
+export function randomCode(len: number): number {
+    const min = Math.pow(10, len - 1);
+    const max = Math.pow(10, len) - 1;
+    return randomInt(min, max);
+}
+
+export function randomInt(min: number, max: number): number {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
 }

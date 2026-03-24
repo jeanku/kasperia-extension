@@ -5,6 +5,7 @@ import { default as EvmSendKas } from "./sendKas"
 import { default as EvmTokenInfo } from "./tokenInfo"
 import { default as EvmSendCommit } from "./sendCommit"
 import { default as EvmSendResult } from "./sendResult"
+import { default as EvmTokenList } from './apiTokenList'
 
 
-export { EvmList, EvmAddToken, EvmSelectNetwork, EvmSendKas, EvmTokenInfo, EvmSendCommit, EvmSendResult }
+export { EvmList, EvmAddToken, EvmSelectNetwork, EvmSendKas, EvmTokenInfo, EvmSendCommit, EvmSendResult, EvmTokenList }

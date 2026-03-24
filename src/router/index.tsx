@@ -77,6 +77,7 @@ import {
   EvmTokenInfo,
   EvmSendCommit,
   EvmSendResult,
+  EvmTokenList,
 } from "@/pages/evm/index";
 
 import {
@@ -158,6 +159,7 @@ const AppRouter: React.FC = () => {
             <Route path="/evm/sendkas" element={<EvmSendKas />} />
             <Route path="/evm/sendCommit" element={<EvmSendCommit />} />
             <Route path="/evm/sendResult" element={<EvmSendResult />} />
+            <Route path="/evm/tokenList" element={<EvmTokenList />} />
 
             <Route path="/tx/send" element={<Send />} />
             <Route path="/tx/sign" element={<Sign />} />

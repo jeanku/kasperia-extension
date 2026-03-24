@@ -167,7 +167,7 @@ class ProviderController {
         }
         let contractData = await accountEvmService.parseERC20Meta(tx)
         const network = await evmService.getSelectedNetwork()
-        const buildTx = await accountEvmService.createContractTx(tx)
+        const buildTx = await accountEvmService.createContractTxKeepValue(tx)
         return await notificationService.requestApproval(
             {
                 data: { tx: buildTx, network, data: contractData },

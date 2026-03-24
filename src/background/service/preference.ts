@@ -124,6 +124,13 @@ export class Preference {
     static async setNetworkConfig(network: Network) {
         await Preference.load()
         let networkConfig = Preference.store?.getState().networkConfig!
+        let selectNetwork = Preference.store?.getState().network
+        if (selectNetwork!.networkType = network.networkType) {
+            Preference.store?.updateState({
+                network: network
+            })
+            accountService.reconnect(undefined)
+        }
         networkConfig[network.networkType] = network
         await Preference.persistToStorage()
         return Object.values(networkConfig)

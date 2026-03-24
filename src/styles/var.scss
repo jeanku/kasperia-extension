@@ -213,6 +213,12 @@ $color-rgb-a--116-230-216-0-06: rgba(116,230,216,0.06);
         justify-content: space-around;
         flex-direction: column;
     }
+    .coin-item-balance {
+        font-size: 14px;
+        font-weight: 500;
+        margin-right: 6px;
+        color: #F2F7F7;
+    }
     .coin-item-name {
         display: flex;
         justify-content: space-between;
@@ -230,6 +236,10 @@ $color-rgb-a--116-230-216-0-06: rgba(116,230,216,0.06);
             padding: 10px 0;
             width: 288px;
         }
+    }
+    .coin-item-address {
+        font-size: 13px;
+        color: $text-color-secondary;
     }
     .coin-item-price,
     .coin-item-network  {
