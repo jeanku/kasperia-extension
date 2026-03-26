@@ -114,7 +114,8 @@ const SendTransaction = () => {
                </Button>
 
                <Button block size="large" color="primary"
-                  loading={btnLoading || !unSignedTx}
+                  loading={btnLoading}
+                  disabled={ !unSignedTx }
                   loadingText={'Submitting'}
                   onClick={() => submitTransaction()}>
                   Bridge

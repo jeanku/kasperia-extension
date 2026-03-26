@@ -22,6 +22,37 @@ import { formatAddress, formatBalanceFixed } from "@/utils/util";
 import { ChainListTestnet, ChainListMainnet, StableCoinMainTokenList, StableCoinTestnetTokenList, FixDecimal } from '@/types/constant'
 import { TokenListItem, ChainConfig, StableCoinItem, EvmNetworkItem } from "@/types/type";
 
+type NetworkModalType = 'add' | 'switch';
+type NetworkModalState = {
+    type: NetworkModalType;
+    content: string;
+    targetChain: MergedChainItem;
+};
+
+type SelectTokenState = {
+    type: 'from' | 'to';
+    symbol: string;
+};
+
+type MergedChainItem = ChainConfig & {
+    exists: boolean;
+    networkName?: string;
+    estTime: string
+    fSymbol: string;
+};
+
+type BridgeParams = {
+    fromAddress: string;
+    toAddress: string;
+    amountWei: bigint;
+    amount: string;
+    token: string;
+    networkName?: string;
+    symbol?: string;
+    explorer?: string;
+    toChainId?: number;
+    bridgeAddress: string;
+};
 
 const Stablecoin = () => {
     const navigate = useNavigate();
@@ -49,7 +80,7 @@ const Stablecoin = () => {
     const [networkList, setNetworkList] = useState<EvmNetworkItem[]>([])
 
     const [allowance, setAllowance] = useState<bigint>(0n);
-    const [selectToken, setSelectToken] = useState<{ type: 'from' | 'to', symbol: string }>({  type: 'from', symbol: '' });
+    const [selectToken, setSelectToken] = useState<{ type: 'from' | 'to', symbol: string }>({ type: 'from', symbol: '' });
     const [networkModal, setNetworkModal] = useState<{ type: 'add' | 'switch' | null, content: string, targetChain?: ChainConfig }>({ type: null, content: '' })
     const [newNetwork, setNewNetwork] = useState<EvmNetwork>({
         name: "",
@@ -69,8 +100,8 @@ const Stablecoin = () => {
     }, [TokenList, selectToken.symbol]);
 
     const historyChainId = useMemo(() => {
-        const isKasplex = newNetwork.name.toLowerCase().includes('kasplex') ? 
-            ChainList.find(c => c.name === newNetwork.name)?.chainId : 
+        const isKasplex = newNetwork.name.toLowerCase().includes('kasplex') ?
+            ChainList.find(c => c.name === newNetwork.name)?.chainId :
             ChainList.find(c => !c.name.toLowerCase().includes('kasplex'))?.chainId
         return isKasplex
     }, [newNetwork.chainId, newNetwork.name])
@@ -82,19 +113,20 @@ const Stablecoin = () => {
         return val.toString()
     }, [amount, fromData?.baseFee])
 
-    const mergeChains = (walletChains: EvmNetworkItem[]) => {
+    const mergeChains = useCallback((walletChains: EvmNetworkItem[]) => {
+        const map = new Map(walletChains.map(n => [n.chainId, n]));
         return ChainList.map(chain => {
-            const match = walletChains.find((n) => n.chainId === chain.chainId.toString());
+            const match = map.get(chain.chainId.toString());
             return {
                 ...chain,
                 networkName: match?.name ?? chain.name,
                 exists: !!match,
             };
-        })
-    }
+        });
+    }, [ChainList]);
 
     const fetchAllowance = useCallback(async () => {
-        if(!fromData) return
+        if (!fromData) return
         const fromItem = ChainList.find(item => item.chainId === fromData.chainId);
         const { token = '', bridgeAddress = '' } = fromItem!;
         if (!token || !bridgeAddress || !fromData.address || allowanceLoading) return;
@@ -111,72 +143,156 @@ const Stablecoin = () => {
         } finally {
             setAllowanceLoading(false);
         }
-    }, [fromData, ChainList]);
+    }, [fromData, ChainList, allowanceLoading]);
 
-    const fetchBalance = async (data: typeof fromData) => {
-        if (!data) return;
-        const bal = await AccountEvm.getTokenBalance(
-            data.address,
-            data.token,
-            data.decimals
-        );
-        setFromData((prev) => prev ? { ...prev, balance: formatBalanceFixed(bal, FixDecimal) } : prev );
+    const fetchBalance = useCallback(async (data: typeof fromData) => {
+        if (!data?.address || !data?.token) return;
+        try {
+            const bal = await AccountEvm.getTokenBalance(
+                data.address,
+                data.token,
+                data.decimals
+            );
+            setFromData((prev) => prev ? { ...prev, balance: formatBalanceFixed(bal, FixDecimal) } : prev);
+        } catch (error) {
+            console.log('error', error)
+        }
+    }, []);
+
+    const showNetworkModal = (target: MergedChainItem): void => {
+        setNetworkIsUsable(false);
+        setVisibleMask(true);
+        const modalState: NetworkModalState = !target.exists
+            ? {
+                type: 'add',
+                content: 'The current network does not support it. Please add a network',
+                targetChain: target,
+            }
+            : {
+                type: 'switch',
+                content: 'The current network does not support it. Please switch networks',
+                targetChain: target,
+            };
+        setNetworkModal(modalState);
     };
 
-    const initNetwork = async () => {
-        const network = await Evm.getSelectedNetwork();
-        if (!network) return;
-        const mergedChains = mergeChains(networkList);
-        const currentSupported = mergedChains.find((c) => c.chainId.toString() === network.chainId);
-        if (!currentSupported) {
-            setNetworkIsUsable(false)
-            const target = mergedChains[0];
-            setVisibleMask(true)
-            if (!target.exists) {
-                setNetworkModal({
-                    type: 'add',
-                    content: 'The current network does not support it. Please add a network',
-                    targetChain: target,
-                });
-            } else {
-                setNetworkModal({
-                    type: 'switch',
-                    content: 'The current network does not support it. Please switch networks',
-                    targetChain: target,
-                });
-            }
-            return
-        }
-        setNetworkIsUsable(true)
-        const fromToken = TokenList.find(item => item.name === currentSupported.name)
-        const toData = mergedChains.find(item => item.chainId.toString() !== currentSupported.chainId.toString())
-        const fromNewData = {
+    const buildFromData = (currentSupported: MergedChainItem, fromToken?: TokenListItem): StableCoinItem => {
+        return {
             ...currentSupported,
             chainId: Number(currentSupported.chainId),
             address: evmAddress,
+            symbol: fromToken?.symbol!,
             baseFee: fromToken?.baseFee || 0,
             fSymbol: currentSupported.fSymbol,
-            networkName: currentSupported.networkName,
+            name: fromToken?.name! || currentSupported.name!,
+            networkName: currentSupported.networkName!,
+            estTime: currentSupported.estTime!,
             balance: '0',
         };
-        setSelectToken({ type: 'from', symbol: currentSupported.fSymbol })
-        setFromData(fromNewData);
-        fetchBalance(fromNewData)
-        if (toData) {
-            const toToken = TokenList.find(item => item.name === toData.name)
-            const newToData = {
-                ...toData,
-                name: toData?.name || '',
-                chainId: Number(toData?.chainId!),
-                address: evmAddress,
-                baseFee: toToken?.baseFee || 0,
-                fSymbol: toData?.fSymbol!,
-                networkName: toData?.networkName!,
-                balance: '0',
-            }
-            setToData(newToData)
+    };
+    const buildToData = (targetChain: MergedChainItem, toToken?: TokenListItem): StableCoinItem => {
+        return {
+            ...targetChain,
+            name: targetChain.name || '',
+            symbol: toToken?.symbol || '',
+            chainId: Number(targetChain.chainId),
+            address: evmAddress,
+            baseFee: toToken?.baseFee || 0,
+            fSymbol: targetChain.fSymbol,
+            networkName: targetChain.networkName!,
+            balance: '0',
+        };
+    };
+
+    const getChainInfo = (network: { chainId: string }) => {
+        const mergedChains: MergedChainItem[] = mergeChains(networkList) as MergedChainItem[];
+        const currentSupported = mergedChains.find((c) => c.chainId.toString() === network.chainId);
+        const targetChain = mergedChains.find((item) => item.chainId.toString() !== currentSupported?.chainId?.toString());
+        return {
+            mergedChains,
+            currentSupported,
+            targetChain,
+        };
+    };
+
+    const validateApprove = (fromItem: ChainConfig, currentFromData: StableCoinItem, currentAmount: string): boolean => {
+        const minAmount = fromItem.minAmount || 0;
+        if (Number(currentFromData.balance) < Number(currentAmount)) {
+            noticeError('Current balance is insufficient');
+            return false;
         }
-    }
+        if (!currentAmount || Number(currentAmount) < Number(minAmount)) {
+            noticeError(`Min Amount: ${minAmount}`);
+            return false;
+        }
+        return true;
+    };
+    const buildBridgeParams = (fromItem: ChainConfig, spender: string, amountWei: bigint): BridgeParams => {
+        return {
+            fromAddress: fromData?.address || '',
+            toAddress: spender,
+            amountWei,
+            amount,
+            token: fromItem.token || '',
+            networkName: fromData?.networkName,
+            symbol: fromData?.symbol,
+            explorer: fromItem.blockExplorerUrl,
+            toChainId: toData?.chainId,
+            bridgeAddress: fromItem.bridgeAddress || '',
+        };
+    };
+
+    const sendApproveTransaction = async (bridgeAddress: string, amountWei: bigint, nextParams: BridgeParams): Promise<void> => {
+        if (!fromData?.token) return;
+        const currentAddress = preference.currentAccount?.ethAddress;
+        if (!currentAddress) return;
+
+        const iface = new ethers.Interface(['function approve(address spender, uint256 amount) returns (bool)']);
+        const data = iface.encodeFunctionData('approve', [bridgeAddress, amountWei]);
+        const unSignedTx = await AccountEvm.createContractTx({
+            from: currentAddress,
+            to: fromData.token,
+            data,
+            value: '0',
+        });
+        const hash = await AccountEvm.sendTransaction(unSignedTx);
+        if (!hash) return;
+        navigate('/stableCoin/stableCoinSendTx', {
+            state: {
+                ...nextParams,
+                token: fromData.token,
+            },
+        });
+    };
+
+    const initNetwork = async (): Promise<void> => {
+        const network = await Evm.getSelectedNetwork();
+        if (!network) return;
+
+        const { mergedChains, currentSupported, targetChain } = getChainInfo(network);
+        if (!currentSupported) {
+            const fallbackTarget = mergedChains[0];
+            if (!fallbackTarget) return;
+            showNetworkModal(fallbackTarget);
+            return;
+        }
+
+        setNetworkIsUsable(true);
+        const fromToken = TokenList.find((item) => item.name === currentSupported.name);
+        const fromNewData = buildFromData(currentSupported, fromToken);
+        const selectTokenState: SelectTokenState = {
+            type: 'from',
+            symbol: currentSupported.fSymbol,
+        };
+
+        setSelectToken(selectTokenState);
+        setFromData(fromNewData);
+        fetchBalance(fromNewData);
+        if (!targetChain) return;
+        const toToken = TokenList.find((item) => item.name === targetChain.name);
+        const newToData = buildToData(targetChain, toToken);
+        setToData(newToData);
+    };
     const setToken = (item: TokenListItem) => {
         if (selectToken.type === 'from' && fromData) {
             if (item.symbol !== fromData.symbol) {
@@ -191,8 +307,8 @@ const Stablecoin = () => {
                 setAmount('')
                 if (!toData) return
                 const toToken = TokenList.find(token => token.symbol === item.symbol && token.fSymbol === toData.fSymbol)
-                if(toToken) {
-                    setToData((prev) => prev ? { ...prev, token: toToken.token, symbol: toToken.symbol, decimals: toToken.decimals } : prev );
+                if (toToken) {
+                    setToData((prev) => prev ? { ...prev, token: toToken.token, symbol: toToken.symbol, decimals: toToken.decimals } : prev);
                 }
                 fetchBalance(newFrom)
             }
@@ -201,7 +317,7 @@ const Stablecoin = () => {
     }
 
     const switchInfo = async () => {
-        if(!networkIsUsable) {
+        if (!networkIsUsable) {
             setVisibleMask(true)
             return
         }
@@ -219,74 +335,41 @@ const Stablecoin = () => {
         }
     }
 
-    const approveFun = async () => {
-        if(!networkIsUsable) {
-            setVisibleMask(true)
-            return
+    const approveFun = async (): Promise<void> => {
+        if (!networkIsUsable) {
+            setVisibleMask(true);
+            return;
         }
-        if(btnLoading) return
-        const fromItem = ChainList.find(item => item.chainId === fromData?.chainId)
-        const { token = '', bridgeAddress = '', minAmount = 0} = fromItem!
-        if(Number(fromData?.balance) < Number(amount)) {
-            noticeError(`Current balance is insufficient`)
-            return
-        }
-        if(!amount || Number(amount) < Number(minAmount)) {
-            noticeError(`Min Amount: ${minAmount}`)
-            return
-        }
+        if (btnLoading || !fromData) return;
+
+        const fromItem = ChainList.find((item) => item.chainId === fromData.chainId);
+        if (!fromItem) return;
+
+        const isValid = validateApprove(fromItem, fromData, amount);
+        if (!isValid) return;
+
         const spender = toData?.address || evmAddress;
-        const allowanceWei = ethers.parseUnits(allowance.toString(), fromData?.decimals);
-        const amountWei = ethers.parseUnits(amount, fromData?.decimals);
-        const nextParams = {
-            fromAddress: fromData?.address,
-            toAddress: spender,
-            amountWei,
-            amount,
-            token,
-            networkName: fromData?.networkName,
-            symbol: fromData?.symbol,
-            explorer: fromItem?.blockExplorerUrl,
-            toChainId: toData?.chainId,
-            bridgeAddress: bridgeAddress
-        };
+        const amountWei = ethers.parseUnits(amount, fromData.decimals);
+        const allowanceWei = ethers.parseUnits(
+            allowance.toString(),
+            fromData.decimals
+        );
+        const nextParams = buildBridgeParams(fromItem, spender, amountWei);
         if (allowanceWei >= amountWei) {
             navigate('/stableCoin/stableCoinSendTx', {
-                state: { ...nextParams}
+                state: nextParams,
             });
             return;
         }
-        setBtnLoading(true)
+        setBtnLoading(true);
         try {
-            const iface = new ethers.Interface(["function approve(address spender, uint256 amount) returns (bool)"]);
-            const data = iface.encodeFunctionData("approve", [ bridgeAddress, amountWei]);
-            let unSignedTx = await AccountEvm.createContractTx({
-                from: preference.currentAccount?.ethAddress!,
-                to: fromData?.token,
-                data,
-                value: "0"
-            })
-            let hash = await AccountEvm.sendTransaction(unSignedTx)
-            if(hash) {
-                navigate('/stableCoin/stableCoinSendTx', { state: {
-                    fromAddress: fromData?.address,
-                    toAddress: spender,
-                    amountWei, 
-                    amount,
-                    networkName: fromData?.networkName,
-                    symbol: fromData?.symbol,
-                    explorer: fromItem?.blockExplorerUrl,
-                    token: fromData?.token, 
-                    toChainId: toData?.chainId, 
-                    bridgeAddress: bridgeAddress
-                }})
-            }
+            await sendApproveTransaction(fromItem.bridgeAddress || '', amountWei, nextParams);
         } catch (error) {
-            console.log('approveFun-error', error)
+            console.log('approveFun-error', error);
         } finally {
-            setBtnLoading(false)
+            setBtnLoading(false);
         }
-    }
+    };
 
     const addNetwork = (networkInfo: ChainConfig) => {
         if (networkInfo && networkInfo.chainId) {
@@ -321,25 +404,20 @@ const Stablecoin = () => {
 
     useEffect(() => {
         if (!fromData?.token || !fromData?.address) return;
-        fetchAllowance();
-    }, [
-        fromData?.chainId,
-        fromData?.token,
-        fromData?.address,
-        fetchAllowance
-    ]);
+        void fetchAllowance();
+    }, [fetchAllowance, fromData?.address, fromData?.chainId, fromData?.token]);
 
     useEffect(() => {
         const fetchNetworks = async () => {
             const res = await Evm.getNetworks()
             setNetworkList(res || [])
         }
-        fetchNetworks()
+        void fetchNetworks()
     }, [])
 
     useEffect(() => {
         if (!networkList.length) return;
-        initNetwork();
+        void initNetwork();
     }, [networkList]);
 
     return (
@@ -370,7 +448,7 @@ const Stablecoin = () => {
                         <div
                             className="bridge-token-img-box"
                             onClick={() => {
-                                if(!networkIsUsable) {
+                                if (!networkIsUsable) {
                                     setVisibleMask(true)
                                     return
                                 }
@@ -394,7 +472,7 @@ const Stablecoin = () => {
                             {(fromData?.networkName || fromData?.name) || "Not Network"}
                         </span>
                         <div className="sub-tit mb0import">
-                            <strong className="mr5" onClick={() => setAmount(fromData?.balance! || '') }>MAX</strong>
+                            <strong className="mr5" onClick={() => setAmount(fromData?.balance! || '')}>MAX</strong>
                             <span>
                                 <BankcardOutline /> {fromData?.balance || 0}
                             </span>
@@ -440,6 +518,16 @@ const Stablecoin = () => {
                         {(toData?.networkName || toData?.name) || "Not Network"}
                     </span>
                 </div>
+                <div className="history-box mt20">
+                    <div className="history-token-item">
+                        <span>Est. Time</span>
+                        <em>{ fromData?.estTime || '-'} minute</em>
+                    </div>
+                    <div className="history-token-item">
+                        <span>Service Fee</span>
+                        <em>{ fromData?.baseFee || 0 }</em>
+                    </div>
+                </div>
 
                 {/* submit */}
                 <div className="btn-pos-two post-bottom">
@@ -448,6 +536,7 @@ const Stablecoin = () => {
                         size="large"
                         color="primary"
                         loading={btnLoading}
+                        loadingText="Approve..."
                         disabled={!amount || !toAmount || !networkIsUsable}
                         onClick={approveFun}
                     >
@@ -455,9 +544,10 @@ const Stablecoin = () => {
                     </Button>
                 </div>
             </div>
+
             {/* address popup */}
             <AddressSelectPopup
-                visible={ uiState.addressPopup }
+                visible={uiState.addressPopup}
                 isKaspa={false}
                 showAdd={true}
                 isUpdata
@@ -467,12 +557,13 @@ const Stablecoin = () => {
                         prev ? { ...prev, address: res.address } : prev
                     )
                 }
-                onSave={ address => {
+                onSave={address => {
                     setToData((prev) =>
                         prev ? { ...prev, address: address } : prev
                     )
                 }}
             />
+
             <Mask visible={visibleMask} onMaskClick={() => setVisibleMask(false)}>
                 <article className="remove-box">
                     <div className="remove-bg">
@@ -496,22 +587,23 @@ const Stablecoin = () => {
 
             {/* Add Custom Network  */}
             <NetworkFormPopup
-                visible={ uiState.networkPopup }
+                visible={uiState.networkPopup}
                 mode="add"
                 data={newNetwork}
-                onClose={() => updateUI('networkPopup', false) }
+                onClose={() => updateUI('networkPopup', false)}
                 onSuccess={async (type) => {
                     if (type === 'success') {
                         initNetwork()
                     }
                 }}
             />
+
             {/* Select Token Popup */}
             <SelectTokenPopup
-                visible={ uiState.tokenPopup }
+                visible={uiState.tokenPopup}
                 tokenList={tokenList}
                 selectedToken={fromData?.token}
-                onClose={() => updateUI('tokenPopup', false) }
+                onClose={() => updateUI('tokenPopup', false)}
                 onSelect={setToken}
             />
         </div>

@@ -92,6 +92,7 @@ export interface ChainConfig {
     bridgeAddress: string;
     blockExplorerUrl?: string;
     networkName?: string;
+    minAmount?: number;
 }
 
 export interface StableCoinData extends ChainConfig {
@@ -146,6 +147,7 @@ export interface StableCoinItem {
     decimals: number;
     token: string
     baseFee: number
+    estTime: string
 }
 
 export interface EvmNetworkItem {
