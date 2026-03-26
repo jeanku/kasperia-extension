@@ -1,13 +1,13 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import HeadNav from '@/components/HeadNav'
-import { Button } from 'antd-mobile'
+import { Button, DotLoading } from 'antd-mobile'
+import { ethers } from "ethers";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import '@/styles/transaction.scss'
-import { EvmNetwork } from "@/model/evm";
 import { useNotice } from "@/components/NoticeBar/NoticeBar";
 import { AccountEvm } from "@/chrome/accountEvm";
 import { TransactionRequest } from "ethers/src.ts/providers/provider";
+import '@/styles/transaction.scss'
 
 const SendTransaction = () => {
    const { noticeError } = useNotice()
@@ -15,34 +15,73 @@ const SendTransaction = () => {
    const navigate = useNavigate();
 
    const [btnLoading, setBtnLoading] = useState(false)
+   const [unSignedTx, setUnSignedTx] = useState<TransactionRequest | null>(null);
+   const { 
+      fromAddress, 
+      amountWei = 0n, 
+      amount = '', 
+      token = '', 
+      toAddress = '', 
+      toChainId, 
+      bridgeAddress = '',
+      symbol = '',
+      explorer = '',
+      networkName = '',
+   } = state
 
-   const [unSignedTx] = useState<TransactionRequest>(state?.unSignedTx)
-
-   const [evmNetwork, setEvmNetwork] = useState<EvmNetwork>(state?.evmNetwork)
-
-   const [amount] = useState<string>(state?.amount)
-
-   const [toAddress] = useState<EvmNetwork>(state?.toAddress)
+   const buildTx = async () => {
+      if (!fromAddress || !token || !bridgeAddress) return;
+      try {
+         const iface = new ethers.Interface(["function deposit(address token,uint256 amount,uint32 toChainId,address toAddress)"]);
+         const data = iface.encodeFunctionData("deposit", [
+            token,
+            amountWei,
+            toChainId,
+            toAddress
+         ]);
+         const tx = await AccountEvm.createContractTx({
+            from: fromAddress,
+            to: bridgeAddress,
+            data,
+            value: "0"
+         });
+         
+         setUnSignedTx(tx);
+      } catch (err) {
+         noticeError(err);
+      }
+   };
 
    const submitTransaction = async () => {
+      if (!unSignedTx) {
+         noticeError("Transaction not ready");
+         return;
+      }
       try {
-         setBtnLoading(true)
-         let hash = await AccountEvm.sendTransaction(unSignedTx)
-         navigate('/bridge/sendResult', {
-            state: {
-               hash,
-               evmNetwork,
-               sendTo: {
-                  address: toAddress,
-                  amount: amount,
-               },
-            }
+         setBtnLoading(true);
+         const hash = await AccountEvm.sendTransaction(unSignedTx);
+         navigate('/stableCoin/stableCoinSendResult', {
+               state: {
+                  hash,
+                  symbol,
+                  explorer,
+                  sendTo: {
+                     address: toAddress,
+                     amount: amount,
+                  },
+               }
          })
       } catch (error) {
          noticeError(error);
+      } finally {
+         setBtnLoading(false);
       }
-      setBtnLoading(false)
-   }
+   };
+
+   useEffect(() => {
+      if (!fromAddress || !token || !bridgeAddress) return;
+      buildTx();
+   }, [fromAddress, token, amountWei, bridgeAddress]);
 
    return (
       <article className="page-box">
@@ -52,7 +91,7 @@ const SendTransaction = () => {
             <div className="history-box">
                <div className="history-token-item">
                   <span>Network </span>
-                  <em>{evmNetwork?.name || ""}</em>
+                  <em>{networkName || ""}</em>
                </div>
             </div>
 
@@ -60,7 +99,11 @@ const SendTransaction = () => {
                <h6 className="sub-tit mt15">Sign Message</h6>
                <div className="tx-confirm-content">
                   <div className="tx-confirm-data">
-                     {JSON.stringify(unSignedTx, null, 8)}
+                     {unSignedTx ? JSON.stringify(unSignedTx, null, 8) :
+                        <div>
+                           <DotLoading color='primary' />
+                           <span>Loading</span>
+                        </div>}
                   </div>
                </div>
             </div>
@@ -71,10 +114,10 @@ const SendTransaction = () => {
                </Button>
 
                <Button block size="large" color="primary"
-                  loading={btnLoading}
+                  loading={btnLoading || !unSignedTx}
                   loadingText={'Submitting'}
                   onClick={() => submitTransaction()}>
-                  Sign & Pay
+                  Bridge
                </Button>
             </div>
          </div>

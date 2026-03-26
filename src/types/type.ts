@@ -81,10 +81,9 @@ export type AddressSelectResult = {
 export interface ChainConfig {
     name?: string;
     rpcUrl: string;
-    tokenABI: ethers.InterfaceAbi;
-    bridgeABI: ethers.InterfaceAbi;
     chainId: number | string;
     symbol?: string;
+    fSymbol?: string;
     decimals: number;
     token: string;
     estTime: string;
@@ -133,4 +132,23 @@ export interface TokenBalanceItem {
     token_id: string | null
     token_instance: string | null
     value: string
+}
+
+
+export interface StableCoinItem {
+    chainId: number
+    address: string;
+    name: string;
+    networkName: string;
+    symbol: string;
+    balance: string;
+    fSymbol: string;
+    decimals: number;
+    token: string
+    baseFee: number
+}
+
+export interface EvmNetworkItem {
+    chainId: string;
+    name: string;
 }

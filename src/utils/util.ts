@@ -90,6 +90,22 @@ export const formatDecBalance = (amount: string, dec: string): BigInt => {
     return (BigInt(amount) / BigInt(10 ** Number(dec)))
 }
 
+export function truncateDecimal(num: number, decimalPlaces: number = 8): number {
+    if (!num || isNaN(num)) return 0
+    if (Number.isInteger(num)) return num;
+    const factor = Math.pow(10, decimalPlaces);
+  return Math.trunc(num * factor) / factor;
+}
+
+export function formatBigInt(value: bigint, decimals: number): string {
+    const scale = 10n ** BigInt(decimals);
+    const integerPart = value / scale;
+    const fractionPart = value % scale;
+    if (fractionPart === 0n) return integerPart.toString();
+    const fractionStr = fractionPart.toString().padStart(decimals, "0");
+    return `${integerPart}.${fractionStr}`.replace(/\.?0+$/, "");
+}
+
 export const toTokenUnits = (amount: number | string, decimals: number | string): BigInt => {
     const amountStr = String(amount);
     let decNumber = Number(decimals);
@@ -324,3 +340,9 @@ export function randomCode(len: number): number {
 export function randomInt(min: number, max: number): number {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
+
+export const getStatus = (statusNum: number, hash?: string | null): string => {
+    if (statusNum === 0) return "Failed";
+    if (statusNum === 1 && hash) return "Successful";
+    return "Pending";
+};

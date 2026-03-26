@@ -19,6 +19,8 @@ export const IGRAL1ToL2BridgeAddressForMainnet = "kaspa:ppvnxxzm0rr37zpnwux2f2nt
 
 export const KNSDomain = "https://api.knsdomains.org"
 
+export const HistoryApiUrl = "https://kasbridge-tn10evm-api.kaspafoundation.org/"
+
 export const FixDecimal = 4
 
 
@@ -91,32 +93,31 @@ export const ChainListTestnet = [
         chainId: KasplexL2TestnetChainId,
         decimals: 6,
         symbol: "USDC",
+        fSymbol: 'KAS',
         name: "KasplexL2",
         rpcUrl: "https://rpc.kasplextest.xyz",
         blockExplorerUrl: "https://explorer.testnet.kasplextest.xyz/",
         token: "0xD6f5DDe052640C5960FB651080F77d67Ea76285A",
         bridgeAddress: "0x4f34Ccabc4642945BEce27a4963189C893b5a899",
         estTime: "1~3",
-        tokenABI: TokenABI,
-        bridgeABI: USDCBridgeABI,
+        minAmount: 15,
         iconText: IconKasplex,
     },
     {
         chainId: 97,
         decimals: 18,
         symbol: "USDC",
+        fSymbol: 'BNB',
         name: "BSC",
         rpcUrl: "https://bsc-testnet-rpc.publicnode.com",
         blockExplorerUrl: "https://testnet.bscscan.com/",
         token: "0xc2dF2F567d37Ef4b8A620b41e46b17D7aEc22687",
         bridgeAddress: "0x328686dd5fbe0216faffca824d63613908f4b316",
         estTime: "3~5",
-        tokenABI: TokenABI,
-        bridgeABI: USDCBridgeABI,
+        minAmount: 1,
         iconText: IconBNB,
     }
 ]
-
 
 // Token List Mainnet
 export const StableCoinMainTokenList = [
@@ -163,28 +164,28 @@ export const ChainListMainnet = [
         chainId: KasplexL2MainnetChainId,
         decimals: 6,
         symbol: "USDC",
+        fSymbol: 'KAS',
         name: "KasplexL2",
         rpcUrl: "https://evmrpc.kasplex.org/",
         blockExplorerUrl: "https://explorer.kasplex.org/",
         token: "0x45031B5FC18c7f5C864eDF6E33f3d23Da4285fB1",
         bridgeAddress: "0x4D97210eb885952575F48Ffe4822CE84035832B7",
         estTime: "1~3",
-        tokenABI: TokenABI,
-        bridgeABI: USDCBridgeABI,
+        minAmount: 15,
         iconText: IconKasplex,
     },
     {
         chainId: 56,
         decimals: 18,
         symbol: "USDC",
+        fSymbol: 'BNB',
         name: "BSC",
         rpcUrl: "https://bsc.publicnode.com/",
         blockExplorerUrl: "https://bscscan.com/",
         token: "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d",
         bridgeAddress: "0xd32121441965b3cfe4b8dcb29615d4c849e952e2",
         estTime: "3~5",
-        tokenABI: TokenABI,
-        bridgeABI: USDCBridgeABI,
+        minAmount: 1,
         iconText: IconBNB,
     }
 ]

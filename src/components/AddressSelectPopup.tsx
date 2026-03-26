@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react'
-import { Popup, Tabs } from 'antd-mobile'
+import { Popup, Tabs, Input, Button } from 'antd-mobile'
+import { isAddress } from 'ethers'
 import NoDataDom from '@/components/NoDataDom'
+import { useNotice } from '@/components/NoticeBar/NoticeBar'
 import { formatAddress } from '@/utils/util'
 import { Address } from '@/model/contact'
 import { Keyring } from '@/chrome/keyring'
 import { Contact } from '@/chrome/contact'
 import { AddressType } from '@/types/enum'
 
-export type TabKey = 'Contacts' | 'Accounts'
+export type TabKey = 'Contacts' | 'Accounts' | 'AddAddress'
 
 export interface AccountDrive {
     name: string
@@ -30,7 +32,9 @@ interface Props {
     visible: boolean
     isKaspa: boolean
     isUpdata?: boolean
+    showAdd?: boolean
     onClose: () => void
+    onSave?: (address: string) => void
     onSelect: (res: AddressSelectResult) => void
 }
 
@@ -38,15 +42,19 @@ const AddressSelectPopup: React.FC<Props> = ({
     visible,
     isKaspa,
     isUpdata = false,
+    showAdd = false,
     onClose,
     onSelect,
+    onSave,
 }) => {
+    const { noticeSuccess, noticeError } = useNotice();
+    
     const [activeTab, setActiveTab] = useState<TabKey>('Contacts')
     const [contacts, setContacts] = useState<Address[] | null>(null)
     const [accounts, setAccounts] = useState<AccountGroup[] | null>(null)
     const [loading, setLoading] = useState(false)
 
-
+    const [address, setAddress] = useState<string>('')
 
     const switchContactTab = async (key: TabKey) => {
         setActiveTab(key)
@@ -73,6 +81,20 @@ const AddressSelectPopup: React.FC<Props> = ({
         }
     }
 
+    const saveAddress =() => {
+        if(!address) {
+            noticeError('Please input address')
+            return
+        }
+        if(!isAddress(address)) {
+            noticeError('Invalid address')
+            return
+        }
+        onSave?.(address)
+        onClose()
+        setAddress('');
+    }
+
     useEffect(() => {
         if (!visible) {
             if (isUpdata) {
@@ -87,6 +109,9 @@ const AddressSelectPopup: React.FC<Props> = ({
 
         if (activeTab === 'Accounts' && !accounts) {
             switchContactTab('Accounts')
+        }
+        if(activeTab === 'AddAddress') {
+            switchContactTab('AddAddress')
         }
     }, [visible, isUpdata])
 
@@ -110,6 +135,7 @@ const AddressSelectPopup: React.FC<Props> = ({
             >
                 <Tabs.Tab title="Contacts" key="Contacts" />
                 <Tabs.Tab title="My Account" key="Accounts" />
+                { showAdd && <Tabs.Tab title="Add Address" key="AddAddress" /> }
             </Tabs>
 
             <div className="contact-list">
@@ -167,6 +193,23 @@ const AddressSelectPopup: React.FC<Props> = ({
                         !loading && <NoDataDom />
                     )
                 )}
+                {
+                    activeTab === 'AddAddress' && (
+                        <div className='contact-list-box mb20'>
+                            <strong>Address</strong>
+                            <Input
+                                className="address-input"
+                                placeholder="Enter address"
+                                clearable
+                                value={address}
+                                onChange={(v) => setAddress(v)}
+                            />
+                            <Button block size="large" loadingText="Save..." color="primary"  onClick={() => saveAddress()} >
+                                Save
+                            </Button>
+                        </div>
+                    )
+                }
             </div>
         </Popup>
     )

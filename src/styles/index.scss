@@ -288,6 +288,10 @@ em {
     margin-bottom: 0 !important;
 }
 
+.max-100 {
+    max-width: 100px;
+}
+
 .cursor-pointer {
     cursor: pointer;
 }
@@ -624,6 +628,24 @@ em {
 
 .coin-item {
     @extend %coin-item;
+}
+
+.address-input {
+    margin-top: 10px;
+    margin-bottom: 16px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: #1f1f1f;
+    border: 1px solid #3a3a3a;
+    color: #fff;
+    font-size: 14px;
+    .adm-input-element {
+        color: #fff;
+    }
+}
+
+.address-input::placeholder {
+    color: #fff;
 }
 
 .sub-tit {

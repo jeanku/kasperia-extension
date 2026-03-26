@@ -90,6 +90,11 @@
         font-size: 16px;
         color: $text-color-desc;
     }
+    .send-result-amount {
+        font-size: 20px;
+        font-weight: bold;
+        color: $bg-color-alert;
+    }
     .send-result-share {
         display: flex;
         justify-content: center;

@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useNavigate, useLocation } from "react-router-dom";
 import { List, InfiniteScroll, DotLoading, Tag } from 'antd-mobile'
 import { SendOutline } from 'antd-mobile-icons'
 
@@ -7,104 +7,117 @@ import HeadNav from '@/components/HeadNav'
 import NoDataDom from "@/components/NoDataDom";
 
 import { RootState } from '@/store';
-import {NetworkType} from "@/utils/wallet/consensus";
+import { NetworkType } from "@/utils/wallet/consensus";
 import { useSelector } from "react-redux";
-import { formatAddress, convertUTCToLocalTime, formatBalance } from '@/utils/util'
-import { KaspaExplorerUrl, EvmExplorerUrl } from '@/types/enum'
-import { getKaspaList, getKlayerList, type OrderListItem } from '@/api/index'
+import { formatAddress, convertUTCToLocalTime, formatBalance, formatBigInt, truncateDecimal, getStatus } from '@/utils/util'
+import { ChainListMainnet, ChainListTestnet, StableCoinTestnetTokenList } from '@/types/constant'
+import { getDepositList, getWithdrawList, type StablecoinItem } from '@/api/index'
 
 const History = () => {
     const navigate = useNavigate();
+    const { state } = useLocation()
     const { preference } = useSelector((state: RootState) => state.preference);
-
-    const [selectTab, setSelectTab] = useState('L1')
+    const { chainId = '' } = state
+    const [selectTab, setSelectTab] = useState('')
     const [nextPage, setNextPage] = useState<number>(1)
     const [hasMore, setHasMore] = useState(true)
     const [isLoading, setIsLoading] = useState(false);
-    const [listData, setListData] = useState<OrderListItem[]>([]);
+    const [listData, setListData] = useState<StablecoinItem[]>([]);
     const pageSize = 10
+    const TokenList = StableCoinTestnetTokenList
+    const ChainList = ChainListTestnet
+
     const lastRequestTimeRef = useRef<number>(0)
-    const l1Address = preference.currentAccount?.address;
-    const l2Address = preference.currentAccount?.ethAddress;
-    const networkName = preference.network.networkType === NetworkType.Mainnet ? 'Mainnet' : 'Testnet';
+    const currentAddress = preference.currentAccount?.ethAddress!;
+    const isMainnet = preference.network.networkType === NetworkType.Mainnet;
+    const networkName = isMainnet ? 'Mainnet' : 'Testnet';
 
-    const TabsList = [
-        { title: 'L1→L2 History', key: 'L1' },
-        { title: 'L2→L1 History', key: 'L2' },
-    ]
+    const TabsList = useMemo(() => ChainList.map(item => ({
+            title: item.name,
+            key: item.chainId.toString()
+    })), [ChainList]);
 
-    useEffect(() => {
-        fetchList(1, selectTab)
-    }, [])
 
-    const openExplorer = (type: 'kaspa' | 'evm', id: string) => {
-        if (!id) return
-        const url = type === 'kaspa'
-            ? `${KaspaExplorerUrl[networkName]}${id}`
-            : `${EvmExplorerUrl[networkName]}${id}`
-        window.open(url)
+    const openExplorer = (hash: string) => {
+        if (!hash) return
+        const chain = ChainList.find(item => item.chainId === Number(selectTab));
+        if (!chain?.blockExplorerUrl) return;
+        window.open(`${chain.blockExplorerUrl}/tx/${hash}`);
     }
 
-    const fetchList = async (page: number, tab: string) => {
-        const now = Date.now()
-        if (now - lastRequestTimeRef.current < 1200) {
-            return
-        }
-        lastRequestTimeRef.current = now
+    const transformRecord = useCallback((item: StablecoinItem, isWithdraw: boolean) => {
+        const decimal = 4;
+        const tokenData = TokenList.find((t) => t.token.toLowerCase() === item.tokenAddress.toLowerCase() );
+        const dec = tokenData?.decimals || item.decimal;
+        const statusNum = Number(item.status);
+        const explorerUrl = ChainList.find((c) => c.chainId === item.fromNetwork)?.blockExplorerUrl || "";
+        const format = (val: bigint | string | number, d: number) => truncateDecimal(Number(formatBigInt(BigInt(val), d)), decimal);
+        return {
+            ...item,
+            explorerUrl,
+            amount: `${format(item.amount, item.decimal || dec)} ${item.token}`,
+            bridgeAmount: `${format(item.bridgeAmount, item.to_decimal)} ${item.token}`,
+            showFee: item.fee ? format(item.fee, dec).toString() : "-",
+            fee: formatBalance(item.fee, dec).toString(),
+            showTime: convertUTCToLocalTime(item.createTime),
+            statusStr: getStatus(statusNum, item.claimHash),
+        } as StablecoinItem;
+    }, [TokenList, ChainList]);
 
-        const isL1 = tab === 'L1'
-        const address = isL1 ? l1Address : l2Address
-        if (!address) return
+    const fetchList = useCallback(async (page: number, key: string) => {
+        const now = Date.now()
+        if (now - lastRequestTimeRef.current < 1000) return
+        lastRequestTimeRef.current = now
+        if (!currentAddress) return
         setIsLoading(true);
         try {
-            const apiFunc = isL1 ? getKaspaList : getKlayerList
-            const list = await apiFunc(networkName, { page, address: address.toLowerCase() })
-            if(list && list.length > 0) {
-                const formList = list.map(item => transformRecord(item, isL1))
-                setListData(page === 1 ? formList : prev => [...prev, ...formList])
-                setHasMore(formList.length >= pageSize)
-                if (formList.length >= pageSize) setNextPage(page + 1)
-            } else {
-                setNextPage(1)
-                setHasMore(false)
-            }
-        } catch (err) {
-            console.error('fetchList error:', err)
-        } finally {
-            setIsLoading(false); 
-        }
-    }
+            const chain = ChainList.find(item => item.chainId === Number(key));
+            if (!chain) return;
 
-    const transformRecord = (item: OrderListItem, isL1: boolean) => {
-        const i: OrderListItem = { ...item };
-        if (isL1) {
-            i.amountSent = formatBalance(i.amount, 8).toString();
-            i.bridgeAmount = isNaN(Number(i.bridge_amount))  || !i.bridge_amount ? "-" : formatBalance(i.bridge_amount, 18).toString();
-            i.state = i.hash ? 'Successful' : 'Pending'
-        } else {
-            i.amountSent = formatBalance(i.amount, 18).toString();
-            i.bridgeAmount = isNaN(Number(i.bridge_amount)) || !i.bridge_amount ? "-" : formatBalance(i.bridge_amount, 8).toString();
-            i.from_address = i.from ?? i.from_address;
-            i.state = i.txid ? 'Successful' : 'Pending'
+            const isWithdraw = chain.name.toLowerCase().includes('kasplex');
+            const apiFunc = isWithdraw ? getWithdrawList : getDepositList;
+            const list = await apiFunc(networkName, {
+                page,
+                address: currentAddress.toLowerCase(),
+                network: chainId
+            });
+            if (!list || list.length === 0) {
+                setHasMore(false);
+                if (page === 1) setListData([]);
+                return;
+            }
+            const formatted = list.map(item => transformRecord(item, isWithdraw));
+            setListData(prev => page === 1 ? formatted : [...prev, ...formatted]);
+            const more = formatted.length >= pageSize;
+            setHasMore(more);
+            if (more) setNextPage(page + 1);
+        } finally {
+            setIsLoading(false);
         }
-        return i as OrderListItem;
-    }
+    }, [currentAddress, networkName, chainId, ChainList, transformRecord])
 
     const handleTabs = (key: string) => {
         if (selectTab === key) return
         setSelectTab(key)
         setNextPage(1)
         setListData([])
-        setHasMore(true)
         fetchList(1, key)
     }
     const loadMore = async () => {
-        if (hasMore && !isLoading) fetchList(nextPage, selectTab)
-    }
+        if (!hasMore || isLoading || !selectTab) return;
+        await fetchList(nextPage, selectTab);
+    };
+
+    useEffect(() => {
+        if (!TabsList.length) return;
+        const key = TabsList[0].key;
+        setSelectTab(key);
+        fetchList(1, key);
+    }, [TabsList, fetchList]);
 
     return (
         <div className="page-box">
-            <HeadNav title='Bridge-History' onBack={() => navigate('/bridge/bridgeIndex')} ></HeadNav>
+            <HeadNav title='Bridge History' onBack={() => navigate('/stableCoin/stableCoin')} ></HeadNav>
             <div className="content-main history-box">
                 <ul className="page-tabs tabs-fixed">
                     {
@@ -120,42 +133,38 @@ const History = () => {
                             <div className="history-item k-card" key={item.id}>
                                 <div className="history-top hash-line">
                                     {
-                                        selectTab === 'L1' ? <span className='share' onClick={() => openExplorer('kaspa',item.txid)}>Txid: {formatAddress(item.txid, 6)} <SendOutline /></span> 
-                                        : <span className='share' onClick={() => openExplorer('evm',item.hash)}>Hash: {formatAddress(item.hash, 6)} <SendOutline /></span>
+                                        <span className='share' onClick={() => openExplorer(item.hash)}>Hash: {formatAddress(item.hash, 6)} <SendOutline /></span>
                                     }
-                                    <Tag color={item.state === 'Successful' ? 'success' : 'warning' } className={item.state === 'Successful' ? 'success' : 'pending' }>{ item.state }</Tag> 
+                                    <Tag color={item.statusStr === 'Successful' ? 'success' : 'warning'}>{item.statusStr}</Tag>
                                 </div>
                                 <div className="history-top mt8">
                                     <em>From: </em>
-                                    <span>{formatAddress(item.from_address, 6)}</span>
+                                    <span>{formatAddress(item.fromAddress, 6)}</span>
                                 </div>
                                 {
-                                    selectTab === 'L1' ? <div className="history-top mt8">
+                                    <div className="history-top mt8">
                                         <em>To: </em>
-                                        <span>{formatAddress(item.to_eth_address, 6)}</span>
-                                    </div> : <div className="history-top mt8">
-                                        <em>To: </em>
-                                        <span>{formatAddress(item.to_kaspa_address, 6)}</span>
+                                        <span>{formatAddress(item.toAddress, 6)}</span>
                                     </div>
                                 }
                                 <div className="history-top mt8">
                                     <em>Amount: </em>
-                                    <span>{item.amountSent}</span>
+                                    <span>{item.amount}</span>
                                 </div>
                                 <div className="history-top mt8">
-                                    <em>Received: </em>
+                                    <em>Net Received: </em>
                                     <span>{item.bridgeAmount}</span>
                                 </div>
                                 <div className="history-top mt8">
                                     <em>Time:</em>
-                                    <span>{ convertUTCToLocalTime(item.create_time) }</span>
+                                    <span>{item.showTime}</span>
                                 </div>
                             </div>
                         )) : ((
-                        !hasMore && <div className="contact-list mt60">
-                            <NoDataDom />
-                        </div>
-                    ))
+                            !hasMore && <div className="contact-list mt60">
+                                <NoDataDom />
+                            </div>
+                        ))
                     }
                 </List>
             </div>
@@ -165,7 +174,7 @@ const History = () => {
                         <span>Loading</span>
                         <DotLoading />
                     </>
-                ) :  listData.length > 0 && ( <span>- No More -</span>)
+                ) : listData.length > 0 && (<span>- No More -</span>)
                 }
             </InfiniteScroll>
         </div>

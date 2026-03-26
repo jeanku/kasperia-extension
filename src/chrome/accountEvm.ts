@@ -15,6 +15,10 @@ export class AccountEvm extends Chrome {
         return Chrome.request({ action: "AccountEvm.getTokenBalance", address, token, decimals})
     }
 
+    static getTokenAllowance(address: string, token: string,  bridgeAddress: string,decimals?: number): Promise<any> {
+        return Chrome.request({ action: "AccountEvm.getTokenAllowance", address, token, bridgeAddress, decimals})
+    }
+
     static async createTransaction(from: string, to: string, amount: string): Promise<TransactionRequest> {
         return Chrome.request({ action: "AccountEvm.createTransaction", from, to, amount })
     }

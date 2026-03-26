@@ -115,6 +115,7 @@ const handlers: Record<string, (message: any) => Promise<any> | any> = {
     "AccountEvm.sendTransaction": (msg) => accountEvmService.sendTransaction(msg.tx),
     "AccountEvm.getERC20Tokens": (msg) => accountEvmService.getERC20Tokens(msg.address),
     "AccountEvm.getERC20Info": (msg) => accountEvmService.getERC20Info(msg.address),
+    "AccountEvm.getTokenAllowance": (msg) => accountEvmService.getTokenAllowance(msg.address, msg.token, msg.bridgeAddress, msg.decimals),
 };
 
 const handleError = (error: unknown, sendResponse: (response: any) => void) => {

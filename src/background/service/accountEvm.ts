@@ -73,6 +73,14 @@ export class AccountEvm {
         return ethers.formatUnits(balance, tokenDecimals);
     }
 
+    async getTokenAllowance(address: string, tokenAddress: string, bridgeAddress: string, decimals?: number): Promise<string> {
+        let provider = await this.getProvider()
+        const token = new ethers.Contract(tokenAddress, ERC20_ABI, provider.provider);
+        const balance = await token.allowance(address, bridgeAddress);
+        const tokenDecimals = decimals ?? await token.decimals();
+        return ethers.formatUnits(balance, tokenDecimals);
+    }
+
     async getBalanceFormatEther(address: string):  Promise<string> {
         let provider = await this.getProvider()
         let balance =  await provider.getBalance(address)
