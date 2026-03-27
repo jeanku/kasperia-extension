@@ -1,7 +1,7 @@
-import { useMemo, useState, useEffect, useCallback } from "react";
+import { useMemo, useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { Button, Mask, } from "antd-mobile";
+import { Button, Mask, Popup, } from "antd-mobile";
 import { BankcardOutline } from "antd-mobile-icons";
 import { ethers } from "ethers";
 
@@ -13,6 +13,10 @@ import { SvgIcon } from "@/components/Icon";
 import { useNotice } from '@/components/NoticeBar/NoticeBar'
 import NetworkFormPopup from '@/components/NetworkFormPopup'
 import SelectTokenPopup from "@/components/SelectTokenPopup";
+import { useClipboard } from '@/components/useClipboard';
+
+import { TransactionRequest } from "ethers/src.ts/providers/provider";
+
 
 import { AccountEvm } from "@/chrome/accountEvm";
 import { EvmNetwork } from '@/model/evm'
@@ -56,6 +60,7 @@ type BridgeParams = {
 
 const Stablecoin = () => {
     const navigate = useNavigate();
+    const { handleCopy } = useClipboard();
     const { noticeSuccess, noticeError } = useNotice();
 
     const { preference } = useSelector((state: RootState) => state.preference);
@@ -71,6 +76,8 @@ const Stablecoin = () => {
         networkPopup: false,
         addressPopup: false,
         tokenPopup: false,
+        approveVisible: false,
+        approveBtnLoading: false,
     });
 
     const ChainList = ChainListTestnet
@@ -78,6 +85,7 @@ const Stablecoin = () => {
     const [toData, setToData] = useState<StableCoinItem | null>();
     const [fromData, setFromData] = useState<StableCoinItem | null>();
     const [networkList, setNetworkList] = useState<EvmNetworkItem[]>([])
+    const [unSignedTx, setUnSignedTx] = useState<TransactionRequest | null>(null);
 
     const [allowance, setAllowance] = useState<bigint>(0n);
     const [selectToken, setSelectToken] = useState<{ type: 'from' | 'to', symbol: string }>({ type: 'from', symbol: '' });
@@ -91,6 +99,7 @@ const Stablecoin = () => {
         explorer: "",
     })
 
+    const switchingRef = useRef(false);
     const updateUI = (key: keyof typeof uiState, value: boolean) => {
         setUiState(prev => ({ ...prev, [key]: value }));
     };
@@ -108,7 +117,10 @@ const Stablecoin = () => {
 
     const toAmount = useMemo(() => {
         if (!amount) return ''
-        const val = Number(amount) - Number(fromData?.baseFee ?? 0)
+        const feeVal = fromData?.baseFee.toString() || '0'
+        const amountBN = ethers.parseUnits(amount.toString(), 8);
+        const feeBN = ethers.parseUnits(feeVal, 8);
+        const val = Number(ethers.formatUnits(amountBN - feeBN, 8))
         if (val <= 0 || isNaN(val)) return '0'
         return val.toString()
     }, [amount, fromData?.baseFee])
@@ -143,7 +155,7 @@ const Stablecoin = () => {
         } finally {
             setAllowanceLoading(false);
         }
-    }, [fromData, ChainList, allowanceLoading]);
+    }, [fromData?.address, fromData?.chainId]);
 
     const fetchBalance = useCallback(async (data: typeof fromData) => {
         if (!data?.address || !data?.token) return;
@@ -240,29 +252,6 @@ const Stablecoin = () => {
             toChainId: toData?.chainId,
             bridgeAddress: fromItem.bridgeAddress || '',
         };
-    };
-
-    const sendApproveTransaction = async (bridgeAddress: string, amountWei: bigint, nextParams: BridgeParams): Promise<void> => {
-        if (!fromData?.token) return;
-        const currentAddress = preference.currentAccount?.ethAddress;
-        if (!currentAddress) return;
-
-        const iface = new ethers.Interface(['function approve(address spender, uint256 amount) returns (bool)']);
-        const data = iface.encodeFunctionData('approve', [bridgeAddress, amountWei]);
-        const unSignedTx = await AccountEvm.createContractTx({
-            from: currentAddress,
-            to: fromData.token,
-            data,
-            value: '0',
-        });
-        const hash = await AccountEvm.sendTransaction(unSignedTx);
-        if (!hash) return;
-        navigate('/stableCoin/stableCoinSendTx', {
-            state: {
-                ...nextParams,
-                token: fromData.token,
-            },
-        });
     };
 
     const initNetwork = async (): Promise<void> => {
@@ -362,14 +351,44 @@ const Stablecoin = () => {
             return;
         }
         setBtnLoading(true);
+        if (!fromData?.token) return;
+        const currentAddress = preference.currentAccount?.ethAddress;
+        if (!currentAddress) return;
         try {
-            await sendApproveTransaction(fromItem.bridgeAddress || '', amountWei, nextParams);
-        } catch (error) {
-            console.log('approveFun-error', error);
+            const iface = new ethers.Interface(['function approve(address spender, uint256 amount) returns (bool)']);
+            const data = iface.encodeFunctionData('approve', [fromItem.bridgeAddress, amountWei]);
+            const unSignedTx = await AccountEvm.createContractTx({
+                from: currentAddress,
+                to: fromData.token,
+                data,
+                value: '0',
+            });
+            setUnSignedTx(unSignedTx)
         } finally {
+            updateUI('approveVisible', true)
             setBtnLoading(false);
         }
     };
+
+    const sendApprove = async() => {
+        if(!unSignedTx || !fromData || uiState.approveBtnLoading) return
+        updateUI('approveBtnLoading', true)
+        try {
+            const amountWei = ethers.parseUnits(amount, fromData.decimals);
+            const fromItem = ChainList.find((item) => item.chainId === fromData.chainId);
+            const nextParams = buildBridgeParams(fromItem!, toData?.address!, amountWei);
+            const hash = await AccountEvm.sendTransaction(unSignedTx);
+            if (!hash) return;
+            navigate('/stableCoin/stableCoinSendTx', {
+                state: {
+                    ...nextParams,
+                    token: fromData.token,
+                },
+            });
+        } finally {
+            updateUI('approveBtnLoading', false)
+        }
+    }
 
     const addNetwork = (networkInfo: ChainConfig) => {
         if (networkInfo && networkInfo.chainId) {
@@ -405,7 +424,7 @@ const Stablecoin = () => {
     useEffect(() => {
         if (!fromData?.token || !fromData?.address) return;
         void fetchAllowance();
-    }, [fetchAllowance, fromData?.address, fromData?.chainId, fromData?.token]);
+    }, [fromData?.address, fromData?.chainId, fromData?.token]);
 
     useEffect(() => {
         const fetchNetworks = async () => {
@@ -521,11 +540,11 @@ const Stablecoin = () => {
                 <div className="history-box mt20">
                     <div className="history-token-item">
                         <span>Est. Time</span>
-                        <em>{ fromData?.estTime || '-'} minute</em>
+                        <em>{fromData?.estTime || '-'} minute</em>
                     </div>
                     <div className="history-token-item">
                         <span>Service Fee</span>
-                        <em>{ fromData?.baseFee || 0 }</em>
+                        <em>{fromData?.baseFee || 0}</em>
                     </div>
                 </div>
 
@@ -536,7 +555,7 @@ const Stablecoin = () => {
                         size="large"
                         color="primary"
                         loading={btnLoading}
-                        loadingText="Approve..."
+                        loadingText="Submitting..."
                         disabled={!amount || !toAmount || !networkIsUsable}
                         onClick={approveFun}
                     >
@@ -606,6 +625,77 @@ const Stablecoin = () => {
                 onClose={() => updateUI('tokenPopup', false)}
                 onSelect={setToken}
             />
+
+            {/* Approve Popup */}
+            <Popup
+                bodyClassName="approve-popup-body"
+                showCloseButton
+                bodyStyle={{
+                    height: '80vh',
+                    borderTopLeftRadius: '8px',
+                    borderTopRightRadius: '8px',
+                    overflowY: 'auto',
+                }}
+                visible={uiState.approveVisible}
+                onMaskClick={() => {
+                    updateUI('approveVisible', false)
+                }}
+                onClose={() => {
+                    updateUI('approveVisible', false)
+                }}
+            >
+                <div className='popup-title'>
+                    <h6>Approve Info</h6>
+                </div>
+                <article className='popup-box-auto assets-details'>
+                    <div className="history-box">
+                        <div className="history-token-item">
+                            <span>Network</span>
+                            <em>{ fromData?.networkName || ''}</em>
+                        </div>
+                        <div className="history-token-item">
+                            <span>Method</span>
+                            <em>approve</em>
+                        </div>
+                        <div className="history-token-item">
+                            <span>Token Address</span>
+                            <em>{formatAddress(fromData?.token || '', 6) } <SvgIcon onClick={() => handleCopy(fromData?.token || "")} iconName="IconCopy" offsetStyle={{ marginLeft: '5px', marginRight: '-12px' }} /></em>
+                        </div>
+                        <div className="history-token-item">
+                            <span>Approve To</span>
+                            <em>{ formatAddress(toData?.address || '', 6) } <SvgIcon onClick={() => handleCopy(toData?.address || "")} iconName="IconCopy" offsetStyle={{ marginLeft: '5px', marginRight: '-12px' }} /></em>
+                        </div>
+                        <div className="history-token-item">
+                            <span>Approve Amount</span>
+                            <em>{ amount } { fromData?.symbol}</em>
+                        </div>
+                        <div className="tx-confirm-box">
+                            <h6 className="sub-tit mt15">Sign Message</h6>
+                            <div className="tx-confirm-content">
+                                <div className="tx-confirm-data">
+                                    { unSignedTx && JSON.stringify(unSignedTx, null, 8) }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+                <div className="btn-pos-two flexd-row post-bottom">
+                    <Button block size="large" 
+                    onClick={() => {
+                        updateUI('approveVisible', false)
+                        updateUI('approveBtnLoading', false)
+                    }}
+                    >
+                        Reject
+                    </Button>
+                    <Button block size="large" color="primary"
+                        onClick={() => sendApprove()}
+                        loading={uiState.approveBtnLoading}
+                        loadingText={'Approving...'}>
+                        Approve
+                    </Button>
+                </div>
+            </Popup>
         </div>
     );
 };

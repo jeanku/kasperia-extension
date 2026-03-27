@@ -135,7 +135,9 @@ const History = () => {
                                     {
                                         <span className='share' onClick={() => openExplorer(item.hash)}>Hash: {formatAddress(item.hash, 6)} <SendOutline /></span>
                                     }
-                                    <Tag color={item.statusStr === 'Successful' ? 'success' : 'warning'}>{item.statusStr}</Tag>
+                                    <Tag color={item.statusStr === 'Successful' ? 'success' : 'warning'}
+                                    className={item.statusStr === 'Successful' ? 'success' : 'pending' }
+                                    >{item.statusStr}</Tag>
                                 </div>
                                 <div className="history-top mt8">
                                     <em>From: </em>

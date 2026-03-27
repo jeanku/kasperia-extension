@@ -1,5 +1,3 @@
-import { ethers } from 'ethers';
-
 import IconKasplex from '@/assets/images/chains/167012.svg'
 import IconBNB from '@/assets/images/tokens/BNB.svg'
 
@@ -25,26 +23,6 @@ export const FixDecimal = 4
 
 
 /****** StableCoin Bridge Config ******/
-
-export const USDCBridgeABI = [
-    "function deposit(address token,uint256 amount,uint32 toChainId,address toAddress)",
-    "function supportedTokens(address token) view returns (bool)"
-] as ethers.InterfaceAbi;
-
-export const TokenABI = [
-    "function name() view returns (string)",
-    "function symbol() view returns (string)",
-    "function decimals() view returns (uint8)",
-    "function balanceOf(address) view returns (uint256)",
-    "function allowance(address owner, address spender) view returns (uint256)",
-    "function approve(address spender, uint256 amount) returns (bool)",
-    "function nonces(address) view returns (uint256)",
-    "function transfer(address to, uint256 amount) returns (bool)",
-    "function totalSupply() view returns (uint256)",
-    "function minterAllowance(address) view returns (uint256)"
-] as ethers.InterfaceAbi;
-
-// Test
 export const StableCoinTestnetTokenList = [
     {
         "name": "BSC",

@@ -195,7 +195,7 @@ const AddressSelectPopup: React.FC<Props> = ({
                 )}
                 {
                     activeTab === 'AddAddress' && (
-                        <div className='contact-list-box mb20'>
+                        <div className='contact-list-box mt35'>
                             <strong>Address</strong>
                             <Input
                                 className="address-input"
