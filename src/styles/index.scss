@@ -2125,7 +2125,14 @@ em {
     padding: 40px 20px;
     box-sizing: border-box;
 }
-
+.remove-tit {
+    position: relative;
+    font-size: 24px;
+    top: -28px;
+    text-align: center;
+    color: $text-color;
+    z-index: 1;
+}
 .remove-box {
     position: fixed;
     top: 0;
@@ -2145,12 +2152,14 @@ em {
         top: 10px;
         width: 24px;
         cursor: pointer;
+        z-index: 10;
     }
 
     .remove-nox-content {
         text-align: center;
         max-height: 320px;
         overflow-y: auto;
+        overflow-x: hidden;
 
         >img {
             width: 107px;
@@ -2210,7 +2219,7 @@ em {
 
         button {
             width: 130px;
-            font-size: 16px;
+            font-size: 14px;
         }
 
         button.adm-button-default {

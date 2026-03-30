@@ -7,10 +7,9 @@ import HeadNav from '@/components/HeadNav'
 import NoDataDom from "@/components/NoDataDom";
 
 import { RootState } from '@/store';
-import { NetworkType } from "@/utils/wallet/consensus";
 import { useSelector } from "react-redux";
 import { formatAddress, convertUTCToLocalTime, formatBalance, formatBigInt, truncateDecimal, getStatus } from '@/utils/util'
-import { ChainListMainnet, ChainListTestnet, StableCoinTestnetTokenList } from '@/types/constant'
+import { ChainList, TokenList } from '@/types/constant'
 import { getDepositList, getWithdrawList, type StablecoinItem } from '@/api/index'
 
 const History = () => {
@@ -24,19 +23,15 @@ const History = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [listData, setListData] = useState<StablecoinItem[]>([]);
     const pageSize = 10
-    const TokenList = StableCoinTestnetTokenList
-    const ChainList = ChainListTestnet
 
     const lastRequestTimeRef = useRef<number>(0)
     const currentAddress = preference.currentAccount?.ethAddress!;
-    const isMainnet = preference.network.networkType === NetworkType.Mainnet;
-    const networkName = isMainnet ? 'Mainnet' : 'Testnet';
+    const networkName = 'Mainnet'
 
     const TabsList = useMemo(() => ChainList.map(item => ({
             title: item.name,
             key: item.chainId.toString()
     })), [ChainList]);
-
 
     const openExplorer = (hash: string) => {
         if (!hash) return
@@ -56,7 +51,7 @@ const History = () => {
             ...item,
             explorerUrl,
             amount: `${format(item.amount, item.decimal || dec)} ${item.token}`,
-            bridgeAmount: `${format(item.bridgeAmount, item.to_decimal)} ${item.token}`,
+            bridgeAmount: item.bridgeAmount ? `${format(item.bridgeAmount, item.to_decimal)} ${item.token}` : `- ${item.token}`,
             showFee: item.fee ? format(item.fee, dec).toString() : "-",
             fee: formatBalance(item.fee, dec).toString(),
             showTime: convertUTCToLocalTime(item.createTime),
@@ -94,7 +89,7 @@ const History = () => {
         } finally {
             setIsLoading(false);
         }
-    }, [currentAddress, networkName, chainId, ChainList, transformRecord])
+    }, [currentAddress, networkName, chainId, transformRecord])
 
     const handleTabs = (key: string) => {
         if (selectTab === key) return

@@ -80,8 +80,8 @@ export type AddressSelectResult = {
 
 export interface ChainConfig {
     name?: string;
-    rpcUrl: string;
-    chainId: number | string;
+    rpcUrl: string[];
+    chainId: number;
     symbol?: string;
     fSymbol?: string;
     decimals: number;
@@ -110,7 +110,7 @@ export interface TokenListItem {
     feeRate?: number; 
     baseFee?: number;
     iconText?: string;
-    chainId?: string;
+    chainId?: number;
 }
 export interface ApiTokenInfo {
     address: string
@@ -140,6 +140,7 @@ export interface StableCoinItem {
     chainId: number
     address: string;
     name: string;
+    rpcUrl: string[];
     networkName: string;
     symbol: string;
     balance: string;

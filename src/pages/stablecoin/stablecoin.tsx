@@ -1,7 +1,7 @@
 import { useMemo, useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { Button, Mask, Popup, } from "antd-mobile";
+import { Button, Mask, } from "antd-mobile";
 import { BankcardOutline } from "antd-mobile-icons";
 import { ethers } from "ethers";
 
@@ -13,55 +13,33 @@ import { SvgIcon } from "@/components/Icon";
 import { useNotice } from '@/components/NoticeBar/NoticeBar'
 import NetworkFormPopup from '@/components/NetworkFormPopup'
 import SelectTokenPopup from "@/components/SelectTokenPopup";
-import { useClipboard } from '@/components/useClipboard';
-
-import { TransactionRequest } from "ethers/src.ts/providers/provider";
-
+import ApprovePopup from '@/components/ApprovePopup';
 
 import { AccountEvm } from "@/chrome/accountEvm";
 import { EvmNetwork } from '@/model/evm'
 import { Evm } from "@/chrome/evm";
 import { RootState } from "@/store";
+import { TransactionRequest } from "ethers/src.ts/providers/provider";
 import { formatAddress, formatBalanceFixed } from "@/utils/util";
-import { ChainListTestnet, ChainListMainnet, StableCoinMainTokenList, StableCoinTestnetTokenList, FixDecimal } from '@/types/constant'
+import { ChainList, TokenList, FixDecimal } from '@/types/constant'
 import { TokenListItem, ChainConfig, StableCoinItem, EvmNetworkItem } from "@/types/type";
-
-type NetworkModalType = 'add' | 'switch';
-type NetworkModalState = {
-    type: NetworkModalType;
-    content: string;
-    targetChain: MergedChainItem;
-};
-
-type SelectTokenState = {
-    type: 'from' | 'to';
-    symbol: string;
-};
 
 type MergedChainItem = ChainConfig & {
     exists: boolean;
     networkName?: string;
-    estTime: string
+    estTime: string;
     fSymbol: string;
 };
 
-type BridgeParams = {
-    fromAddress: string;
-    toAddress: string;
-    amountWei: bigint;
-    amount: string;
-    token: string;
-    networkName?: string;
-    symbol?: string;
-    explorer?: string;
-    toChainId?: number;
-    bridgeAddress: string;
+type NetworkModalState = {
+    type: "add" | "switch";
+    content: string;
+    targetChain: MergedChainItem;
 };
 
 const Stablecoin = () => {
     const navigate = useNavigate();
-    const { handleCopy } = useClipboard();
-    const { noticeSuccess, noticeError } = useNotice();
+    const { noticeError } = useNotice();
 
     const { preference } = useSelector((state: RootState) => state.preference);
     const evmAddress = preference.currentAccount?.ethAddress ?? "";
@@ -80,8 +58,6 @@ const Stablecoin = () => {
         approveBtnLoading: false,
     });
 
-    const ChainList = ChainListTestnet
-    const TokenList = StableCoinTestnetTokenList
     const [toData, setToData] = useState<StableCoinItem | null>();
     const [fromData, setFromData] = useState<StableCoinItem | null>();
     const [networkList, setNetworkList] = useState<EvmNetworkItem[]>([])
@@ -99,10 +75,9 @@ const Stablecoin = () => {
         explorer: "",
     })
 
-    const switchingRef = useRef(false);
-    const updateUI = (key: keyof typeof uiState, value: boolean) => {
-        setUiState(prev => ({ ...prev, [key]: value }));
-    };
+    const updateUI = useCallback((key: keyof typeof uiState, value: boolean) => {
+        setUiState((prev) => ({ ...prev, [key]: value }));
+    }, []);
 
     const tokenList = useMemo(() => {
         return TokenList.filter(item => item.fSymbol === selectToken.symbol);
@@ -116,37 +91,37 @@ const Stablecoin = () => {
     }, [newNetwork.chainId, newNetwork.name])
 
     const toAmount = useMemo(() => {
-        if (!amount) return ''
-        const feeVal = fromData?.baseFee.toString() || '0'
+        if (!amount) return "";
+        const feeVal = fromData?.baseFee?.toString() || "0";
         const amountBN = ethers.parseUnits(amount.toString(), 8);
         const feeBN = ethers.parseUnits(feeVal, 8);
-        const val = Number(ethers.formatUnits(amountBN - feeBN, 8))
-        if (val <= 0 || isNaN(val)) return '0'
-        return val.toString()
-    }, [amount, fromData?.baseFee])
+        const val = Number(ethers.formatUnits(amountBN - feeBN, 8));
+        if (val <= 0 || Number.isNaN(val)) return "0";
+        return val.toString();
+    }, [amount, fromData?.baseFee]);
 
-    const mergeChains = useCallback((walletChains: EvmNetworkItem[]) => {
-        const map = new Map(walletChains.map(n => [n.chainId, n]));
+    const mergeChains = (walletChains: EvmNetworkItem[]) => {
         return ChainList.map(chain => {
-            const match = map.get(chain.chainId.toString());
+            const match = walletChains.find((n) => n.chainId === chain.chainId.toString());
             return {
                 ...chain,
                 networkName: match?.name ?? chain.name,
                 exists: !!match,
             };
-        });
-    }, [ChainList]);
+        })
+    }
 
     const fetchAllowance = useCallback(async () => {
-        if (!fromData) return
-        const fromItem = ChainList.find(item => item.chainId === fromData.chainId);
-        const { token = '', bridgeAddress = '' } = fromItem!;
-        if (!token || !bridgeAddress || !fromData.address || allowanceLoading) return;
+        if (!fromData?.address || !fromData?.token) return;
+        const fromItem = ChainList.find((item) => item.chainId === fromData.chainId);
+        const bridgeAddress = fromItem?.bridgeAddress || "";
+        if (!bridgeAddress || allowanceLoading) return;
+
         try {
             setAllowanceLoading(true);
             const val = await AccountEvm.getTokenAllowance(
                 fromData.address,
-                token,
+                fromData.token,
                 bridgeAddress
             );
             setAllowance(val);
@@ -155,133 +130,138 @@ const Stablecoin = () => {
         } finally {
             setAllowanceLoading(false);
         }
-    }, [fromData?.address, fromData?.chainId]);
+    }, [fromData?.address, fromData?.token, allowanceLoading]);
 
-    const fetchBalance = useCallback(async (data: typeof fromData) => {
+    const balanceReqKeyRef = useRef<string>("");
+    const fetchBalance = useCallback(async (data: StableCoinItem | null | undefined) => {
         if (!data?.address || !data?.token) return;
-        try {
+
+        const requestKey = `${data.chainId}_${data.address}_${data.token}`;
+
+        if (balanceReqKeyRef.current === requestKey) return;
+        balanceReqKeyRef.current = requestKey;
+        const run = async () => {
             const bal = await AccountEvm.getTokenBalance(
                 data.address,
                 data.token,
                 data.decimals
             );
-            setFromData((prev) => prev ? { ...prev, balance: formatBalanceFixed(bal, FixDecimal) } : prev);
-        } catch (error) {
-            console.log('error', error)
+            return formatBalanceFixed(bal, FixDecimal);
+        };
+
+        try {
+            let balance = "";
+            try {
+                balance = await run();
+            } catch {
+                await new Promise((resolve) => setTimeout(resolve, 500));
+                balance = await run();
+            }
+            setFromData((prev) => {
+                if (!prev) return prev;
+                if (prev.chainId !== data.chainId || prev.address !== data.address || prev.token !== data.token) {
+                    return prev;
+                }
+                return { ...prev, balance };
+            });
+        } finally {
+            if (balanceReqKeyRef.current === requestKey) {
+                balanceReqKeyRef.current = "";
+            }
         }
     }, []);
 
-    const showNetworkModal = (target: MergedChainItem): void => {
-        setNetworkIsUsable(false);
-        setVisibleMask(true);
-        const modalState: NetworkModalState = !target.exists
-            ? {
-                type: 'add',
-                content: 'The current network does not support it. Please add a network',
-                targetChain: target,
-            }
+    const sendApprove = async () => {
+        if (!unSignedTx || !fromData || !toData || uiState.approveBtnLoading) return;
+        updateUI("approveBtnLoading", true);
+        try {
+            const amountWei = ethers.parseUnits(amount, fromData.decimals);
+            const fromItem = ChainList.find((item) => item.chainId === fromData.chainId);
+            if (!fromItem) return;
+            const nextParams = buildBridgeParams(fromItem, toData.address, amountWei);
+            const hash = await AccountEvm.sendTransaction(unSignedTx);
+            if (!hash) return;
+            navigate("/stableCoin/stableCoinSendTx", { state: { ...nextParams, token: fromData.token } });
+        } finally {
+            updateUI("approveBtnLoading", false);
+        }
+    }
+
+    const showNetworkModal = useCallback((target: MergedChainItem): void => {
+        const modalState: NetworkModalState = !target.exists ? {
+            type: "add",
+            content: "The selected network hasn't been added to your wallet yet. Please add it to continue.",
+            targetChain: target,
+        }
             : {
-                type: 'switch',
-                content: 'The current network does not support it. Please switch networks',
+                type: "switch",
+                content: "The current network does not support it. Please switch networks",
                 targetChain: target,
             };
         setNetworkModal(modalState);
-    };
+        setNetworkIsUsable(false);
+        setVisibleMask(true);
+    }, []);
 
-    const buildFromData = (currentSupported: MergedChainItem, fromToken?: TokenListItem): StableCoinItem => {
-        return {
+    const initNetwork = async (list?: EvmNetworkItem[]) => {
+        const network = await Evm.getSelectedNetwork();
+        if (!network) return;
+        const mergedChains = mergeChains(list || networkList);
+        const currentSupported = mergedChains.find((c) => c.chainId.toString() === network.chainId);
+
+        if (!currentSupported) {
+            const target = mergedChains[0];
+            showNetworkModal(target);
+            return;
+        }
+        setNetworkIsUsable(true);
+        const fromToken = TokenList.find((item) => item.name === currentSupported.name);
+        const toData = mergedChains.find((item) => item.chainId.toString() !== currentSupported.chainId.toString());
+
+        const fromNewData = {
             ...currentSupported,
             chainId: Number(currentSupported.chainId),
             address: evmAddress,
-            symbol: fromToken?.symbol!,
             baseFee: fromToken?.baseFee || 0,
             fSymbol: currentSupported.fSymbol,
-            name: fromToken?.name! || currentSupported.name!,
-            networkName: currentSupported.networkName!,
-            estTime: currentSupported.estTime!,
-            balance: '0',
+            networkName: currentSupported.networkName,
+            balance: "0",
         };
-    };
-    const buildToData = (targetChain: MergedChainItem, toToken?: TokenListItem): StableCoinItem => {
-        return {
-            ...targetChain,
-            name: targetChain.name || '',
-            symbol: toToken?.symbol || '',
-            chainId: Number(targetChain.chainId),
-            address: evmAddress,
-            baseFee: toToken?.baseFee || 0,
-            fSymbol: targetChain.fSymbol,
-            networkName: targetChain.networkName!,
-            balance: '0',
-        };
+
+        setSelectToken({ type: "from", symbol: currentSupported.fSymbol });
+        setFromData(fromNewData);
+        fetchBalance(fromNewData);
+
+        if (toData) {
+            const toToken = TokenList.find((item) => item.name === toData.name);
+            const newToData = {
+                ...toData,
+                name: toData?.name || "",
+                chainId: Number(toData?.chainId!),
+                address: evmAddress,
+                baseFee: toToken?.baseFee || 0,
+                fSymbol: toData?.fSymbol!,
+                networkName: toData?.networkName!,
+                balance: "0",
+            };
+            setToData(newToData);
+        }
     };
 
-    const getChainInfo = (network: { chainId: string }) => {
-        const mergedChains: MergedChainItem[] = mergeChains(networkList) as MergedChainItem[];
-        const currentSupported = mergedChains.find((c) => c.chainId.toString() === network.chainId);
-        const targetChain = mergedChains.find((item) => item.chainId.toString() !== currentSupported?.chainId?.toString());
+    const buildBridgeParams = useCallback((fromItem: ChainConfig, spender: string, amountWei: bigint) => {
         return {
-            mergedChains,
-            currentSupported,
-            targetChain,
-        };
-    };
-
-    const validateApprove = (fromItem: ChainConfig, currentFromData: StableCoinItem, currentAmount: string): boolean => {
-        const minAmount = fromItem.minAmount || 0;
-        if (Number(currentFromData.balance) < Number(currentAmount)) {
-            noticeError('Current balance is insufficient');
-            return false;
-        }
-        if (!currentAmount || Number(currentAmount) < Number(minAmount)) {
-            noticeError(`Min Amount: ${minAmount}`);
-            return false;
-        }
-        return true;
-    };
-    const buildBridgeParams = (fromItem: ChainConfig, spender: string, amountWei: bigint): BridgeParams => {
-        return {
-            fromAddress: fromData?.address || '',
+            fromAddress: fromData?.address || "",
             toAddress: spender,
             amountWei,
             amount,
-            token: fromItem.token || '',
+            token: fromData?.token || "",
             networkName: fromData?.networkName,
             symbol: fromData?.symbol,
             explorer: fromItem.blockExplorerUrl,
             toChainId: toData?.chainId,
-            bridgeAddress: fromItem.bridgeAddress || '',
+            bridgeAddress: fromItem.bridgeAddress || "",
         };
-    };
-
-    const initNetwork = async (): Promise<void> => {
-        const network = await Evm.getSelectedNetwork();
-        if (!network) return;
-
-        const { mergedChains, currentSupported, targetChain } = getChainInfo(network);
-        if (!currentSupported) {
-            const fallbackTarget = mergedChains[0];
-            if (!fallbackTarget) return;
-            showNetworkModal(fallbackTarget);
-            return;
-        }
-
-        setNetworkIsUsable(true);
-        const fromToken = TokenList.find((item) => item.name === currentSupported.name);
-        const fromNewData = buildFromData(currentSupported, fromToken);
-        const selectTokenState: SelectTokenState = {
-            type: 'from',
-            symbol: currentSupported.fSymbol,
-        };
-
-        setSelectToken(selectTokenState);
-        setFromData(fromNewData);
-        fetchBalance(fromNewData);
-        if (!targetChain) return;
-        const toToken = TokenList.find((item) => item.name === targetChain.name);
-        const newToData = buildToData(targetChain, toToken);
-        setToData(newToData);
-    };
+    }, [amount, fromData?.address, fromData?.token, toData?.chainId,]);
     const setToken = (item: TokenListItem) => {
         if (selectToken.type === 'from' && fromData) {
             if (item.symbol !== fromData.symbol) {
@@ -307,86 +287,77 @@ const Stablecoin = () => {
 
     const switchInfo = async () => {
         if (!networkIsUsable) {
-            setVisibleMask(true)
-            return
-        }
-        if (!fromData || !toData || switching) return;
-        setSwitching(true)
-        try {
-            const newFrom = { ...toData }
-            setFromData(toData);
-            setToData(fromData);
-            setAmount("");
-            await switchNetwork(newFrom.chainId.toString())
-            fetchBalance(newFrom)
-        } finally {
-            setSwitching(false)
-        }
-    }
-
-    const approveFun = async (): Promise<void> => {
-        if (!networkIsUsable) {
             setVisibleMask(true);
             return;
         }
-        if (btnLoading || !fromData) return;
-
-        const fromItem = ChainList.find((item) => item.chainId === fromData.chainId);
-        if (!fromItem) return;
-
-        const isValid = validateApprove(fromItem, fromData, amount);
-        if (!isValid) return;
-
-        const spender = toData?.address || evmAddress;
-        const amountWei = ethers.parseUnits(amount, fromData.decimals);
-        const allowanceWei = ethers.parseUnits(
-            allowance.toString(),
-            fromData.decimals
-        );
-        const nextParams = buildBridgeParams(fromItem, spender, amountWei);
-        if (allowanceWei >= amountWei) {
-            navigate('/stableCoin/stableCoinSendTx', {
-                state: nextParams,
-            });
+        if (!fromData || !toData || switching) return;
+        const mergedChains = mergeChains(networkList);
+        const target = mergedChains.find((item) => item.chainId.toString() === toData.chainId.toString());
+        if (!target) return;
+        if (!target.exists) {
+            showNetworkModal(target);
             return;
         }
-        setBtnLoading(true);
-        if (!fromData?.token) return;
-        const currentAddress = preference.currentAccount?.ethAddress;
-        if (!currentAddress) return;
+        setSwitching(true);
         try {
-            const iface = new ethers.Interface(['function approve(address spender, uint256 amount) returns (bool)']);
-            const data = iface.encodeFunctionData('approve', [fromItem.bridgeAddress, amountWei]);
-            const unSignedTx = await AccountEvm.createContractTx({
-                from: currentAddress,
-                to: fromData.token,
-                data,
-                value: '0',
-            });
-            setUnSignedTx(unSignedTx)
+            const newFrom = { ...toData };
+            setFromData(toData);
+            setToData(fromData);
+            setAmount("");
+            await switchNetwork(newFrom.chainId.toString(), false);
+            void fetchBalance(newFrom);
         } finally {
-            updateUI('approveVisible', true)
-            setBtnLoading(false);
+            setSwitching(false);
         }
     };
 
-    const sendApprove = async() => {
-        if(!unSignedTx || !fromData || uiState.approveBtnLoading) return
-        updateUI('approveBtnLoading', true)
+    const approveFun = async () => {
+        if (!networkIsUsable) {
+            setVisibleMask(true)
+            return
+        }
+        if (!fromData || btnLoading) return
+        const fromItem = ChainList.find(item => item.chainId === fromData?.chainId)
+        if (!fromItem) return
+        const { minAmount = 0 } = fromItem!
+        if (Number(fromData?.balance) < Number(amount)) {
+            noticeError(`Current balance is insufficient`)
+            return
+        }
+        if (!amount || Number(amount) < Number(minAmount)) {
+            noticeError(`Min Amount: ${minAmount}`)
+            return
+        }
+        const spender = toData?.address || evmAddress;
+        const amountWei = ethers.parseUnits(amount, fromData.decimals);
+        const allowanceWei = ethers.parseUnits(allowance.toString(), fromData.decimals);
+        const nextParams = buildBridgeParams(fromItem, spender, amountWei);
+        if (allowanceWei >= amountWei) {
+            navigate("/stableCoin/stableCoinSendTx", { state: nextParams });
+            return;
+        }
+        if (!fromData.token) return;
+        const currentAddress = preference.currentAccount?.ethAddress;
+        if (!currentAddress) return;
+        setBtnLoading(true);
+
         try {
-            const amountWei = ethers.parseUnits(amount, fromData.decimals);
-            const fromItem = ChainList.find((item) => item.chainId === fromData.chainId);
-            const nextParams = buildBridgeParams(fromItem!, toData?.address!, amountWei);
-            const hash = await AccountEvm.sendTransaction(unSignedTx);
-            if (!hash) return;
-            navigate('/stableCoin/stableCoinSendTx', {
-                state: {
-                    ...nextParams,
-                    token: fromData.token,
-                },
+            const iface = new ethers.Interface(["function approve(address spender, uint256 amount) returns (bool)"]);
+            const data = iface.encodeFunctionData("approve", [
+                fromItem.bridgeAddress,
+                amountWei,
+            ]);
+            const tx = await AccountEvm.createContractTx({
+                from: currentAddress,
+                to: fromData.token,
+                data,
+                value: "0",
             });
+
+            setUnSignedTx(tx);
         } finally {
-            updateUI('approveBtnLoading', false)
+            updateUI("approveVisible", true);
+            setBtnLoading(false);
         }
     }
 
@@ -394,7 +365,7 @@ const Stablecoin = () => {
         if (networkInfo && networkInfo.chainId) {
             setNewNetwork({
                 name: networkInfo.name || '',
-                rpcUrl: [networkInfo.rpcUrl],
+                rpcUrl: networkInfo.rpcUrl,
                 chainId: networkInfo.chainId.toString(),
                 symbol: networkInfo.fSymbol!,
                 decimals: 18,
@@ -405,38 +376,41 @@ const Stablecoin = () => {
         }
     }
 
-    const switchNetwork = async (chainId: string) => {
+    const switchNetwork = async (chainId: string, isInit: boolean = false) => {
         if (!chainId) return;
         try {
-            let network = networkList.find(item => item.chainId === chainId)
-            if (!network) {
-                throw Error("network index invalid")
+            const network = networkList.find((item) => item.chainId === chainId);
+            if (!network) { throw Error("network index invalid"); }
+            await Evm.setSelectedNetwork(chainId);
+            setVisibleMask(false);
+            if(isInit) {
+                await initNetwork();
             }
-            await Evm.setSelectedNetwork(chainId)
-            setVisibleMask(false)
-            initNetwork()
         } catch (error) {
-            console.log('error', error)
-            noticeError(error)
+            noticeError(error);
         }
-    }
+    };
 
     useEffect(() => {
         if (!fromData?.token || !fromData?.address) return;
-        void fetchAllowance();
-    }, [fromData?.address, fromData?.chainId, fromData?.token]);
+        fetchAllowance();
+    }, [
+        fromData?.chainId,
+        fromData?.token,
+        fromData?.address,
+    ]);
 
     useEffect(() => {
         const fetchNetworks = async () => {
             const res = await Evm.getNetworks()
             setNetworkList(res || [])
         }
-        void fetchNetworks()
+        fetchNetworks()
     }, [])
 
     useEffect(() => {
         if (!networkList.length) return;
-        void initNetwork();
+        initNetwork();
     }, [networkList]);
 
     return (
@@ -485,16 +459,13 @@ const Stablecoin = () => {
                             <span>{fromData?.symbol}</span>
                         </div>
                     </div>
-
                     <div className="mt15 flex-row cb ac">
                         <span className="max-100 one-line">
                             {(fromData?.networkName || fromData?.name) || "Not Network"}
                         </span>
                         <div className="sub-tit mb0import">
                             <strong className="mr5" onClick={() => setAmount(fromData?.balance! || '')}>MAX</strong>
-                            <span>
-                                <BankcardOutline /> {fromData?.balance || 0}
-                            </span>
+                            <span><BankcardOutline /> {fromData?.balance || 0}</span>
                         </div>
                     </div>
                 </div>
@@ -537,17 +508,6 @@ const Stablecoin = () => {
                         {(toData?.networkName || toData?.name) || "Not Network"}
                     </span>
                 </div>
-                <div className="history-box mt20">
-                    <div className="history-token-item">
-                        <span>Est. Time</span>
-                        <em>{fromData?.estTime || '-'} minute</em>
-                    </div>
-                    <div className="history-token-item">
-                        <span>Service Fee</span>
-                        <em>{fromData?.baseFee || 0}</em>
-                    </div>
-                </div>
-
                 {/* submit */}
                 <div className="btn-pos-two post-bottom">
                     <Button
@@ -555,15 +515,11 @@ const Stablecoin = () => {
                         size="large"
                         color="primary"
                         loading={btnLoading}
-                        loadingText="Submitting..."
                         disabled={!amount || !toAmount || !networkIsUsable}
                         onClick={approveFun}
-                    >
-                        Bridge
-                    </Button>
+                    >Bridge</Button>
                 </div>
             </div>
-
             {/* address popup */}
             <AddressSelectPopup
                 visible={uiState.addressPopup}
@@ -582,11 +538,13 @@ const Stablecoin = () => {
                     )
                 }}
             />
-
             <Mask visible={visibleMask} onMaskClick={() => setVisibleMask(false)}>
                 <article className="remove-box">
                     <div className="remove-bg">
                         <SvgIcon className="remove-close" onClick={() => setVisibleMask(false)} iconName="IconClose" color="#7F7F7F" />
+                        <h3 className="remove-tit">
+                            {networkModal.type === "add" ? "Network Not Added" : "Switch Network"}
+                        </h3>
                         <div className="remove-nox-content">
                             <p className="remove-tip">{networkModal.content}</p>
                             <div className="remove-btns">
@@ -595,9 +553,9 @@ const Stablecoin = () => {
                                     if (networkModal.type === 'add') {
                                         addNetwork(networkModal.targetChain!)
                                     } else {
-                                        switchNetwork(networkModal.targetChain!.chainId.toString())
+                                        switchNetwork(networkModal.targetChain!.chainId.toString(), true)
                                     }
-                                }}>Confirm</Button>
+                                }}>{networkModal.type === "add" ? "Add Network" : "Switch Network"}</Button>
                             </div>
                         </div>
                     </div>
@@ -611,12 +569,14 @@ const Stablecoin = () => {
                 data={newNetwork}
                 onClose={() => updateUI('networkPopup', false)}
                 onSuccess={async (type) => {
-                    if (type === 'success') {
-                        initNetwork()
+                    if (type === "success") {
+                        const res = await Evm.getNetworks();
+                        const latestNetworks = res || [];
+                        setNetworkList(latestNetworks);
+                        initNetwork(latestNetworks);
                     }
                 }}
             />
-
             {/* Select Token Popup */}
             <SelectTokenPopup
                 visible={uiState.tokenPopup}
@@ -626,76 +586,20 @@ const Stablecoin = () => {
                 onSelect={setToken}
             />
 
-            {/* Approve Popup */}
-            <Popup
-                bodyClassName="approve-popup-body"
-                showCloseButton
-                bodyStyle={{
-                    height: '80vh',
-                    borderTopLeftRadius: '8px',
-                    borderTopRightRadius: '8px',
-                    overflowY: 'auto',
-                }}
+            <ApprovePopup
                 visible={uiState.approveVisible}
-                onMaskClick={() => {
-                    updateUI('approveVisible', false)
+                loading={uiState.approveBtnLoading}
+                fromData={fromData}
+                toData={toData}
+                amount={amount}
+                unSignedTx={unSignedTx}
+                onClose={() => updateUI("approveVisible", false)}
+                onReject={() => {
+                    updateUI("approveVisible", false);
+                    updateUI("approveBtnLoading", false);
                 }}
-                onClose={() => {
-                    updateUI('approveVisible', false)
-                }}
-            >
-                <div className='popup-title'>
-                    <h6>Approve Info</h6>
-                </div>
-                <article className='popup-box-auto assets-details'>
-                    <div className="history-box">
-                        <div className="history-token-item">
-                            <span>Network</span>
-                            <em>{ fromData?.networkName || ''}</em>
-                        </div>
-                        <div className="history-token-item">
-                            <span>Method</span>
-                            <em>approve</em>
-                        </div>
-                        <div className="history-token-item">
-                            <span>Token Address</span>
-                            <em>{formatAddress(fromData?.token || '', 6) } <SvgIcon onClick={() => handleCopy(fromData?.token || "")} iconName="IconCopy" offsetStyle={{ marginLeft: '5px', marginRight: '-12px' }} /></em>
-                        </div>
-                        <div className="history-token-item">
-                            <span>Approve To</span>
-                            <em>{ formatAddress(toData?.address || '', 6) } <SvgIcon onClick={() => handleCopy(toData?.address || "")} iconName="IconCopy" offsetStyle={{ marginLeft: '5px', marginRight: '-12px' }} /></em>
-                        </div>
-                        <div className="history-token-item">
-                            <span>Approve Amount</span>
-                            <em>{ amount } { fromData?.symbol}</em>
-                        </div>
-                        <div className="tx-confirm-box">
-                            <h6 className="sub-tit mt15">Sign Message</h6>
-                            <div className="tx-confirm-content">
-                                <div className="tx-confirm-data">
-                                    { unSignedTx && JSON.stringify(unSignedTx, null, 8) }
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </article>
-                <div className="btn-pos-two flexd-row post-bottom">
-                    <Button block size="large" 
-                    onClick={() => {
-                        updateUI('approveVisible', false)
-                        updateUI('approveBtnLoading', false)
-                    }}
-                    >
-                        Reject
-                    </Button>
-                    <Button block size="large" color="primary"
-                        onClick={() => sendApprove()}
-                        loading={uiState.approveBtnLoading}
-                        loadingText={'Approving...'}>
-                        Approve
-                    </Button>
-                </div>
-            </Popup>
+                onApprove={() => void sendApprove()}
+            />
         </div>
     );
 };
