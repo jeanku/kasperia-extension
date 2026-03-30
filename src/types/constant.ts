@@ -19,7 +19,7 @@ export const IGRAL1ToL2BridgeAddressForMainnet = "kaspa:ppvnxxzm0rr37zpnwux2f2nt
 
 export const KNSDomain = "https://api.knsdomains.org"
 
-export const HistoryApiUrl = "https://kasbridge-tn10evm-api.kaspafoundation.org/"
+export const HistoryApiUrl = "https://kasbridge-evm-api.kaspafoundation.org/"
 
 export const FixDecimal = 4
 

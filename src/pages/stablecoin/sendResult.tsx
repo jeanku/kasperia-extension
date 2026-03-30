@@ -20,7 +20,7 @@ const SendResult = () => {
          <div className="content-main send-result">
             <div className='send-result-txt'>
                <img className='result-img' src={IconSuccess} alt="success" />
-               <h6>Send</h6>
+               <h6>Sent</h6>
                <p className='send-result-p send-result-amount'>{sendTo.amount} {symbol}</p>
                <p className='send-result-p'> Transfer is being processed on-chain. Bridging usually takes a few minutes depending on network traffic.</p>
                {/* <p className='send-result-p'>{formatAddress(sendTo.address, 12)}</p> */}
