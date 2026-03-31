@@ -26,7 +26,6 @@ const Deploy = () => {
     const navigate = useNavigate();
     const { preference } = useSelector((state: RootState) => state.preference);
 
-    const [address, setAddress] = useState("")
     const [tick, setTick] = useState<string>(state?.tick || '')
     const [maxSupply, setMaxSupply] = useState<string>(state?.maxSupply || '100000000')
     const [limit, setLimit] = useState<string>(state?.limit || '1000')
@@ -93,14 +92,14 @@ const Deploy = () => {
             let _decimal = BigInt(decimal.trim() || "8")
             max = max * (10n ** _decimal)
             lim = lim * (10n ** _decimal)
-            let pre = preAmount.trim() == "" ? "" : (BigInt(preAmount.trim()) * (10n ** _decimal)).toString()
+            let pre = preAmount.trim() == "" ? undefined : (BigInt(preAmount.trim()) * (10n ** _decimal)).toString()
             const krc20data = {
                 tick: tick.trim(),
                 max: max.toString(),
                 lim: lim.toString(),
-                to: preAddress.trim(),
-                dec: Number(_decimal),
-                pre: pre.trim(),
+                to: preAddress.trim() == "" ? undefined : preAddress.trim(),
+                dec: _decimal.toString(),
+                pre: pre,
             }
             navigate('/krc20/deployConfirm', {state: {data: krc20data}})
         } catch (error) {
@@ -219,7 +218,7 @@ const Deploy = () => {
                 isKaspa={ true }
                 onClose={() => setPopupVisible(false)}
                 onSelect={(res) => {
-                    setAddress(res.address)
+                    setPreAddress(res.address)
                 }}
             />
         </article>
