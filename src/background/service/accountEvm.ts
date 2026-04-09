@@ -126,6 +126,18 @@ export class AccountEvm {
         return ethers.toBeHex(gas)
     }
 
+    async eth_gasPrice() {
+        let provider = await this.getProvider()
+        const feeData = await provider.getFeeData()
+        return ethers.toBeHex(feeData.gasPrice || 0);
+    }
+
+    async eth_maxPriorityFeePerGas() {
+        let provider = await this.getProvider()
+        const feeData = await provider.getFeeData()
+        return ethers.toBeHex(feeData.maxPriorityFeePerGas || 0);
+    }
+
     async eth_getTransactionCount(address: ethers.AddressLike, blockTag?: BlockTag) {
         return this.getProvider().then(p => p.getTransactionCount(address, blockTag))
     }

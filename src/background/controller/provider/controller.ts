@@ -461,6 +461,14 @@ class ProviderController {
         return await accountEvmService.eth_estimateGas(tx)
     }
 
+    eth_gasPrice = async () => {
+        return await accountEvmService.eth_gasPrice()
+    }
+
+    eth_maxPriorityFeePerGas = async () => {
+        return await accountEvmService.eth_maxPriorityFeePerGas()
+    }
+
     eth_getCode = async (request: RequestProps) => {
         const params = request?.data?.params;
 

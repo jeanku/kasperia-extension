@@ -134,6 +134,10 @@ export class Provider {
         return this.safeCall(p => p.estimateGas(tx));
     }
 
+    getFeeData() {
+        return this.safeCall(p => p.getFeeData());
+    }
+
     getTransaction(hash: string) {
         return this.safeCall(p => p.getTransaction(hash));
     }

@@ -242,7 +242,7 @@ export class KasperiaProvider extends EventEmitter {
     };
 
     getVersion = async () => {
-        return "1.10.78";
+        return "1.10.80";
     };
 
     async request({ method, params }: RequestArguments): Promise<any> {
@@ -255,6 +255,8 @@ export class KasperiaProvider extends EventEmitter {
             case 'personal_sign':
             case 'eth_getBalance':
             case 'eth_estimateGas':
+            case 'eth_gasPrice':
+            case 'eth_maxPriorityFeePerGas':
             case 'eth_blockNumber':
             case 'eth_getBlockByNumber':
             case 'eth_sendTransaction':
