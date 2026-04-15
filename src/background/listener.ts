@@ -2,6 +2,7 @@ import {
     keyringService, preferenceService, contactService, notificationService, permissionService,
     evmService, shareService, accountService, accountEvmService
 } from './service';
+import { applyUiMode} from './index';
 
 const handlers: Record<string, (message: any) => Promise<any> | any> = {
     "Keyring.isBoot": () => keyringService.isBoot(),
@@ -10,6 +11,11 @@ const handlers: Record<string, (message: any) => Promise<any> | any> = {
     "Keyring.isLocked": () => keyringService.isLocked(),
     "Keyring.lock": () => keyringService.lock(),
     "Keyring.unlock": (msg) => keyringService.unlock(msg.password),
+    "Keyring.setUiMode": async (msg) => {
+        await applyUiMode(msg.uiMode)
+        return true;
+    },
+    "Keyring.getUiMode": () => keyringService.getUiMode(),
 
     "Keyring.setActiveWallet": (msg) => keyringService.setActiveWallet(msg.id),
     "Keyring.getActiveAccountDisplay": () => keyringService.getActiveAccountDisplay(),

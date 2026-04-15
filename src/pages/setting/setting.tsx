@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from "react"
+import React, {useState, useEffect, useCallback} from "react"
 import HeadNav from '@/components/HeadNav'
 import Footer from '@/components/Footer'
 import { useNavigate } from "react-router-dom";
@@ -11,12 +11,39 @@ const Setting = () => {
     const navigate = useNavigate();
     const { preference} = useSelector((state: RootState) => state.preference);
     const [isPopUp, setIsPopUp] = useState(true);
+    const [mode, setMode] = useState('main');
     const lockFn = () => {
         Keyring.lock()
         navigate('/unlock', { replace: true });
     }
 
+    const switchWindow = async () => {
+        const nextMode = mode === 'main' ? 'sidepanel' : 'main';
+        const current = await chrome.windows.getCurrent();
+        await Keyring.setUiMode(nextMode);
+        setMode(nextMode);
+        if (nextMode === 'sidepanel') {
+            await chrome.sidePanel.open({ windowId: current.id! });
+            window.close();
+            return;
+        }
+        const sidePanelApi = chrome.sidePanel as typeof chrome.sidePanel & {
+            close?: (options: { windowId?: number; tabId?: number }) => Promise<void>;
+        };
+        if (sidePanelApi.close) {
+            await sidePanelApi.close({ windowId: current.id! });
+        } else {
+            await chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: false });
+            await chrome.action.setPopup({ popup: 'index.html' });
+        }
+    };
+
     useEffect(() => {
+        const init = async () => {
+            const res = await Keyring.getUiMode();
+            setMode(res);
+        };
+        init();
         setIsPopUp(window.innerWidth <= 400)
     }, []);
     
@@ -38,6 +65,12 @@ const Setting = () => {
                         </div>
                     ) : null
                 }
+                <div className="list-item-box" onClick={() => switchWindow()} >
+                    <div className="list-item-left">
+                        <strong>Switch To {mode === 'main' ? 'side panel' : 'popup' }</strong>
+                    </div>
+                    <SvgIcon iconName="IconConvert"/>
+                </div>
                 <div className="list-item-box" onClick={() => navigate('/contact/index')}>
                     <div className="list-item-left">
                         <strong>Address Book</strong>
@@ -78,7 +111,7 @@ const Setting = () => {
                 <div className="list-item-box">
                     <p className="list-box-btn" onClick={() => lockFn()}>Lock now</p>
                 </div>
-                <div className="otth-icon">
+                <div className="otth-icon mt5vh">
                     <div className="otth-icon-box">
                          {/*<SvgIcon className="cursor-pointer" size={20} iconName="IconDiscord" />*/}
                          <SvgIcon className="cursor-pointer" size={20} iconName="IconWeb" onClick={() => openUrl('https://kasperia-doc.github.io/index.html')} />

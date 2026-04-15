@@ -452,8 +452,8 @@ const Stablecoin = () => {
                             <TokenImg
                                 url={fromData?.symbol ?? ""}
                                 name={fromData?.symbol ?? ""}
-                                width={28}
-                                height={28}
+                                width={30}
+                                height={30}
                                 marginRight={"3"}
                             />
                             <span>{fromData?.symbol}</span>
@@ -497,8 +497,8 @@ const Stablecoin = () => {
                             <TokenImg
                                 url={toData?.symbol ?? ""}
                                 name={toData?.symbol ?? ""}
-                                width={28}
-                                height={28}
+                                width={30}
+                                height={30}
                                 marginRight={"3"}
                             />
                             <span>{toData?.symbol}</span>

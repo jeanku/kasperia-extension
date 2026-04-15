@@ -31,6 +31,27 @@ chrome.runtime.onConnect.addListener((port) => {
     });
 });
 
+export async function applyUiMode(uiMode: 'main' | 'sidepanel') {
+    if (uiMode === 'sidepanel') {
+        await chrome.action.setPopup({ popup: '' });
+        await chrome.sidePanel.setOptions({
+            path: 'side_panel.html',
+            enabled: true,
+        });
+        await chrome.sidePanel.setPanelBehavior({
+            openPanelOnActionClick: true,
+        });
+    } else {
+        await chrome.sidePanel.setPanelBehavior({
+            openPanelOnActionClick: false,
+        });
+        await chrome.action.setPopup({ popup: 'index.html' });
+        await chrome.storage.local.set({ uiMode });
+    }
+    await chrome.storage.local.set({ uiMode });
+}
+
+
 // Keep alive for MV3
 const INTERNAL_STAYALIVE_PORT = 'CT_Internal_port_alive';
 let alivePort: any = null;

@@ -155,3 +155,5 @@ export interface EvmNetworkItem {
     chainId: string;
     name: string;
 }
+
+export type uiModel = "sidepanel" | "main";

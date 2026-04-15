@@ -55,6 +55,18 @@ export class KeyRing {
         this.expire = 0
     }
 
+    async setUiMode(uiMode: "sidepanel" | "main") {
+        if (!['main', 'sidepanel'].includes(uiMode)) {
+            uiMode = 'main';
+        }
+        await Storage.setData('uiMode' ,{ uiMode });
+    }
+
+    async getUiMode() {
+        const res = await Storage.getData('uiMode');
+        return res || 'main';
+    }
+
     async unlock(password: string) {
         try {
             if (await this.isLocked()) {

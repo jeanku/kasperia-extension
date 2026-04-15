@@ -37,6 +37,11 @@ body {
     overflow-y: auto;
 }
 
+#root.sidepanel {
+    width: 100%;
+    height: 100vh;
+}
+
 @media screen and (min-width: 768px) {
     html {
         font-size: 75px !important;
@@ -223,7 +228,9 @@ em {
 .mt8 {
     margin-top: 8px;
 }
-
+.mt5vh {
+    margin-top: 5vh;
+}
 .mt10 {
     margin-top: 10px;
 }
@@ -1389,10 +1396,8 @@ em {
 }
 
 .otth-icon {
-    position: absolute;
-    bottom: 68px;
-    left: 0;
-    right: 0;
+    position: relative;
+    margin-bottom: 20px;
 
     .otth-icon-box {
         display: flex;

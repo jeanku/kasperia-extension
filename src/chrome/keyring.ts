@@ -29,6 +29,14 @@ export class Keyring {
         return Chrome.request({ action: "Keyring.unlock", password: password })
     }
 
+    static getUiMode(): Promise<string> {
+        return Chrome.request({ action: "Keyring.getUiMode" })
+    }
+
+    static setUiMode(uiMode: string): Promise<any> {
+        return Chrome.request({ action: "Keyring.setUiMode", uiMode: uiMode })
+    }
+
     static addAccountFromPrivateKey(privateKey: string): Promise<AccountDisplay> {
         return Chrome.request({ action: `Keyring.addAccountFromPrivateKey`, privateKey })
     }

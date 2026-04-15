@@ -85,7 +85,7 @@ const Explore = () => {
                     navigate('/stableCoin/stableCoin')
                 }}>
                     <div className="list-item-left">
-                        <strong>StableCoin Bridge</strong>
+                        <strong>Kurve Bridge</strong>
                     </div>
                     <SvgIcon iconName="IconBridge" />
                 </div>

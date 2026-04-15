@@ -10,7 +10,8 @@ module.exports = (env, argv) => {
         mode: 'production',
         target: 'webworker',
         entry: {
-            main: './src/index.tsx',
+            main: "./src/index.tsx",
+            sidepanel: "./src/sidepanel.tsx",
             background: './src/background/index.ts',
             content: './src/content-script/index.ts',
             injected: './src/content-script/pageProvider/index.ts'
@@ -91,12 +92,23 @@ module.exports = (env, argv) => {
                 filename: 'index.html',
                 inject: 'body',
                 chunks: ['main'],
+                templateParameters: {
+                    mode: 'main',
+                },
                 minify: {
                     collapseWhitespace: true,
                     removeComments: true,
                     removeRedundantAttributes: true,
                     useShortDoctype: true,
                 }
+            }),
+            new HtmlWebpackPlugin({
+                template: "./index.html",
+                filename: "side_panel.html",
+                chunks: ["sidepanel"],
+                templateParameters: {
+                    mode: 'sidepanel',
+                },
             }),
             new MiniCssExtractPlugin({
                 filename: 'css/[name].css'
