@@ -14,7 +14,7 @@ import TokenImg from "@/components/TokenImg";
 import { Oplist, TokenList } from '@/model/krc20';
 import { EvmTokenList, EvmNetwork, KnsAssetsResponse, KnsAsset } from '@/model/evm';
 import { NetworkType } from '@/utils/wallet/consensus';
-import { formatAddress, formatBalance, formatDate, formatHash, formatDecimal, formatTokenAmount } from "@/utils/util"
+import { formatAddress, formatBalance, formatDate, formatHash, formatDecimal, formatBalanceFixed } from "@/utils/util"
 import { Evm } from "@/chrome/evm"
 import { Account } from "@/chrome/account"
 import { AccountEvm } from "@/chrome/accountEvm"
@@ -56,13 +56,6 @@ const Home = () => {
 
     const { preference } = useSelector((state: RootState) => state.preference);
     const { homeSelectTab } = useSelector((state: RootState) => state.user);
-
-    const BOOT_DELAY_KEY = 'extension_boot_delayed';
-    const isSidePanelPage = window.location.pathname.includes('side_panel');
-    const [contentReady, setContentReady] = useState(() => {
-        if (!isSidePanelPage) return true;
-        return sessionStorage.getItem(BOOT_DELAY_KEY) === '1';
-    });
 
     const currentAccount = useSelector((state: RootState) => state.preference.preference?.currentAccount);
 
@@ -110,18 +103,6 @@ const Home = () => {
             handleHomeTab(key)
         }
     }, [currentAccount]);
-
-    useEffect(() => {
-        let timer: number | undefined;
-        if (!isSidePanelPage || contentReady) return;
-        timer = window.setTimeout(() => {
-            sessionStorage.setItem(BOOT_DELAY_KEY, '1');
-            setContentReady(true);
-        }, 310);
-        return () => {
-            if (timer) window.clearTimeout(timer);
-        };
-    }, [contentReady, isSidePanelPage]);
 
     const actions: Action[] = useMemo(() => {
         const baseActions: Action[] = [
@@ -410,9 +391,6 @@ const Home = () => {
         setKnsPage(resp.data.pagination.currentPage)
         setListLoadingType(0)
     }
-    if (!contentReady) {
-        return <div className="page-box" />;
-    }
 
     return (
         <div className="page-box">
@@ -450,7 +428,7 @@ const Home = () => {
                         <p className="account-text-amount font-Inter-black"><CountUp key={balance} start={0.00}
                                                                                      decimal={'.'}
                                                                                      decimals={formatDecimal(balance, 8)}
-                                                                                     end={Number(formatTokenAmount(balance, 8))}
+                                                                                     end={Number(formatBalance(balance, 8))}
                                                                                      duration={0.2}/> KAS</p>
                     </div>
                 </div>
@@ -516,7 +494,7 @@ const Home = () => {
                                             <span> KRC20 </span>
                                         </div>
                                         <div className="list-item-content text-right">
-                                            <strong>{formatTokenAmount(token.balance, Number(token.dec))}</strong>
+                                            <strong>{formatBalance(token.balance, token.dec)}</strong>
                                             <span>{token.ca ? "CA:" + formatHash(token.ca, 6) : "-"}</span>
                                         </div>
                                     </div>
@@ -558,7 +536,7 @@ const Home = () => {
                                                             <div className="history-left">
                                                                 <em className={item.amount < 0 ? 'history-icon sub' : 'history-icon'}>{item.amount < 0 ? "-" : "+"}</em>
                                                                 <strong
-                                                                    className="history-amount">{formatTokenAmount(`${Math.abs(item.amount)}`, 8)} Kas</strong>
+                                                                    className="history-amount">{formatBalance(`${Math.abs(item.amount)}`, 8)} Kas</strong>
                                                             </div>
                                                             <span
                                                                 className="history-time">{formatDate(item.block_time.toString())}</span>
@@ -626,7 +604,7 @@ const Home = () => {
                                                             className="one-line"> {formatAddress(token.address || token.name)} </span>
                                                     </div>
                                                     <div className="list-item-content text-right">
-                                                        <strong>{formatTokenAmount(token.balance, token.decimals)}</strong>
+                                                        <strong>{formatBalanceFixed(token.balance, 4)}</strong>
                                                         <span></span>
                                                     </div>
                                                 </div>

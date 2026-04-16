@@ -38,33 +38,10 @@ export const formatBalance = (amount: string, dec: number | string): string => {
     let valueStr = ethers.formatUnits(amount, Number(dec))
     const value = parseFloat(valueStr)
     let fixed = formatFixed(value)
-    let result = truncateDecimals(valueStr, fixed).replace(/(\.\d*?[1-9])0+$/g, "$1")
-    return result.replace(/\.0+$/, "")
-};
-
-export const formatTokenAmount = (
-    amount: string | number,
-    decimals = 6,
-    fixed = 4
-): string => {
-    if (amount === "" || amount === null || amount === undefined) return "";
-    let valueStr: string;
-    const str = String(amount);
-    const isInteger = /^[0-9]+$/.test(str);
-    try {
-        if (isInteger) {
-            const divisor = 10 ** Number(decimals);
-            valueStr = (Number(str) / divisor).toString();
-        } else {
-            valueStr = str;
-        }
-    } catch {
-        return "";
-    }
-    const [intPart, fracPart = ""] = valueStr.split(".");
-    const truncatedFrac = fracPart.slice(0, fixed);
-    const intFormatted = Number(intPart).toLocaleString("en-US");
-    return truncatedFrac ? `${intFormatted}.${truncatedFrac}` : intFormatted;
+    let result = truncateDecimals(valueStr, fixed).replace(/(\.\d*?[1-9])0+$/g, "$1").replace(/\.0+$/, "")
+    const [intPart, fracPart] = result.split(".")
+    const intFormatted = Number(intPart).toLocaleString("en-US")
+    return fracPart ? `${intFormatted}.${fracPart}` : intFormatted
 };
 
 export const formatBalanceFixed = (valueStr: string, round?: number): string => {
@@ -75,8 +52,15 @@ export const formatBalanceFixed = (valueStr: string, round?: number): string => 
     if (!round) {
         round = formatFixed(value)
     }
-    let result = truncateDecimals(valueStr, round).replace(/(\.\d*?[1-9])0+$/g, "$1")
-    return result.replace(/\.0+$/, "")
+    let result = truncateDecimals(valueStr, round).replace(/(\.\d*?[1-9])0+$/g, "$1").replace(/\.0+$/, "")
+    const [intPart, fracPart] = result.split(".")
+    let intFormatted: string
+    try {
+        intFormatted = BigInt(intPart || "0").toLocaleString("en-US")
+    } catch {
+        intFormatted = Number(intPart).toLocaleString("en-US")
+    }
+    return fracPart ? `${intFormatted}.${fracPart}` : intFormatted
 };
 
 function truncateDecimals(value: string, n: number): string {
