@@ -14,7 +14,7 @@ import TokenImg from "@/components/TokenImg";
 import { Oplist, TokenList } from '@/model/krc20';
 import { EvmTokenList, EvmNetwork, KnsAssetsResponse, KnsAsset } from '@/model/evm';
 import { NetworkType } from '@/utils/wallet/consensus';
-import { formatAddress, formatBalance, formatDate, formatHash, formatDecimal, formatBalanceFixed } from "@/utils/util"
+import { formatAddress, formatBalance, formatDate, formatHash, formatDecimal, formatTokenAmount } from "@/utils/util"
 import { Evm } from "@/chrome/evm"
 import { Account } from "@/chrome/account"
 import { AccountEvm } from "@/chrome/accountEvm"
@@ -558,7 +558,7 @@ const Home = () => {
                                                             <div className="history-left">
                                                                 <em className={item.amount < 0 ? 'history-icon sub' : 'history-icon'}>{item.amount < 0 ? "-" : "+"}</em>
                                                                 <strong
-                                                                    className="history-amount">{formatBalance(`${Math.abs(item.amount)}`, 8)} Kas</strong>
+                                                                    className="history-amount">{formatTokenAmount(`${Math.abs(item.amount)}`, 8)} Kas</strong>
                                                             </div>
                                                             <span
                                                                 className="history-time">{formatDate(item.block_time.toString())}</span>
@@ -626,7 +626,7 @@ const Home = () => {
                                                             className="one-line"> {formatAddress(token.address || token.name)} </span>
                                                     </div>
                                                     <div className="list-item-content text-right">
-                                                        <strong>{formatBalanceFixed(token.balance, 4)}</strong>
+                                                        <strong>{formatTokenAmount('234234234.23423', 4)}</strong>
                                                         <span></span>
                                                     </div>
                                                 </div>

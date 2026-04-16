@@ -42,6 +42,30 @@ export const formatBalance = (amount: string, dec: number | string): string => {
     return result.replace(/\.0+$/, "")
 };
 
+export const formatTokenAmount = (
+    amount: string | number,
+    decimals = 6,
+    fixed = 4
+): string => {
+    if (amount === "" || amount === null || amount === undefined) return "";
+    let valueStr: string;
+    const str = String(amount);
+    const isInteger = /^[0-9]+$/.test(str);
+    try {
+        if (isInteger) {
+            const divisor = 10 ** Number(decimals);
+            valueStr = (Number(str) / divisor).toString();
+        } else {
+            valueStr = str;
+        }
+    } catch {
+        return "";
+    }
+    const [intPart, fracPart = ""] = valueStr.split(".");
+    const truncatedFrac = fracPart.slice(0, fixed);
+    const intFormatted = Number(intPart).toLocaleString("en-US");
+    return truncatedFrac ? `${intFormatted}.${truncatedFrac}` : intFormatted;
+};
 
 export const formatBalanceFixed = (valueStr: string, round?: number): string => {
     if (!valueStr) {
