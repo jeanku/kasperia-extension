@@ -31,6 +31,18 @@ export const formatAddress = (address: string | undefined, skip: number = 6): st
     return `${resp[0]}:${resp[1].slice(0, skip)}...${resp[1].slice(-skip)}`
 }
 
+export const formatWithThousands = (valueStr: string): string => {
+    if (!valueStr) return valueStr;
+    const [intPart, fracPart] = valueStr.split(".");
+    let intFormatted: string;
+    try {
+        intFormatted = BigInt(intPart || "0").toLocaleString("en-US");
+    } catch {
+        intFormatted = Number(intPart).toLocaleString("en-US");
+    }
+    return fracPart ? `${intFormatted}.${fracPart}` : intFormatted;
+};
+
 export const formatBalance = (amount: string, dec: number | string): string => {
     if (!amount || !dec) {
         return ""
@@ -39,9 +51,7 @@ export const formatBalance = (amount: string, dec: number | string): string => {
     const value = parseFloat(valueStr)
     let fixed = formatFixed(value)
     let result = truncateDecimals(valueStr, fixed).replace(/(\.\d*?[1-9])0+$/g, "$1").replace(/\.0+$/, "")
-    const [intPart, fracPart] = result.split(".")
-    const intFormatted = Number(intPart).toLocaleString("en-US")
-    return fracPart ? `${intFormatted}.${fracPart}` : intFormatted
+    return formatWithThousands(result)
 };
 
 export const formatBalanceFixed = (valueStr: string, round?: number): string => {
@@ -53,14 +63,7 @@ export const formatBalanceFixed = (valueStr: string, round?: number): string => 
         round = formatFixed(value)
     }
     let result = truncateDecimals(valueStr, round).replace(/(\.\d*?[1-9])0+$/g, "$1").replace(/\.0+$/, "")
-    const [intPart, fracPart] = result.split(".")
-    let intFormatted: string
-    try {
-        intFormatted = BigInt(intPart || "0").toLocaleString("en-US")
-    } catch {
-        intFormatted = Number(intPart).toLocaleString("en-US")
-    }
-    return fracPart ? `${intFormatted}.${fracPart}` : intFormatted
+    return formatWithThousands(result)
 };
 
 function truncateDecimals(value: string, n: number): string {
