@@ -450,7 +450,7 @@ const Home = () => {
                         <p className="account-text-amount font-Inter-black"><CountUp key={balance} start={0.00}
                                                                                      decimal={'.'}
                                                                                      decimals={formatDecimal(balance, 8)}
-                                                                                     end={Number(formatBalance(balance, 8))}
+                                                                                     end={Number(formatTokenAmount(balance, 8))}
                                                                                      duration={0.2}/> KAS</p>
                     </div>
                 </div>
@@ -626,7 +626,7 @@ const Home = () => {
                                                             className="one-line"> {formatAddress(token.address || token.name)} </span>
                                                     </div>
                                                     <div className="list-item-content text-right">
-                                                        <strong>{formatBalance(token.balance, 4)}</strong>
+                                                        <strong>{formatTokenAmount(token.balance, token.decimals)}</strong>
                                                         <span></span>
                                                     </div>
                                                 </div>
