@@ -516,7 +516,7 @@ const Home = () => {
                                             <span> KRC20 </span>
                                         </div>
                                         <div className="list-item-content text-right">
-                                            <strong>{formatBalance(token.balance, token.dec)}</strong>
+                                            <strong>{formatTokenAmount(token.balance, Number(token.dec))}</strong>
                                             <span>{token.ca ? "CA:" + formatHash(token.ca, 6) : "-"}</span>
                                         </div>
                                     </div>
@@ -626,7 +626,7 @@ const Home = () => {
                                                             className="one-line"> {formatAddress(token.address || token.name)} </span>
                                                     </div>
                                                     <div className="list-item-content text-right">
-                                                        <strong>{formatTokenAmount('234234234.23423', 4)}</strong>
+                                                        <strong>{formatBalance(token.balance, 4)}</strong>
                                                         <span></span>
                                                     </div>
                                                 </div>
