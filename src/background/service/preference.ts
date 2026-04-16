@@ -8,6 +8,7 @@ import {accountService, keyringService} from './index';
 import {ObservableStore} from '@metamask/obs-store';
 import {EvmTokenList} from "@/model/evm";
 import {NetworkId, NetworkType} from "@/utils/wallet/consensus";
+import { uiModel } from '@/types/type';
 
 export class Preference {
 
@@ -57,6 +58,7 @@ export class Preference {
             krc20TokenList: [],
             krc20OpList: [],
             kaspaTxList: [],
+            uiModel: 'main',
             accountsBalance: {}
         })
         accountService.reconnect(NetworkId.from(network.networkType))
@@ -107,6 +109,17 @@ export class Preference {
     static async getKaspaTxList() {
         await Preference.load()
         return Preference.store?.getState().kaspaTxList
+    }
+
+    static async getUiModel() {
+        await Preference.load()
+        return Preference.store?.getState().uiModel || 'main';
+    }
+    static async setUiModel(uiModel: uiModel) {
+        await Preference.load();
+        const nextMode: uiModel = uiModel === 'sidepanel' ? 'sidepanel' : 'main';
+        Preference.store?.updateState({ uiModel: nextMode });
+        return Preference.persistToStorage();
     }
 
     static async setEvm20TokenList(chainId: string, data: EvmTokenList[]) {
@@ -214,7 +227,8 @@ export class Preference {
                 }
             },
             lockTime: 3600000,
-            evmTokenList: {}
+            evmTokenList: {},
+            uiModel: 'main' as uiModel,
         }
     }
 

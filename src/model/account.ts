@@ -1,3 +1,4 @@
+import { uiModel } from '@/types/type';
 import {Oplist, TokenList } from '@/model/krc20'
 import { KaspaTransaction } from '@/utils/wallet/kaspa'
 import { Account, AccountDisplay } from '@/model/wallet'
@@ -50,6 +51,7 @@ export type PreferenceState = {
     contractAddress?: Record<string, string>,
     lockTime: number,
     kasPrice?: KasPrice,
+    uiModel?: uiModel,
     index?: string,
 }
 

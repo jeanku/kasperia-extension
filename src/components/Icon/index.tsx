@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 
 import refresh from '@/assets/icons/refresh.svg'
 import footerWallet from '@/assets/icons/footer-wallet.svg'
@@ -89,29 +89,46 @@ const svgRegistry = {
 type IconName = keyof typeof svgRegistry;
 
 const svgCache: Record<string, string> = {};
+const isSidePanelPage = window.location.pathname.includes('side_panel');
+const ICON_DELAY = !isSidePanelPage ? 0 :290;
+
 export const SvgIcon = ({
-                            iconName,
-                            size = 24,
-                            color = "#D8D8D8",
-                            offsetStyle = {},
-                            onClick,
-                            className,
-                        }: {
+    iconName,
+    size = 24,
+    color = "#D8D8D8",
+    offsetStyle = {},
+    onClick,
+    className,
+}: {
     iconName: IconName;
     size?: number;
-    color?: string,
-    offsetStyle?: {},
-    className?: string,
-    onClick?: () => void
+    color?: string;
+    offsetStyle?: React.CSSProperties;
+    className?: string;
+    onClick?: () => void;
 }) => {
-    const [svgContent, setSvgContent] = useState<string | null>(null)
+    const [svgContent, setSvgContent] = useState<string | null>(null);
     const isPng = iconName.startsWith('Png');
     useEffect(() => {
+        let cancelled = false;
+        let timer: number | undefined;
         if (isPng) return;
         const cacheKey = `${iconName}-${color || 'color'}`;
+
+        const showLater = (content: string) => {
+            timer = window.setTimeout(() => {
+                if (!cancelled) {
+                    setSvgContent(content);
+                }
+            }, ICON_DELAY);
+        };
+
         if (svgCache[cacheKey]) {
-            setSvgContent(svgCache[cacheKey]);
-            return;
+            showLater(svgCache[cacheKey]);
+            return () => {
+                cancelled = true;
+                if (timer) window.clearTimeout(timer);
+            };
         }
         const fetchSvg = async () => {
             try {
@@ -128,13 +145,18 @@ export const SvgIcon = ({
                     return match.replace(/fill="[^"]*"/g, `fill="${color}"`);
                 });
                 svgCache[cacheKey] = svgText;
-                setSvgContent(svgText);
+                showLater(svgText);
             } catch (error) {
                 console.error(`Failed to load SVG: ${iconName}`, error);
             }
         };
         fetchSvg();
-    }, [iconName, size, isPng]);
+        return () => {
+            cancelled = true;
+            if (timer) window.clearTimeout(timer);
+        };
+    }, [iconName, isPng, color]);
+
     if (isPng) {
         return (
             <img
@@ -147,6 +169,7 @@ export const SvgIcon = ({
                 }}
                 className={className}
                 onClick={onClick}
+                draggable={false}
             />
         );
     }

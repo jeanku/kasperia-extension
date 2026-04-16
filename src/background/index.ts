@@ -46,9 +46,7 @@ export async function applyUiMode(uiMode: 'main' | 'sidepanel') {
             openPanelOnActionClick: false,
         });
         await chrome.action.setPopup({ popup: 'index.html' });
-        await chrome.storage.local.set({ uiMode });
     }
-    await chrome.storage.local.set({ uiMode });
 }
 
 

@@ -11,11 +11,6 @@ const handlers: Record<string, (message: any) => Promise<any> | any> = {
     "Keyring.isLocked": () => keyringService.isLocked(),
     "Keyring.lock": () => keyringService.lock(),
     "Keyring.unlock": (msg) => keyringService.unlock(msg.password),
-    "Keyring.setUiMode": async (msg) => {
-        await applyUiMode(msg.uiMode)
-        return true;
-    },
-    "Keyring.getUiMode": () => keyringService.getUiMode(),
 
     "Keyring.setActiveWallet": (msg) => keyringService.setActiveWallet(msg.id),
     "Keyring.getActiveAccountDisplay": () => keyringService.getActiveAccountDisplay(),
@@ -66,6 +61,13 @@ const handlers: Record<string, (message: any) => Promise<any> | any> = {
     "Preference.setContractAddress": (msg) => preferenceService.setContractAddress(msg.data),
     "Preference.setEvm20TokenList": (msg) => preferenceService.setEvm20TokenList(msg.chainId, msg.data),
     "Preference.setIndex": (msg) => preferenceService.setIndex(msg.index),
+    "Preference.setUiModel": async (msg) => {
+        const nextModel = msg.uiModel === 'sidepanel' ? 'sidepanel' : 'main';
+        await preferenceService.setUiModel(nextModel);
+        await applyUiMode(nextModel);
+        return { uiModel: nextModel };
+    },
+    "Preference.getUiModel": () => preferenceService.getUiModel(),
 
     "Permission.addConnectedSite": (msg) => permissionService.addConnectedSite(msg.origin, msg.name, msg.icon),
     "Permission.getConnectedSites": () => permissionService.getConnectedSites(),

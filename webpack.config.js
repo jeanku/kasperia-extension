@@ -65,11 +65,17 @@ module.exports = (env, argv) => {
                     ]
                 },
                 {
+                    test: /\.svg$/i,
+                    resourceQuery: /raw/,
+                    type: 'asset/source',
+                },
+                {
                     test: /\.(png|svg|jpg|jpeg|gif)$/i,
+                    resourceQuery: { not: [/raw/] },
                     type: 'asset',
                     parser: {
                         dataUrlCondition: {
-                            maxSize: 15 * 1024,
+                        maxSize: 15 * 1024,
                         },
                     },
                     generator: {

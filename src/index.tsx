@@ -8,8 +8,8 @@ import { Provider } from "react-redux";
 import { store } from "./store";
 import { isExtensionPopup } from './utils/util'
 
+const rootElement = document.getElementById('root')!;
 const RootComponent = () => {
-    const rootElement = document.getElementById('root')!;
     const isExtension = isExtensionPopup();
     if (!isExtension) {
         rootElement.classList.remove('extension-container');
@@ -23,6 +23,4 @@ const RootComponent = () => {
         </Provider>
     );
 };
-
-const rootElement = document.getElementById('root')!;
 createRoot(rootElement).render(<RootComponent />);

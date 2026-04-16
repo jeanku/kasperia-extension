@@ -57,6 +57,13 @@ const Home = () => {
     const { preference } = useSelector((state: RootState) => state.preference);
     const { homeSelectTab } = useSelector((state: RootState) => state.user);
 
+    const BOOT_DELAY_KEY = 'extension_boot_delayed';
+    const isSidePanelPage = window.location.pathname.includes('side_panel');
+    const [contentReady, setContentReady] = useState(() => {
+        if (!isSidePanelPage) return true;
+        return sessionStorage.getItem(BOOT_DELAY_KEY) === '1';
+    });
+
     const currentAccount = useSelector((state: RootState) => state.preference.preference?.currentAccount);
 
     const [isConnect, setIsConnect] = useState<boolean>(false);
@@ -103,6 +110,18 @@ const Home = () => {
             handleHomeTab(key)
         }
     }, [currentAccount]);
+
+    useEffect(() => {
+        let timer: number | undefined;
+        if (!isSidePanelPage || contentReady) return;
+        timer = window.setTimeout(() => {
+            sessionStorage.setItem(BOOT_DELAY_KEY, '1');
+            setContentReady(true);
+        }, 310);
+        return () => {
+            if (timer) window.clearTimeout(timer);
+        };
+    }, [contentReady, isSidePanelPage]);
 
     const actions: Action[] = useMemo(() => {
         const baseActions: Action[] = [
@@ -390,6 +409,9 @@ const Home = () => {
         setKnsHasMore(hasMore)
         setKnsPage(resp.data.pagination.currentPage)
         setListLoadingType(0)
+    }
+    if (!contentReady) {
+        return <div className="page-box" />;
     }
 
     return (

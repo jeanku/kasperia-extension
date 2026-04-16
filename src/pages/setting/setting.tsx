@@ -4,6 +4,7 @@ import Footer from '@/components/Footer'
 import { useNavigate } from "react-router-dom";
 import { Keyring } from "@/chrome/keyring"
 import { SvgIcon } from '@/components/Icon/index'
+import { Preference } from '@/chrome/preference'
 import { openUrl } from '@/utils/util'
 import {useSelector} from "react-redux";
 import {RootState} from "@/store";
@@ -20,7 +21,7 @@ const Setting = () => {
     const switchWindow = async () => {
         const nextMode = mode === 'main' ? 'sidepanel' : 'main';
         const current = await chrome.windows.getCurrent();
-        await Keyring.setUiMode(nextMode);
+        await Preference.setUiModel(nextMode);
         setMode(nextMode);
         if (nextMode === 'sidepanel') {
             await chrome.sidePanel.open({ windowId: current.id! });
@@ -40,7 +41,7 @@ const Setting = () => {
 
     useEffect(() => {
         const init = async () => {
-            const res = await Keyring.getUiMode();
+            const res = await Preference.getUiModel();
             setMode(res);
         };
         init();

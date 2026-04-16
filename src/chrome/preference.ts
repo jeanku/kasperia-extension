@@ -4,6 +4,7 @@ import { TokenList, Oplist, } from '@/model/krc20'
 import { KaspaTransaction } from '@/utils/wallet/kaspa'
 import {EvmTokenList} from "@/model/evm";
 import {AccountDisplay} from "@/model/wallet";
+import type { uiModel } from '@/types/type'
 
 export class Preference extends Chrome {
 
@@ -93,5 +94,13 @@ export class Preference extends Chrome {
 
     static setIndex(index: string) {
         return Chrome.request({ action: "Preference.setIndex", index })
+    }
+
+    static setUiModel(uiModel: uiModel) {
+        return Chrome.request({ action: "Preference.setUiModel", uiModel })
+    }
+
+    static getUiModel() {
+        return Chrome.request({ action: "Preference.getUiModel" })
     }
 }

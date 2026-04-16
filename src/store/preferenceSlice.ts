@@ -6,6 +6,7 @@ import { Oplist, TokenList } from '@/model/krc20';
 import { KaspaTransaction } from '@/utils/wallet/kaspa';
 import { EvmTokenList } from "@/model/evm";
 import { Preference } from "@/chrome/preference";
+import { uiModel } from "@/types/type";
 
 const preferenceSlice = createSlice({
     name: "preference",
@@ -93,6 +94,13 @@ const preferenceSlice = createSlice({
             if (state.preference) {
                 state.preference.contractAddress = action.payload;
                 Preference.setContractAddress(action.payload)
+            }
+        },
+
+        setUiModel: (state, action: PayloadAction<uiModel>) => {
+            if (state.preference) {
+                state.preference.uiModel = action.payload;
+                Preference.setUiModel(action.payload)
             }
         },
     },
