@@ -94,7 +94,7 @@ const handlers: Record<string, (message: any) => Promise<any> | any> = {
     "Share.remove": (msg) => shareService.remove(msg.id),
 
 
-    "Account.signMessage": (msg) => accountService.signMessage(msg.message),
+    "Account.signMessage": (msg) => accountService.signMessage(msg.message, msg.type, msg.noAuxRand),
     "Account.getBalance": (msg) => accountService.getBalance(msg.address),
     "Account.getAddressesBalance": (msg) => accountService.getAddressesBalance(msg.addresses),
     "Account.transferKrc20": (msg) => accountService.transferKrc20(msg.tick, msg.ca, msg.amount, msg.to),
@@ -116,6 +116,7 @@ const handlers: Record<string, (message: any) => Promise<any> | any> = {
     "AccountEvm.getERC20Tokens": (msg) => accountEvmService.getERC20Tokens(msg.address),
     "AccountEvm.getERC20Info": (msg) => accountEvmService.getERC20Info(msg.address),
     "AccountEvm.getTokenAllowance": (msg) => accountEvmService.getTokenAllowance(msg.address, msg.token, msg.bridgeAddress, msg.decimals),
+    "AccountEvm.signMessage": (msg) => accountEvmService.signMessage(msg.message),
 };
 
 const handleError = (error: unknown, sendResponse: (response: any) => void) => {

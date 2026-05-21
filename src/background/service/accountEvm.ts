@@ -3,6 +3,7 @@ import {EvmTokenList} from '@/model/evm'
 import {Provider} from "@/utils/provider";
 import {BlockTag, TransactionRequest} from "ethers/src.ts/providers/provider";
 import { ethers } from "ethers";
+import {Keypair, Wallet} from '@/utils/wallet/wallet'
 
 export const ERC20_ABI = [
     "function totalSupply() view returns (uint256)",
@@ -32,6 +33,13 @@ export class AccountEvm {
         let provider = new Provider(network.rpcUrl, chainId)
         this.client.set(chainId, provider);
         return provider;
+    }
+
+    async signMessage(message: number[]) {
+        let account = await keyringService.getActiveWalletPrivateKeyForEvm()
+        let wallet = Wallet.fromPrivateKey(account.priKey)
+        const bytes = new Uint8Array(message);
+        return wallet.wallet.signMessage(bytes)
     }
 
     async getERC20Tokens(address: string): Promise<EvmTokenList[]> {

@@ -4,6 +4,7 @@ export { Connect } from "./connect"
 export { SwitchNetwork } from "./switchNetwork"
 export { SwitchChain } from "./switchChain"
 export { SignMessage } from './signMessage'
+export { KaspaSignMessage } from './kaspaSignMessage'
 export { SendTransaction } from "./sendTransaction"
 export { AddEthereumChain } from "./addEthereumChain"
 export { AddErc20Token } from "./addErc20Token"

@@ -31,6 +31,7 @@ import { addressFromScriptPublicKey } from '@/utils/wallet/util';
 import { payToScriptHashSignatureScript } from '@/utils/wallet/tx/script';
 import {AccountType, AddressType, ChainPath, LockTime} from '@/types/enum';
 import { IGRAL1ToL2BridgeAddressForTestnet, IGRAL1ToL2BridgeAddressForMainnet } from '@/types/constant'
+import { hexlify } from "ethers";
 
 export class Account {
     private client: RpcClient | undefined = undefined
@@ -93,16 +94,23 @@ export class Account {
         this.client = undefined
     }
 
-    async signMessage(message: number[]) {
-        let account = await keyringService.getActiveWalletPrivateKeyForEvm()
-        let wallet = Wallet.fromPrivateKey(account.priKey)
-        const bytes = new Uint8Array(message);
-        return wallet.wallet.signMessage(bytes)
+    async signMessage(message: string, type?: string, noAuxRand?: boolean,) {
+        const account = await keyringService.getActiveWalletPrivateKeyForEvm();
+        const keypair = Keypair.fromPrivateKeyHex(account.priKey);
+        if (type != undefined && type.toLowerCase() === "ecdsa") {
+            return Buffer.from(keypair.signEcdsaMessage(message)).toString("hex")
+        } else {
+            if (noAuxRand === true) {
+                const bytes = new TextEncoder().encode(message);
+                return Buffer.from(keypair.signMessageWithAuxData(bytes, new Uint8Array(32))).toString("hex")
+            }
+            return Buffer.from(keypair.signMessgae(message)).toString("hex")
+        }
     }
 
-    async transferKrc20(tick: string | undefined, ca: string | undefined, amount: string, to: string) {
+    async transferKrc20WithP2sh(tick: string | undefined, ca: string | undefined, amount: string, to: string) {
         const options = {
-            tick, ca, to, amount: BigInt(amount),
+            tick, ca, to, amount: amount,
         };
         let account = keyringService.currentAccount()
         let networkId = await preferenceService.getNetworkId()
@@ -159,6 +167,32 @@ export class Account {
             allowOrphan: false
         });
         return revealTransaction!.tx.id.toHex()
+    }
+
+    async transferKrc20(tick: string | undefined, ca: string | undefined, amount: string, to: string) {
+        const options = {
+            tick, ca, to, amount,
+        };
+        let account = keyringService.currentAccount()
+        let networkId = await preferenceService.getNetworkId()
+        const senderAddress = Keypair.fromPrivateKeyHex(account.priKey).toAddress(networkId.networkType);
+        const script = new Krc20TransferScript(senderAddress, networkId, options);
+
+        let utxos = await this.client?.getUtxosByAddresses([senderAddress.toString()])
+        if (!utxos) {
+            throw Error("fetch utxo fail")
+        }
+        const payloadArray = stringToUint8Array(script.json);
+        let setting = new GeneratorSettings([], senderAddress, utxos.entries, networkId, 0n, undefined, undefined, undefined, payloadArray);
+        const generator = new Generator(setting);
+        let transaction = generator.generateTransaction()
+        const signedTx = await transaction!.sign([account.priKey]);
+        await this.client?.submitTransaction({
+            transaction: signedTx.toSubmittableJsonTx(),
+            allowOrphan: false
+        });
+        this.resetEntry()
+        return signedTx.transaction.id.toString()
     }
 
     async deployKrc20(options: Krc20DeployOptions) {

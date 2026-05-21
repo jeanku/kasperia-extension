@@ -90,6 +90,7 @@ import {
   AddEthereumChain,
   AddErc20Token,
   SignMessage as NotificatioSign,
+  KaspaSignMessage as NotificatioSignKaspa,
   SubmitCommitReveal,
 } from "@/pages/notification";
 
@@ -188,6 +189,7 @@ const AppRouter: React.FC = () => {
             <Route path="notification/switchNetwork" element={<SwitchNetwork />} />
             <Route path="notification/switchChain" element={<SwitchChain />} />
             <Route path="notification/sign" element={<NotificatioSign />} />
+            <Route path="notification/sign-kaspa" element={<NotificatioSignKaspa />} />
             <Route path="notification/sendTransaction" element={<SendTransaction />} />
             <Route path="notification/addEthereumChain" element={<AddEthereumChain />} />
             <Route path="notification/addErc20Token" element={<AddErc20Token />} />

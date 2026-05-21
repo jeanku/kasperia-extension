@@ -7,6 +7,10 @@ import { SubmitSetting, SubmitBuilderOptions } from '@/model/account'
 
 export class AccountEvm extends Chrome {
 
+    static signMessage(message: number[]): Promise<string> {
+        return Chrome.request({ action: "AccountEvm.signMessage", message })
+    }
+
     static getEvmBalanceFormatEther(address: string): Promise<any> {
         return Chrome.request({ action: "AccountEvm.getBalanceFormatEther", address })
     }

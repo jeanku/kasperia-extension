@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react"
 import { Notification } from '@/chrome/notification'
 import { Account } from '@/chrome/account'
-import { AccountEvm } from '@/chrome/accountEvm'
 import { formatAddress, formatSignMessage, hexDecode } from '@/utils/util'
 import { Button, Divider } from 'antd-mobile'
 
@@ -14,6 +13,8 @@ interface Session {
 interface SignData {
     message: string,
     address: string,
+    type?: string,
+    noAuxRand?: boolean,
 }
 
 interface RequestParam {
@@ -21,7 +22,7 @@ interface RequestParam {
     session: Session
 }
 
-const SignMessage = () => {
+const KaspaSignMessage = () => {
     const [session, setSession] = useState<Session | undefined>(undefined)
     const [data, setData] = useState<SignData | undefined>(undefined)
     const [btnLoading, setBtnLoading] = useState<boolean>(false)
@@ -40,8 +41,7 @@ const SignMessage = () => {
         if (!data?.message) {
             return
         }
-        let signMessage = formatSignMessage(data?.message)
-        let signature = await AccountEvm.signMessage(Array.from(signMessage))
+        let signature = await Account.signMessage(data.message, data?.type, data?.noAuxRand)
         Notification.resolveApproval(signature)
     }
     const decodedMessage = hexDecode(data?.message);
@@ -97,4 +97,4 @@ const SignMessage = () => {
     )
 }
 
-export { SignMessage }
+export { KaspaSignMessage }

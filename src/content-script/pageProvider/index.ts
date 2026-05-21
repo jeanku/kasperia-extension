@@ -201,6 +201,17 @@ export class KasperiaProvider extends EventEmitter {
         });
     };
 
+    signMessage = async (text: string, params: { type?: 'auto' | 'schnorr' | 'ecdsa', noAuxRand?: boolean }) => {
+        return this._request({
+            method: 'signKaspaMessage',
+            params: {
+                message: text,
+                type: params?.type,
+                noAuxRand: params?.noAuxRand,
+            }
+        });
+    };
+
     sendKaspa = async (toAddress: string, amount: string, options: any) => {
         if (toAddress == undefined || toAddress.trim()  == '') {
             throw Error("toAddress must be a valid kaspa address")
@@ -217,6 +228,10 @@ export class KasperiaProvider extends EventEmitter {
                 options
             }
         });
+    };
+
+    sendCovenantTransaction = async (unsignTx: object) => {
+        
     };
 
     submitCommitReveal = async (reveal: SubmitSetting, options: SubmitBuilderOptions) => {
@@ -242,7 +257,7 @@ export class KasperiaProvider extends EventEmitter {
     };
 
     getVersion = async () => {
-        return "1.10.80";
+        return "1.10.81";
     };
 
     async request({ method, params }: RequestArguments): Promise<any> {

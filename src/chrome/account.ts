@@ -5,8 +5,8 @@ import { SubmitSetting, SubmitBuilderOptions } from '@/model/account'
 
 export class Account extends Chrome {
 
-    static signMessage(message: number[]): Promise<string> {
-        return Chrome.request({ action: "Account.signMessage", message })
+    static signMessage(message: string, type: string | undefined, noAuxRand: boolean|undefined): Promise<string> {
+        return Chrome.request({ action: "Account.signMessage", message, type, noAuxRand})
     }
 
     static getBalance(address: string | undefined = undefined): Promise<any> {

@@ -43,13 +43,11 @@ export class Provider {
         const req = new FetchRequest(url);
         req.timeout = 10000;
         req.setHeader("content-type", "application/json");
-
         const provider = new ethers.JsonRpcProvider(
             req,
             { chainId: this.chainId, name: "custom" },
             { staticNetwork: true, batchMaxCount: 1 }
         );
-
         await provider.getBlockNumber();
         return provider;
     }
@@ -63,6 +61,8 @@ export class Provider {
             this.provider = await this.providerPromise;
             return this.provider;
         } catch (error) {
+            this.provider = undefined;
+            this.providerPromise = undefined;
             throw new Error("fetch rpc error")
         }
     }
@@ -71,14 +71,13 @@ export class Provider {
         const start = Date.now();
         try {
             const req = new FetchRequest(url);
-            req.timeout = 1000;
+            req.timeout = 10000;
             const p = new ethers.JsonRpcProvider(
                 req,
                 { chainId: this.chainId, name: "custom" },
                 { staticNetwork: true, batchMaxCount: 1 }
             );
             await p.getBlockNumber();
-
             const latency = Date.now() - start;
             this.health.get(url)!.ok++;
             this.health.get(url)!.latency = latency;

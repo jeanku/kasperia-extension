@@ -96,6 +96,22 @@ class ProviderController {
         )
     }
 
+    signKaspaMessage = async (request: RequestProps) => {
+        const address = await keyringService._getActiveAddress();
+        return await notificationService.requestApproval(
+            {
+                data: {
+                    address: address,
+                    message: request.data.params.message,
+                    type:      request.data.params.type,
+                    noAuxRand: request.data.params.noAuxRand,
+                },
+                session: request.session
+            },
+            { route: "/evokeBoost/notification/sign-kaspa" }
+        )
+    }
+
     disconnect = async (request: RequestProps) => {
         let origin = request.session.origin
         if (origin) {
